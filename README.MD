@@ -3,6 +3,7 @@ Simple steps to setup the repository
 ## Requirements
  1. Download Git [here](https://git-scm.com/download/win)
  2. Create a GitHub account [here](https://github.com/signup)
+ 3. Download Unity [here](https://unity.com/download)
 ## Clone repository
 1. Open up CMD
 2. Navigate to the root folder where you want to clone the repository, no need to create a subfolder
@@ -34,3 +35,5 @@ git push
 ```
 ## Merge working branch to the Main branch
 This will be done through the process of a "Pull Request" in the GitHub UI
+
+Open up "Unity Hub" and Import the Fractured Mind project
