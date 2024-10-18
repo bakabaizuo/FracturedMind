@@ -4,7 +4,7 @@ using UnityEngine;
 ///This Script With the Usage of Kenetics IK will allow an NPC to look at the target "Player" Tutorial Info from Inverse Kinematics Unity Manual <summary>
 /// This Script With the Usage of Kenetics IK will allow an NPC to look at the target "Player" Tutorial Info from Inverse Kinematics Unity Manual
 /// </summary>
-/// Make sure to set the IK in the BaseLayer and the script component to true 
+/// Make sure to set the IK in the BaseLayer and the script component to true the Animator must be a controller named NPCAnimatorA and must have a humanoid Avatar 
 public class managerIK : MonoBehaviour
 {
 
