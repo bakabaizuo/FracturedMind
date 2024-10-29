@@ -14,6 +14,7 @@ namespace StarterAssets
 #endif
     public class ThirdPersonController : MonoBehaviour
     {
+
         [Header("Player")]
         [Tooltip("Move speed of the character in m/s")]
         public float MoveSpeed = 2.0f;
@@ -129,6 +130,7 @@ namespace StarterAssets
             if (_mainCamera == null)
             {
                 _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+            
             }
         }
 
@@ -154,6 +156,11 @@ namespace StarterAssets
 
         private void Update()
         {
+
+            ///CROUCH SYSTEM
+
+            
+            ///Animator Stuff
             _hasAnimator = TryGetComponent(out _animator);
 
             JumpAndGravity();
@@ -368,6 +375,9 @@ namespace StarterAssets
                 new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z),
                 GroundedRadius);
         }
+
+
+
 
         private void OnFootstep(AnimationEvent animationEvent)
         {
