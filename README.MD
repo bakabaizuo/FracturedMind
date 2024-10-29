@@ -1,5 +1,3 @@
-////Current Unstable Version is 0.2 The Scene can be found in Assets might need to put in root folder
-
 # Setup repo
 Simple steps to setup the repository
 ## Requirements
