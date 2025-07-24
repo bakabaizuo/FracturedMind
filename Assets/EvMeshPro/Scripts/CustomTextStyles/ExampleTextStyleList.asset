@@ -1,0 +1,205 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac6cf4b47b6a3b34fa2fc25f7d908a24, type: 3}
+  m_Name: ExampleTextStyleList
+  m_EditorClassIdentifier: 
+  previewSampleText: FIGHT
+  customTextStyles:
+  - tagID: GREEN
+    overrideColor: 1
+    textColor: {r: 0.10196078, g: 0.93333334, b: 0.34619594, a: 1}
+    overrideFontSize: 1
+    sizeChangeAsPercent: 1
+    fontSize: 100
+    overrideCharacterSpacing: 0
+    spacingSize: 3.3
+    isBold: 0
+    isItalic: 1
+    isAllCaps: 1
+    isStrikeThrough: 0
+    isUnderLine: 0
+    isHighlighted: 0
+    highLightColor: {r: 0.8980392, g: 0.17254902, b: 0.35134017, a: 1}
+    useTextAnimation: 1
+    textAnimationSettings:
+      animStartIndex: 0
+      animEndIndex: 0
+      useBounceEffect: 0
+      bounceScale: 3
+      bounceFrequency: 6
+      useScaleEffect: 0
+      scaleRate: 2.5
+      scaleMax: 4
+      scaleMin: 1
+      useRainbowEffect: 0
+      rainbowWidth: 0.001
+      rainbowDirection: 0
+      rainbow:
+        serializedVersion: 2
+        key0: {r: 0.9056604, g: 0.20932718, b: 0.20932718, a: 1}
+        key1: {r: 0.13725488, g: 0.8862745, b: 0.19049339, a: 1}
+        key2: {r: 0.18867922, g: 0.18430263, b: 0.14150941, a: 0}
+        key3: {r: 0.12156863, g: 0.43989018, b: 0.5254902, a: 0}
+        key4: {r: 0.8679245, g: 0.061409745, b: 0.061409745, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 19275
+        ctime2: 33731
+        ctime3: 43947
+        ctime4: 65535
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 0
+        m_NumColorKeys: 5
+        m_NumAlphaKeys: 2
+      useRotateEffect: 1
+      pingPongRotation: 0
+      rotateAngle: 90
+      rotateFrequency: 10
+      rotationAxis: {x: 0, y: 1, z: 0}
+  - tagID: NAMES
+    overrideColor: 1
+    textColor: {r: 0.1254902, g: 0.42596555, b: 0.9137255, a: 1}
+    overrideFontSize: 0
+    sizeChangeAsPercent: 0
+    fontSize: 40
+    overrideCharacterSpacing: 0
+    spacingSize: 50
+    isBold: 1
+    isItalic: 0
+    isAllCaps: 1
+    isStrikeThrough: 0
+    isUnderLine: 0
+    isHighlighted: 0
+    highLightColor: {r: 0.8980392, g: 0.6714969, b: 0.17254902, a: 1}
+    useTextAnimation: 1
+    textAnimationSettings:
+      animStartIndex: 0
+      animEndIndex: 0
+      useBounceEffect: 1
+      bounceScale: 4
+      bounceFrequency: 5
+      useScaleEffect: 0
+      scaleRate: 0
+      scaleMax: 0
+      scaleMin: 0
+      useRainbowEffect: 1
+      rainbowWidth: 0.00424
+      rainbowDirection: 0
+      rainbow:
+        serializedVersion: 2
+        key0: {r: 0.47388253, g: 0.990566, b: 0.042052314, a: 1}
+        key1: {r: 0, g: 0, b: 0, a: 1}
+        key2: {r: 0.016776435, g: 0.122641504, b: 0.081125796, a: 0}
+        key3: {r: 0, g: 0.6684909, b: 1, a: 0}
+        key4: {r: 1, g: 0.1273585, b: 0.8949136, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 18697
+        ctime2: 25636
+        ctime3: 43754
+        ctime4: 65535
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 0
+        m_NumColorKeys: 5
+        m_NumAlphaKeys: 2
+      useRotateEffect: 1
+      pingPongRotation: 0
+      rotateAngle: 0
+      rotateFrequency: 2
+      rotationAxis: {x: 0, y: 0, z: 1}
+  - tagID: EXAGGERATE
+    overrideColor: 1
+    textColor: {r: 0.9137255, g: 0.27777937, b: 0.1254902, a: 1}
+    overrideFontSize: 1
+    sizeChangeAsPercent: 1
+    fontSize: 110
+    overrideCharacterSpacing: 1
+    spacingSize: 10
+    isBold: 1
+    isItalic: 0
+    isAllCaps: 1
+    isStrikeThrough: 0
+    isUnderLine: 0
+    isHighlighted: 0
+    highLightColor: {r: 0.8980392, g: 0.6714969, b: 0.17254902, a: 1}
+    useTextAnimation: 0
+    textAnimationSettings:
+      animStartIndex: 0
+      animEndIndex: 0
+      useBounceEffect: 0
+      bounceScale: 0
+      bounceFrequency: 0
+      useScaleEffect: 0
+      scaleRate: 0
+      scaleMax: 0
+      scaleMin: 0
+      useRainbowEffect: 0
+      rainbowWidth: 0
+      rainbowDirection: 0
+      rainbow:
+        serializedVersion: 2
+        key0: {r: 1, g: 1, b: 1, a: 1}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 0
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      useRotateEffect: 0
+      pingPongRotation: 0
+      rotateAngle: 0
+      rotateFrequency: 0
+      rotationAxis: {x: 0, y: 0, z: 0}
