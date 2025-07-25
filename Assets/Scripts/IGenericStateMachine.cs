@@ -4,19 +4,31 @@ using UnityEngine;
 
 //String is the current type for states.
 //O is the type of expected output
-public interface GenericStateMachine<O>{
+public interface IGenericStateMachine<T>{
   
   //<summary> get Machine state <\summary>
   public string getState();
   
-  /*store required input as variable or catch it with function then use it in transitionState()
-    or create an override for required input.
-  */
-  //why is transitionState public? Machine must be updated by anything that needs it.
   //<summary> change machine state <\summary>
-  public string transitionState();
+  private string transitionState();
+  /*
+   * If State transition needs input, do any of the following:
+   *      1. Catch it with a function
+   *      2. Save it as an attribute
+   *      3. Overload this with required inputs as parameters 
+   *         BUT
+   *         Always implement this going to the default state.
+   *
+  */
+  /* 
+   * If this function must be called beyond the machine, 
+   * wrap it with a function with the needed modifier.
+   * i.e. public void forceStateChange(){
+   *  this.transitionState();
+   * }
+   * */
 
-  //override doState required input if you want to do a mealy type of FSM.
   //<summary> Do whatever state entails <\summary>
-  public O doState();
+  public T doState();
+  //override doState required input if you want to do a mealy type of FSM.
 }
