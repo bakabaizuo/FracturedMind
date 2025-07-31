@@ -13,12 +13,12 @@ public class SimpleConeDetector : MonoBehaviour
     private float viewAngle;
     public bool detectSingle(Vector3 targetPosition){
       Vector3 offset = position-targetPosition;
-      float targetDistance = Mathf.Sqrt(Vector3.SqrMagnitude(offset));
       //use an actual normalization if this causes problems
-      float visibility = Vector3.Dot(facing.normalized,offset*(1/targetDistance));
-      return targetDistance <= range && 
-              Mathf.Cos(halfXFOV)< visibility 
-              && Mathf.Cos(halfYFOV) < visibility; 
+      //float visibility = Vector3.Dot(facing.normalized,offset*(1/targetDistance));
+      float theta = Vector3.Angle(facing,offset);
+      return offset.sqrMagnitude <= range && 
+              halfXFOV< theta 
+              && halfYFOV < theta; 
 
     }    
 
@@ -26,7 +26,8 @@ public class SimpleConeDetector : MonoBehaviour
     void Start()
     {
       range = 2;
-        
+      squareRange = range * range;
+      halfYFOV = halfXFOV = 45.0f;        
     }
 
     // Update is called once per frame
