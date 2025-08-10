@@ -19,8 +19,6 @@ namespace StealthAI
         public Array states() => Enum.GetValues(typeof(States));
         private States currentState;
         public string getCurrentState () => currentState.ToString();
-       
-
 
         private States TransitionState() =>
             currentState switch

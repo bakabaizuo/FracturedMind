@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Detectors 
+public struct Detectors 
 {
   public static bool DetectInSphere(Vector3 offset, float distance) => offset.sqrMagnitude <= (distance * distance);
   public static bool DetectInSphere(Vector3 origin, Vector3 target, float distance)=>
@@ -12,5 +12,9 @@ public class Detectors
   public static bool DetectInAngle(Vector3 facing, Vector3 offset, float theta) =>
     Vector3.Dot(facing.normalized, offset.normalized) > Mathf.Cos(theta);
   
+  public static bool DetectInCone(Vector3 origin, Vector3 targetPosition, Vector3 facing,float range, float theta){
+    Vector3 offset = origin-targetPosition;
+    return DetectInSphere(offset,range) && DetectInAngle(facing,offset,theta);
+  }    
 
-}
+ }

@@ -31,49 +31,49 @@ public class IsCrouchingControl : MonoBehaviour
         input.Player.Sprint.canceled += ctx => StopSprint();
     }
 
-void Start()
-{
-    playerAnimator = GetComponent<Animator>();
-    if (playerAnimator == null)
+    void Start()
     {
-        Debug.LogError("Animator component is missing!");
-        enabled = false;
-        return;
-    }
-    {
-    if (playerAnimator != null)
-    {
-        foreach (var param in playerAnimator.parameters)
+        playerAnimator = GetComponent<Animator>();
+        if (playerAnimator == null)
         {
-            Debug.Log($"Animator Parameter: {param.name} ({param.type})");
+            Debug.LogError("Animator component is missing!");
+            enabled = false;
+            return;
         }
+        {
+            if (playerAnimator != null)
+            {
+                foreach (var param in playerAnimator.parameters)
+                {
+                    Debug.Log($"Animator Parameter: {param.name} ({param.type})");
+                }
+            }
+            if (playerAnimator == null)
+            {
+                Debug.LogError("Player Animator is not assigned properly!");
+            }
+            else
+            {
+                Debug.Log("Player Animator is assigned and valid.");
+            }
+            if (playerAnimator != null)
+            {
+                Debug.Log("Animator initialized");
+                playerAnimator.SetBool(isCrouchingHash, true);
+            }
+        }
+
+        isCrouchingHash = Animator.StringToHash("isCrouching");
+        isMovingCrouchHash = Animator.StringToHash("isMovingCrouch");
+        isDodgingHash = Animator.StringToHash("isDodging");
+        dodgeStateHash = Animator.StringToHash("Dodge");
+
+        // Debug log to check if the hash values are correct
+        Debug.Log("isCrouchingHash: " + isCrouchingHash);
+        Debug.Log("isMovingCrouchHash: " + isMovingCrouchHash);
+        Debug.Log("isDodgingHash: " + isDodgingHash);
+        Debug.Log("dodgeStateHash: " + dodgeStateHash);
     }
-    if (playerAnimator == null)
-{
-    Debug.LogError("Player Animator is not assigned properly!");
-}
-else
-{
-    Debug.Log("Player Animator is assigned and valid.");
-}
-if (playerAnimator != null)
-{
-    Debug.Log("Animator initialized");
-    playerAnimator.SetBool(isCrouchingHash, true);
-}
-}
-
-    isCrouchingHash = Animator.StringToHash("isCrouching");
-    isMovingCrouchHash = Animator.StringToHash("isMovingCrouch");
-    isDodgingHash = Animator.StringToHash("isDodging");
-    dodgeStateHash = Animator.StringToHash("Dodge");
-
-    // Debug log to check if the hash values are correct
-    Debug.Log("isCrouchingHash: " + isCrouchingHash);
-    Debug.Log("isMovingCrouchHash: " + isMovingCrouchHash);
-    Debug.Log("isDodgingHash: " + isDodgingHash);
-    Debug.Log("dodgeStateHash: " + dodgeStateHash);
-}
 
     void Update()
     {
