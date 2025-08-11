@@ -13,13 +13,13 @@ public EntityManager entityManager;
          entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
         test = entityManager.CreateEntity(typeof(SimpleConeDetector));
         entityManager.SetComponentData(test, new SimpleConeDetector{range = 10});
-        Debug.Log("Starting");
+//        Debug.Log("Starting");
     }
 
     // Update is called once per frame
 void Update()
     {
-      bool exist = entityManager.Exists(test);  
-      Debug.Log(exist);
+   //   bool exist = entityManager.Exists(test);  
+ //     Debug.Log(exist);
     }
 }
