@@ -4,7 +4,7 @@ using UnityEngine;
 using Unity.Entities;
 using UnityEditor;
 [InitializeOnLoad]
-public class Test_Level : MonoBehaviour
+public class Detector_Spawner: MonoBehaviour
 {
 public Entity test;
 public EntityManager entityManager;
@@ -12,7 +12,11 @@ public EntityManager entityManager;
     {
          entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
         test = entityManager.CreateEntity(typeof(SimpleConeDetector));
-        entityManager.SetComponentData(test, new SimpleConeDetector{range = 10});
+        entityManager.SetComponentData(test, new SimpleConeDetector{
+            range = 10,
+            viewAngle = 90,
+            
+            });
 //        Debug.Log("Starting");
     }
 

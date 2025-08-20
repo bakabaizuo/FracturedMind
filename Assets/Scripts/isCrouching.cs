@@ -23,8 +23,8 @@ public class IsCrouchingControl : MonoBehaviour
     void Awake()
     {
         input = new PlayerControlls();
-        input.Player.Crouch.performed += ctx => HandleCrouchOrDodge();
-        input.Player.Dodge.performed += ctx => HandleCrouchOrDodge();
+       // input.Player.Crouch.performed += ctx => HandleCrouchOrDodge();
+        //input.Player.Dodge.performed += ctx => HandleCrouchOrDodge();
 
         // Sprint input logic
         input.Player.Sprint.performed += ctx => StartSprint();
@@ -66,7 +66,7 @@ public class IsCrouchingControl : MonoBehaviour
         isCrouchingHash = Animator.StringToHash("isCrouching");
         isMovingCrouchHash = Animator.StringToHash("isMovingCrouch");
         isDodgingHash = Animator.StringToHash("isDodging");
-        dodgeStateHash = Animator.StringToHash("Dodge");
+//        dodgeStateHash = Animator.StringToHash("Dodge");
 
         // Debug log to check if the hash values are correct
         Debug.Log("isCrouchingHash: " + isCrouchingHash);
@@ -82,7 +82,7 @@ public class IsCrouchingControl : MonoBehaviour
             HandleMovement();
         }
 
-        DebugDodgeState();
+        //DebugDodgeState();
     }
 
     private void DebugDodgeState()
@@ -142,7 +142,7 @@ public class IsCrouchingControl : MonoBehaviour
         }
 
         bool isCrouching = playerAnimator.GetBool(isCrouchingHash);
-
+/*
         if (input.Player.Dodge.WasPressedThisFrame() && (!isCrouching || canDodgeWhileCrouching))
         {
             StartDodge();
@@ -150,7 +150,7 @@ public class IsCrouchingControl : MonoBehaviour
         else if (input.Player.Crouch.WasPressedThisFrame())
         {
             ToggleCrouch();
-        }
+        }*/
     }
 
     private void StartDodge()
