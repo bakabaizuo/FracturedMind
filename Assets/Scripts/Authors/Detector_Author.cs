@@ -15,8 +15,8 @@ public class Detector_Author : MonoBehaviour
         AddComponent(entity, new SimpleConeDetector{
            range = author.range,
            viewAngle = author.viewAngle,
-           memory = new Collider[10],
-           rayMemory = new Collider[10,10]
+//           memory = new Collider[10],
+//           rayMemory = new Collider[10,10]
           }
         );
       }

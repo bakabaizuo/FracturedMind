@@ -12,11 +12,16 @@ public partial struct TestConeSystem : ISystem
   }
     // Start is called before the first frame update
     // TODO:make this update on timer not everyframe
+  /// <summary>
+  /// [TODO:description]
+  /// </summary>
+  /// <param name="state">[TODO:description]</param>
   public void OnUpdate(ref SystemState state){
 
+      string fString = "Range is {0} m";
     ConeDetectionJob task = new ConeDetectionJob{
       dTime = SystemAPI.Time.DeltaTime,
-      label = "Range is {0} m",
+      label = fString
     };
     task.ScheduleParallel();
 
@@ -36,7 +41,7 @@ public partial struct TestConeSystem : ISystem
     public void Execute(ref SimpleConeDetector detector){
       detector.range += dTime;
       Debug.Log(FixedString.Format(label,detector.range));
-        NativeArray<OverlapBoxCommand> boxCommand = new NativeArray<OverlapBoxCommand>(1,Allocaor.TempJob);
+    //NativeArray<OverlapBoxCommand> boxCommand = new NativeArray<OverlapBoxCommand>(1,Allocaor.TempJob);
 
     }
   }
