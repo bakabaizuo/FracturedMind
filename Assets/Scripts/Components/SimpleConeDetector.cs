@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Collections;
+
 public struct SimpleConeDetector: IComponentData
 {
 //    private float halfXFOV;
