@@ -1,6 +1,6 @@
+using Unity.Collections;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Collections;
 using UnityEngine;
 using Unity.Entities;
 using Unity.Burst;
