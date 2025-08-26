@@ -1,10 +1,6 @@
 using Unity.Collections;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Unity.Entities;
-using Unity.Mathematics;
-public struct ViewBox: IComponentData
+public struct ViewBox
 {
     public NativeArray<OverlapBoxCommand> view_boxes;
     public NativeArray<ColliderHit> box_visibles;
