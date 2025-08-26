@@ -7,17 +7,26 @@ using Unity.Burst;
   [BurstCompile]
 public partial struct TestConeSystem : ISystem
 {
+  /// <summary>
+  /// Creates the System that operates on SimpleConeDetector components (only if they exist)
+  /// </summary>
+  /// <param name="state">[TODO:description]</param>
   public void OnCreate(ref SystemState state){
+    Debug.Log("SimpleConeDetector system running");
     state.RequireForUpdate<SimpleConeDetector>();
   }
     // Start is called before the first frame update
-    // TODO:make this update on timer not everyframe
   /// <summary>
-  /// [TODO:description]
+  /// update SimpleConeDetector components 
+    // TODO:make this update on timer not everyframe
   /// </summary>
   /// <param name="state">[TODO:description]</param>
   public void OnUpdate(ref SystemState state){
-
+//TODO: check for change of position then transform forward component here.
+//TODO: call OverlapBoxCommand.ScheduleBatch here
+//TODO: check results. if results not empty, do a raycast. make sure to clear both later
+//AWWW FUCK. shoulda stuck with OOP but i have commited to DOTS.
+//No need to worry. make it an archetype.
       string fString = "Range is {0} m";
     ConeDetectionJob task = new ConeDetectionJob{
       dTime = SystemAPI.Time.DeltaTime,
@@ -39,6 +48,10 @@ public partial struct TestConeSystem : ISystem
     public float dTime;
     public FixedString64Bytes label;
     public void Execute(ref SimpleConeDetector detector){
+    
+      OverlapBoxCommand.ScheduleBatch(
+          detector.boxes.colliders, detector.boxes.collisions,detector.boxes.minCommands,detector.boxes.maxHits
+          );
       detector.range += dTime;
       Debug.Log(FixedString.Format(label,detector.range));
     //NativeArray<OverlapBoxCommand> boxCommand = new NativeArray<OverlapBoxCommand>(1,Allocaor.TempJob);
