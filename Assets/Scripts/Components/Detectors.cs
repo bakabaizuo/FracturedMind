@@ -10,3 +10,6 @@ public struct Detector<T,U>
     public int minCommands;
     public int maxHits;
 }
+public struct ViewBoxCommands: IComponentData{
+  public Detector<OverlapBoxCommand,ColliderHit> box_commands;
+}
