@@ -1,19 +1,22 @@
 using Unity.Collections;
 using UnityEngine;
-public struct Detector<T,U> 
+//TODO:BurstCompile this
+public struct DetectorJobs<T,U> 
   where T : struct
   where U : struct
 {
  
+  //TODO: Solve dilemma of needing to update collider positions
+  //possible solution/s: do it in the system
     public NativeArray<T> colliders;
     public NativeArray<U> collisions;
-    public int minCommands;
+    public int minJobs;
     public int maxHits;
     public QueryParameters query_params;
 }
-public struct ViewBoxCommands: IComponentData{
-  public Detector<OverlapBoxCommand,ColliderHit> box_commands;
+public struct ViewBoxJobs: IComponentData{
+  public DetectorJobs<OverlapBoxCommand,ColliderHit> box_commands;
 }
-public struct ViewRayCommands: IComponentData{
-  public Detector<RaycastCommand, RaycastHit> ray_commands;
+public struct ViewRayJobs: IComponentData{
+  public DetectorJobs<RaycastCommand, RaycastHit> ray_commands;
 }
