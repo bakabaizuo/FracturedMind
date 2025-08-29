@@ -47,13 +47,10 @@ public partial struct TestConeSystem : ISystem
   public partial struct ConeDetectionJob: IJobEntity{
     public float dTime;
     public FixedString64Bytes label;
-    public void Execute(ref SimpleConeDetector detector){
+    public void Execute(SimpleConeDetector detector){
     
-      OverlapBoxCommand.ScheduleBatch(
-          detector.boxes.colliders, detector.boxes.collisions,detector.boxes.minCommands,detector.boxes.maxHits
-          );
-      detector.range += dTime;
-      Debug.Log(FixedString.Format(label,detector.range));
+      //detector.range += dTime;
+      //Debug.Log(FixedString.Format(label,detector.range));
     //NativeArray<OverlapBoxCommand> boxCommand = new NativeArray<OverlapBoxCommand>(1,Allocaor.TempJob);
 
     }

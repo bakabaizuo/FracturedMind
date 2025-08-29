@@ -13,8 +13,8 @@ public class Detector_Author : MonoBehaviour
 
         Entity entity = GetEntity(TransformUsageFlags.Dynamic);
         AddComponent(entity, new SimpleConeDetector{
-           range = author.range,
-           viewAngle = author.viewAngle,
+//           range = author.range,
+//           viewAngle = author.viewAngle,
 //           memory = new Collider[10],
 //           rayMemory = new Collider[10,10]
           }

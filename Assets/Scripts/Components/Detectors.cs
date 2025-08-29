@@ -1,5 +1,6 @@
 using Unity.Collections;
 using UnityEngine;
+using Unity.Entities;
 //TODO:BurstCompile this
 public struct DetectorJobs<T,U> 
   where T : struct
@@ -15,6 +16,7 @@ public struct DetectorJobs<T,U>
     public QueryParameters query_params;
 }
 public struct ViewBoxJobs: IComponentData{
+  //Funny idea to use spatial partitioning to have some sort of squad interaction.
   public DetectorJobs<OverlapBoxCommand,ColliderHit> box_commands;
 }
 public struct ViewRayJobs: IComponentData{

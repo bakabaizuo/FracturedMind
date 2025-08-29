@@ -8,7 +8,4 @@ public struct SimpleConeDetector: IComponentData
 
 //    private float halfXFOV;
 //    private float halfYFOV;
-    public quaternion front;
-    public float range;
-    public float viewAngle;
 }
