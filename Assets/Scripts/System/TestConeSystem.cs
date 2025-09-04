@@ -44,10 +44,13 @@ public partial struct TestConeSystem : ISystem
         Debug.Log(FixedString.Format(label,detector.range));
         }).ScheduleParallel();
   }*/
+
+}
+
   public partial struct ConeDetectionJob: IJobEntity{
     public float dTime;
     public FixedString64Bytes label;
-    public void Execute(SimpleConeDetector detector){
+    public void Execute( SimpleConeDetector detector){
     
       //detector.range += dTime;
       //Debug.Log(FixedString.Format(label,detector.range));
@@ -55,6 +58,3 @@ public partial struct TestConeSystem : ISystem
 
     }
   }
-
-}
-
