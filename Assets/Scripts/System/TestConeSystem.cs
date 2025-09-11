@@ -44,9 +44,13 @@ public partial struct TestConeSystem : ISystem
         Debug.Log(FixedString.Format(label,detector.range));
         }).ScheduleParallel();
   }*/
+
+}
+
   public partial struct ConeDetectionJob: IJobEntity{
     public float dTime;
     public FixedString64Bytes label;
+<<<<<<< HEAD
     public void Execute(ref BoxJobs viewBoxes, ref RayJobs viewRays, TagEnemyComponent isEnemy, ref RayHits rayHits, ref BoxHits boxHits){
       //TODO:Make a movesystem that updates the Cone
       //TODO:Put in a job specifically for finding which enemies interest in FOV hoepfully in a single array.
@@ -63,12 +67,13 @@ public partial struct TestConeSystem : ISystem
         //TODO:make a component that turns true if alerted
         //TODO:make a system that changes state when alerted
       } 
+=======
+    public void Execute( SimpleConeDetector detector){
+    
+>>>>>>> 2280a12564be57748bd38f38fc73c36cf4c97285
       //detector.range += dTime;
       //Debug.Log(FixedString.Format(label,detector.range));
     //NativeArray<OverlapBoxCommand> boxCommand = new NativeArray<OverlapBoxCommand>(1,Allocaor.TempJob);
 
     }
   }
-
-}
-

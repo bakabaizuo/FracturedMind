@@ -13,12 +13,12 @@ public struct DetectorJobs<T,U>
     public NativeArray<U> collisions;
     public int minJobs;
     public int maxHits;
-    public QueryParameters query_params;
+    public QueryParameters queryParams;
 }
 public struct ViewBoxJobs: IComponentData{
   //Funny idea to use spatial partitioning to have some sort of squad interaction.
-  public DetectorJobs<OverlapBoxCommand,ColliderHit> box_commands;
+  public DetectorJobs<OverlapBoxCommand,ColliderHit> boxCommands;
 }
 public struct ViewRayJobs: IComponentData{
-  public DetectorJobs<RaycastCommand, RaycastHit> ray_commands;
+  public DetectorJobs<RaycastCommand, RaycastHit> rayCommands;
 }
