@@ -27,6 +27,7 @@ public partial struct TestConeSystem : ISystem
 //TODO: check results. if results not empty, do a raycast. make sure to clear both later
 //No need to worry. make it an archetype.
       string fString = "Range is {0} m";
+      //TODO:redo this
       new ConeDetectionJob{
         dTime = SystemAPI.Time.DeltaTime,
         label = fString
@@ -47,14 +48,21 @@ public partial struct TestConeSystem : ISystem
     public float dTime;
     public FixedString64Bytes label;
     public void Execute(ref BoxJobs viewBoxes, ref RayJobs viewRays, TagEnemyComponent isEnemy, ref RayHits rayHits, ref BoxHits boxHits){
+      //TODO:Make a movesystem that updates the Cone
+      //TODO:Put in a job specifically for finding which enemies interest in FOV hoepfully in a single array.
       OverlapBoxCommand.ScheduleBatch(viewBoxes.asNativeArray(), boxHits.asNativeArray(),1,1);
       if(boxHits[0].instanceID == 0){
         return;
       }
+      bool alerted = false;
+      //TODO: clean rayHits
       RaycastCommand.ScheduleBatch(viewRays.asNativeArray(), rayHits.asNativeArray(),2,8);
+
 //TODO: check if player is found a certain number of times
-      //TODO:Make a movesystem
-    
+      if (alerted){
+        //TODO:make a component that turns true if alerted
+        //TODO:make a system that changes state when alerted
+      } 
       //detector.range += dTime;
       //Debug.Log(FixedString.Format(label,detector.range));
     //NativeArray<OverlapBoxCommand> boxCommand = new NativeArray<OverlapBoxCommand>(1,Allocaor.TempJob);
