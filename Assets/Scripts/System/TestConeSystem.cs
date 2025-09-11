@@ -17,6 +17,10 @@ public partial struct TestConeSystem : ISystem
     state.RequireForUpdate<BoxJobs>();
     state.RequireForUpdate<RayJobs>();
     Debug.Log("SimpleConeDetector system running");
+<<<<<<< HEAD
+=======
+
+>>>>>>> 39df29df5501acf9afdfab14886e6b320384c3c5
   }
     // Start is called before the first frame update
   /// <summary>
@@ -28,14 +32,14 @@ public partial struct TestConeSystem : ISystem
 //TODO: check for change of position then transform forward component here.
 //TODO: call OverlapBoxCommand.ScheduleBatch here
 //TODO: check results. if results not empty, do a raycast. make sure to clear both later
-//AWWW FUCK. shoulda stuck with OOP but i have commited to DOTS.
 //No need to worry. make it an archetype.
       string fString = "Range is {0} m";
-    ConeDetectionJob task = new ConeDetectionJob{
-      dTime = SystemAPI.Time.DeltaTime,
-      label = fString
-    };
-    task.ScheduleParallel();
+      //TODO:redo this
+      new ConeDetectionJob{
+        dTime = SystemAPI.Time.DeltaTime,
+        label = fString
+      }.ScheduleParallel();
+    //Check up on ComponentGroup and see if i can somehow use it to batch viewboxes better
 
   }
   /*protected override void OnUpdate(){
@@ -53,8 +57,31 @@ public partial struct TestConeSystem : ISystem
   public partial struct ConeDetectionJob: IJobEntity{
     public float dTime;
     public FixedString64Bytes label;
+<<<<<<< HEAD
     public void Execute(ParentComponent parent){
+=======
+<<<<<<< HEAD
+    public void Execute(ref BoxJobs viewBoxes, ref RayJobs viewRays, TagEnemyComponent isEnemy, ref RayHits rayHits, ref BoxHits boxHits){
+      //TODO:Make a movesystem that updates the Cone
+      //TODO:Put in a job specifically for finding which enemies interest in FOV hoepfully in a single array.
+      OverlapBoxCommand.ScheduleBatch(viewBoxes.asNativeArray(), boxHits.asNativeArray(),1,1);
+      if(boxHits[0].instanceID == 0){
+        return;
+      }
+      bool alerted = false;
+      //TODO: clean rayHits
+      RaycastCommand.ScheduleBatch(viewRays.asNativeArray(), rayHits.asNativeArray(),2,8);
+
+//TODO: check if player is found a certain number of times
+      if (alerted){
+        //TODO:make a component that turns true if alerted
+        //TODO:make a system that changes state when alerted
+      } 
+=======
+    public void Execute( SimpleConeDetector detector){
+>>>>>>> 39df29df5501acf9afdfab14886e6b320384c3c5
     
+>>>>>>> 2280a12564be57748bd38f38fc73c36cf4c97285
       //detector.range += dTime;
       //Debug.Log(FixedString.Format(label,detector.range));
     //NativeArray<OverlapBoxCommand> boxCommand = new NativeArray<OverlapBoxCommand>(1,Allocaor.TempJob);
