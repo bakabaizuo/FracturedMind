@@ -1,50 +1,45 @@
-using System.Collections;
-using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Entities;
+/// <summary>
+/// [TODO:description]
+/// </summary>
 public class Detector_Author : MonoBehaviour
 {
     // Start is called before the first frame update
+    public GameObject parent;
     public float range;
     public float viewAngle;
-    public quaternion front = quaternion(0.0f,0.0f,0.1f,0.0f);
+    public float3 float3One = new float3(1.0f);
     //TODO: Make our custom layermask an enum. layer 6 is what i propose for player layer mask
-    public QueryParameters boxParams = new QueryParameters(6,false,QueryTriggerInteraction.Ignore,false);
-    public QueryParameters rayParams = new QueryParameters(6,true,QueryTriggerInteraction.Ignore,false);
     private class Baker: Baker<Detector_Author>{
 
       public override void Bake(Detector_Author author){
-        DetectorJobs<OverlapBoxCommand,ColliderHit> boxCommandsBaked = new DetectorJobs<OverlapBoxCommand,ColliderHit>{
-          colliders = 
-            new NativeArray<OverlapBoxCommand>(1,Allocator.Domain,NativeArrayOptions.UninitializedMemory),
-          collisions = 
-            new NativeArray<ColliderHit>(10,Allocator.Domain,NativeArrayOptions.UninitializedMemory),
-          minJobs = 1,
-          maxHits = 10,
-          queryParams = author.boxParams
-        };
-        
+
 
         Entity entity = GetEntity(TransformUsageFlags.Dynamic);
+        
+       
+        AddComponent(entity,new ParentComponent{parent = GetEntity(author.parent,TransformUsageFlags.Dynamic)});
         AddComponent(entity,new FrontComponent{
-            front = author.front,
+            front = author.float3One,
             });
-        AddComponent(entity, new ViewBoxJobs{
-            boxCommands = boxCommandsBaked
+        
+        
+        AddBuffer<BoxJobs>(entity);
+        AddBuffer<BoxHits>(entity);
+        AddBuffer<RayJobs>(entity);
+        AddBuffer<RayHits>(entity);
+
+        AppendToBuffer(entity, new BoxJobs{
+            viewBox = new OverlapBoxCommand(author.float3One,author.float3One, Quaternion.identity, QueryParameters.Default)
             });
-        AddComponent(entity,new ViewRayJobs{
-            rayCommands = new DetectorJobs<RaycastCommand, RaycastHit>{
-                colliders = 
-                  new NativeArray<RaycastCommand>(8,Allocator.Domain,NativeArrayOptions.UninitializedMemory),
-                collisions = 
-                  new NativeArray<RaycastHit>(80,Allocator.Domain,NativeArrayOptions.UninitializedMemory),
-                minJobs = 1,
-                maxHits = 10,
-                queryParams = author.rayParams
-                
-              }
-            });
+        for(int i = 0; i < 8; i++){
+          AppendToBuffer(entity,new RayJobs{
+           viewRays = new RaycastCommand(author.float3One,author.float3One,  QueryParameters.Default,author.range) 
+              });
+        }
       }
     }
   }

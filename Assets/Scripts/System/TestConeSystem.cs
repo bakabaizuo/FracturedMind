@@ -12,8 +12,11 @@ public partial struct TestConeSystem : ISystem
   /// </summary>
   /// <param name="state">[TODO:description]</param>
   public void OnCreate(ref SystemState state){
+
+    state.RequireForUpdate<EnemyTagComponent>();
+    state.RequireForUpdate<BoxJobs>();
+    state.RequireForUpdate<RayJobs>();
     Debug.Log("SimpleConeDetector system running");
-    state.RequireForUpdate<SimpleConeDetector>();
   }
     // Start is called before the first frame update
   /// <summary>
@@ -50,7 +53,7 @@ public partial struct TestConeSystem : ISystem
   public partial struct ConeDetectionJob: IJobEntity{
     public float dTime;
     public FixedString64Bytes label;
-    public void Execute( SimpleConeDetector detector){
+    public void Execute(ParentComponent parent){
     
       //detector.range += dTime;
       //Debug.Log(FixedString.Format(label,detector.range));
