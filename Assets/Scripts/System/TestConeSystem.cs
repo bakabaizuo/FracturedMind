@@ -13,7 +13,7 @@ public partial struct TestConeSystem : ISystem
   /// <param name="state">[TODO:description]</param>
   public void OnCreate(ref SystemState state){
     Debug.Log("SimpleConeDetector system running");
-    state.RequireForUpdate<SimpleConeDetector>();
+
   }
     // Start is called before the first frame update
   /// <summary>
@@ -25,14 +25,13 @@ public partial struct TestConeSystem : ISystem
 //TODO: check for change of position then transform forward component here.
 //TODO: call OverlapBoxCommand.ScheduleBatch here
 //TODO: check results. if results not empty, do a raycast. make sure to clear both later
-//AWWW FUCK. shoulda stuck with OOP but i have commited to DOTS.
 //No need to worry. make it an archetype.
       string fString = "Range is {0} m";
-    ConeDetectionJob task = new ConeDetectionJob{
-      dTime = SystemAPI.Time.DeltaTime,
-      label = fString
-    };
-    task.ScheduleParallel();
+      new ConeDetectionJob{
+        dTime = SystemAPI.Time.DeltaTime,
+        label = fString
+      }.ScheduleParallel();
+    //Check up on ComponentGroup and see if i can somehow use it to batch viewboxes better
 
   }
   /*protected override void OnUpdate(){
@@ -47,7 +46,14 @@ public partial struct TestConeSystem : ISystem
   public partial struct ConeDetectionJob: IJobEntity{
     public float dTime;
     public FixedString64Bytes label;
-    public void Execute(SimpleConeDetector detector){
+    public void Execute(ref BoxJobs viewBoxes, ref RayJobs viewRays, TagEnemyComponent isEnemy, ref RayHits rayHits, ref BoxHits boxHits){
+      OverlapBoxCommand.ScheduleBatch(viewBoxes.asNativeArray(), boxHits.asNativeArray(),1,1);
+      if(boxHits[0].instanceID == 0){
+        return;
+      }
+      RaycastCommand.ScheduleBatch(viewRays.asNativeArray(), rayHits.asNativeArray(),2,8);
+//TODO: check if player is found a certain number of times
+      //TODO:Make a movesystem
     
       //detector.range += dTime;
       //Debug.Log(FixedString.Format(label,detector.range));
