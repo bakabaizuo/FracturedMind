@@ -17,6 +17,10 @@ public partial struct TestConeSystem : ISystem
     state.RequireForUpdate<BoxJobs>();
     state.RequireForUpdate<RayJobs>();
     Debug.Log("SimpleConeDetector system running");
+<<<<<<< HEAD
+=======
+
+>>>>>>> 39df29df5501acf9afdfab14886e6b320384c3c5
   }
     // Start is called before the first frame update
   /// <summary>
@@ -53,27 +57,31 @@ public partial struct TestConeSystem : ISystem
   public partial struct ConeDetectionJob: IJobEntity{
     public float dTime;
     public FixedString64Bytes label;
-    public void Execute(DynamicBuffer<BoxJobs> viewBoxes, DynamicBuffer<BoxHits> boxHits, DynamicBuffer<RayJobs> viewRays, DynamicBuffer<RayHits> rayHits, EnemyTagComponent isEnemy){
+<<<<<<< HEAD
+    public void Execute(ParentComponent parent){
+=======
+<<<<<<< HEAD
+    public void Execute(ref BoxJobs viewBoxes, ref RayJobs viewRays, TagEnemyComponent isEnemy, ref RayHits rayHits, ref BoxHits boxHits){
       //TODO:Make a movesystem that updates the Cone
       //TODO:Put in a job specifically for finding which enemies interest in FOV hoepfully in a single array.
-      DynamicBuffer<ColliderHit> collisions = boxHits.Reinterpret<ColliderHit>(); 
-      DynamicBuffer<OverlapBoxCommand> cmdBuf = viewBoxes.Reinterpret<OverlapBoxCommand>(); 
-      OverlapBoxCommand.ScheduleBatch(
-        cmdBuf.AsNativeArray(),
-        collisions.AsNativeArray(), 
-        1,
-        1
-      );
-      if(collisions[0].instanceID == 0) return;
+      OverlapBoxCommand.ScheduleBatch(viewBoxes.asNativeArray(), boxHits.asNativeArray(),1,1);
+      if(boxHits[0].instanceID == 0){
+        return;
+      }
       bool alerted = false;
       //TODO: clean rayHits
-      RaycastCommand.ScheduleBatch(viewRays.Reinterpret<RaycastCommand>().AsNativeArray(), rayHits.Reinterpret<RaycastHit>().AsNativeArray(),2,8);
+      RaycastCommand.ScheduleBatch(viewRays.asNativeArray(), rayHits.asNativeArray(),2,8);
 
 //TODO: check if player is found a certain number of times
       if (alerted){
         //TODO:make a component that turns true if alerted
         //TODO:make a system that changes state when alerted
       } 
+=======
+    public void Execute( SimpleConeDetector detector){
+>>>>>>> 39df29df5501acf9afdfab14886e6b320384c3c5
+    
+>>>>>>> 2280a12564be57748bd38f38fc73c36cf4c97285
       //detector.range += dTime;
       //Debug.Log(FixedString.Format(label,detector.range));
     //NativeArray<OverlapBoxCommand> boxCommand = new NativeArray<OverlapBoxCommand>(1,Allocaor.TempJob);
