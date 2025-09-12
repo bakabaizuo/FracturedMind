@@ -27,8 +27,8 @@ public class Detector_Author : MonoBehaviour
             });
         
         
-        //AddBuffer<BoxJobs>(entity);
-        //AddBuffer<BoxHits>(entity);
+        AddBuffer<BoxJobs>(entity);
+        AddBuffer<BoxHits>(entity);
         AddBuffer<RayJobs>(entity);
         AddBuffer<RayHits>(entity);
 

@@ -25,17 +25,8 @@ public partial struct TestConeSystem : ISystem
   /// </summary>
   /// <param name="state">[TODO:description]</param>
   public void OnUpdate(ref SystemState state){
-//TODO: check for change of position then transform forward component here.
-//TODO: call OverlapBoxCommand.ScheduleBatch here
-//TODO: check results. if results not empty, do a raycast. make sure to clear both later
-//No need to worry. make it an archetype.
-      string fString = "Range is {0} m";
-      //TODO:redo this
       new ConeDetectionJob{
-        dTime = SystemAPI.Time.DeltaTime,
-        label = fString
       }.ScheduleParallel();
-    //Check up on ComponentGroup and see if i can somehow use it to batch viewboxes better
 
   }
   /*protected override void OnUpdate(){
@@ -51,9 +42,14 @@ public partial struct TestConeSystem : ISystem
 }
 
   public partial struct ConeDetectionJob: IJobEntity{
-    public float dTime;
-    public FixedString64Bytes label;
-    public void Execute(DynamicBuffer<BoxJobs> viewBoxes, DynamicBuffer<BoxHits> boxHits, DynamicBuffer<RayJobs> viewRays, DynamicBuffer<RayHits> rayHits, EnemyTagComponent isEnemy){
+    public void Execute(
+        DynamicBuffer<BoxJobs> viewBoxes, 
+        DynamicBuffer<BoxHits> boxHits,
+        DynamicBuffer<RayJobs> viewRays,
+        DynamicBuffer<RayHits> rayHits,
+        EnemyTagComponent isEnemy,
+        ref EnemyAlertComponent alertnes
+    ){
       //TODO:Make a movesystem that updates the Cone
       //TODO:Put in a job specifically for finding which enemies interest in FOV hoepfully in a single array.
       DynamicBuffer<ColliderHit> collisions = boxHits.Reinterpret<ColliderHit>(); 
@@ -63,17 +59,21 @@ public partial struct TestConeSystem : ISystem
         collisions.AsNativeArray(), 
         1,
         1
-      );
+      ).Complete();
       if(collisions[0].instanceID == 0) return;
+
       bool alerted = false;
       //TODO: clean rayHits
-      RaycastCommand.ScheduleBatch(viewRays.Reinterpret<RaycastCommand>().AsNativeArray(), rayHits.Reinterpret<RaycastHit>().AsNativeArray(),2,8);
-
+      //TODO: maybe update raycasts here
+      RaycastCommand.ScheduleBatch(
+          viewRays.Reinterpret<RaycastCommand>().AsNativeArray(), 
+          rayHits.Reinterpret<RaycastHit>().AsNativeArray(),
+          2,
+          8
+      ).CompleteAll();
+      
+      alertnes = alerted;
 //TODO: check if player is found a certain number of times
-      if (alerted){
-        //TODO:make a component that turns true if alerted
-        //TODO:make a system that changes state when alerted
-      } 
       //detector.range += dTime;
       //Debug.Log(FixedString.Format(label,detector.range));
     //NativeArray<OverlapBoxCommand> boxCommand = new NativeArray<OverlapBoxCommand>(1,Allocaor.TempJob);
