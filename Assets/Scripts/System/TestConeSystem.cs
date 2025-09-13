@@ -70,9 +70,9 @@ public partial struct TestConeSystem : ISystem
           rayHits.Reinterpret<RaycastHit>().AsNativeArray(),
           2,
           8
-      ).CompleteAll();
+      ).Complete();
       
-      alertnes = alerted;
+      alertnes.alert = alerted;
 //TODO: check if player is found a certain number of times
       //detector.range += dTime;
       //Debug.Log(FixedString.Format(label,detector.range));
