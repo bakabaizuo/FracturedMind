@@ -8,16 +8,11 @@ using Unity.Burst;
 public struct BoxJobs:IBufferElementData{
  
     public OverlapBoxCommand viewBox;
-    public static implicit operator OverlapBoxCommand(BoxJobs b)=> b.viewBox;
-    public static implicit operator BoxJobs(OverlapBoxCommand b) => new BoxJobs{viewBox = b};
 }
 
 public struct BoxHits:IBufferElementData{
  
   public ColliderHit hits;
-  public static implicit operator ColliderHit(BoxHits b) => b.hits;
-    
-    public static implicit operator BoxHits(ColliderHit b) => new BoxHits{hits = b};
 
 }
 

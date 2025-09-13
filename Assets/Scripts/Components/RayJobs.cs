@@ -17,8 +17,6 @@ public struct RayHits:IBufferElementData
 
 {
  
-  //TODO: Solve dilemma of needing to update collider positions
-  //possible solution/s: do it in the system
   public  RaycastHit result;
 
 }
