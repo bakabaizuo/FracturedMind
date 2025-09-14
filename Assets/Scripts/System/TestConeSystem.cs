@@ -13,7 +13,7 @@ public partial struct TestConeSystem : ISystem
   /// <param name="state">[TODO:description]</param>
   public void OnCreate(ref SystemState state){
 
-    state.RequireForUpdate<EnemyTagComponent>();
+    state.RequireForUpdate<Tags.Enemy>();
     state.RequireForUpdate<BoxJobs>();
     state.RequireForUpdate<RayJobs>();
     Debug.Log("SimpleConeDetector system running");
@@ -47,7 +47,7 @@ public partial struct TestConeSystem : ISystem
         DynamicBuffer<BoxHits> boxHits,
         DynamicBuffer<RayJobs> viewRays,
         DynamicBuffer<RayHits> rayHits,
-        EnemyTagComponent isEnemy,
+        Tags.Enemy isEnemy,
         ref EnemyAlertComponent alertnes
     ){
       //TODO:Make a movesystem that updates the Cone
