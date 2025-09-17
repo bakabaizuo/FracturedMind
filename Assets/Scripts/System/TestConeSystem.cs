@@ -43,14 +43,10 @@ public partial struct TestConeSystem : ISystem
     ){
       if(alertnes.alert)
         return;
-      //TODO:Make a movesystem that updates the Cone
-      //TODO:Put in a job specifically for finding which enemies interest in FOV hoepfully in a single array.
       NativeArray<ColliderHit> collisions = boxHits.Reinterpret<ColliderHit>().AsNativeArray(); 
       NativeArray<OverlapBoxCommand> cmdBuf = viewBoxes.Reinterpret<OverlapBoxCommand>().AsNativeArray(); 
 
-//      Debug.Log($"Capacity {cmdBuf.Length}");
-//      Debug.Log($"Capacity {collisions.Length}");
-      OverlapBoxCommand.ScheduleBatch(
+     OverlapBoxCommand.ScheduleBatch(
         cmdBuf,
         collisions,
         1,
@@ -61,7 +57,6 @@ public partial struct TestConeSystem : ISystem
 
       bool alerted = false;
       //TODO: clean rayHits
-      //TODO: maybe update raycasts here
       RaycastCommand.ScheduleBatch(
           viewRays.Reinterpret<RaycastCommand>().AsNativeArray(), 
           rayHits.Reinterpret<RaycastHit>().AsNativeArray(),
@@ -75,10 +70,7 @@ public partial struct TestConeSystem : ISystem
       }
       
       alertnes.alert = hits > 4;
-//TODO: check if player is found a certain number of times
-      //detector.range += dTime;
-      //Debug.Log(FixedString.Format(label,detector.range));
-    //NativeArray<OverlapBoxCommand> boxCommand = new NativeArray<OverlapBoxCommand>(1,Allocaor.TempJob);
+
 
     }
   }
