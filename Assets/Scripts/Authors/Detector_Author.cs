@@ -40,6 +40,8 @@ public class Detector_Author : MonoBehaviour
            viewRays = new RaycastCommand(author.float3One,author.float3One,  QueryParameters.Default,author.range) 
               });
         }
+        //GetBuffer<BoxJobs>(entity).TrimExcess();
+
       }
     }
   }

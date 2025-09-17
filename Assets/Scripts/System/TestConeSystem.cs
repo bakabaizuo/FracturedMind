@@ -14,8 +14,9 @@ public partial struct TestConeSystem : ISystem
   public void OnCreate(ref SystemState state){
 
     state.RequireForUpdate<EnemyTagComponent>();
-    state.RequireForUpdate<BoxJobs>();
-    state.RequireForUpdate<RayJobs>();
+    state.RequireForUpdate<EnemyAlertComponent>();
+//     state.RequireForUpdate<DynamicBuffer<BoxJobs>>();
+    //state.RequireForUpdate<RayJobs>();
     Debug.Log("SimpleConeDetector system running");
   }
     // Start is called before the first frame update
@@ -29,15 +30,6 @@ public partial struct TestConeSystem : ISystem
       }.ScheduleParallel();
 
   }
-  /*protected override void OnUpdate(){
-    FixedString64Bytes label = new FixedString64Bytes("{0}");
-    Entities.ForEach((ref SimpleConeDetector detector) => {
-        detector.range += 1.0f * SystemAPI.Time.DeltaTime;
-       //string log = $"{detector.range}";
-        
-        Debug.Log(FixedString.Format(label,detector.range));
-        }).ScheduleParallel();
-  }*/
 
 }
 
@@ -50,16 +42,22 @@ public partial struct TestConeSystem : ISystem
         EnemyTagComponent isEnemy,
         ref EnemyAlertComponent alertnes
     ){
+      if(alertnes.alert)
+        return;
       //TODO:Make a movesystem that updates the Cone
       //TODO:Put in a job specifically for finding which enemies interest in FOV hoepfully in a single array.
-      DynamicBuffer<ColliderHit> collisions = boxHits.Reinterpret<ColliderHit>(); 
-      DynamicBuffer<OverlapBoxCommand> cmdBuf = viewBoxes.Reinterpret<OverlapBoxCommand>(); 
+      NativeArray<ColliderHit> collisions = boxHits.Reinterpret<ColliderHit>().AsNativeArray(); 
+      NativeArray<OverlapBoxCommand> cmdBuf = viewBoxes.Reinterpret<OverlapBoxCommand>().AsNativeArray(); 
+
+//      Debug.Log($"Capacity {cmdBuf.Length}");
+//      Debug.Log($"Capacity {collisions.Length}");
       OverlapBoxCommand.ScheduleBatch(
-        cmdBuf.AsNativeArray(),
-        collisions.AsNativeArray(), 
+        cmdBuf,
+        collisions,
         1,
         1
       ).Complete();
+
       if(collisions[0].instanceID == 0) return;
 
       bool alerted = false;
@@ -71,8 +69,13 @@ public partial struct TestConeSystem : ISystem
           2,
           8
       ).Complete();
+      int hits = 0;
+      for(int i = 0; i < rayHits.Length; i++){
+        //SOME MAGIC NUMBER WHICH IS THE ID FOR THE PLAYER MESH/COLLIDER
+        if (rayHits[i].result.colliderInstanceID == /*player collider id*/ 0) hits++;
+      }
       
-      alertnes.alert = alerted;
+      alertnes.alert = hits > 4;
 //TODO: check if player is found a certain number of times
       //detector.range += dTime;
       //Debug.Log(FixedString.Format(label,detector.range));
