@@ -13,10 +13,16 @@ public partial struct TestConeSystem : ISystem
   /// <param name="state">[TODO:description]</param>
   public void OnCreate(ref SystemState state){
 
+<<<<<<< HEAD
     state.RequireForUpdate<EnemyTagComponent>();
     state.RequireForUpdate<EnemyAlertComponent>();
 //     state.RequireForUpdate<DynamicBuffer<BoxJobs>>();
     //state.RequireForUpdate<RayJobs>();
+=======
+    state.RequireForUpdate<Tags.Enemy>();
+    state.RequireForUpdate<BoxJobs>();
+    state.RequireForUpdate<RayJobs>();
+>>>>>>> 657ba3ffd2e6816eb0ceb9fb4bb30e24d452897f
     Debug.Log("SimpleConeDetector system running");
   }
     // Start is called before the first frame update
@@ -39,7 +45,7 @@ public partial struct TestConeSystem : ISystem
         DynamicBuffer<BoxHits> boxHits,
         DynamicBuffer<RayJobs> viewRays,
         DynamicBuffer<RayHits> rayHits,
-        EnemyTagComponent isEnemy,
+        Tags.Enemy isEnemy,
         ref EnemyAlertComponent alertnes
     ){
       if(alertnes.alert)
