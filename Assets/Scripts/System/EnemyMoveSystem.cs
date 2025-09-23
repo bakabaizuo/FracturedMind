@@ -7,7 +7,7 @@ partial struct EnemyMoveSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
       state.RequireForUpdate<Tags.SelfMove>();
-      state.RequireForUpdate<Transform>();
+//      state.RequireForUpdate<Transform>();
     }
 
     [BurstCompile]
