@@ -1,0 +1,7 @@
+What to do: Make an enableable component called movable and a component called partition
+  a. a system for transforms and that component that gets it's grid in space
+  b. the system gets player partition and queries all entities in adjacent partitions(in parallel)
+  c. then do either a capsule test or angle test
+  d. if test succeeds, raycast.
+  e. if raycast succeeds, whatever sage programmed.
+

@@ -23,57 +23,57 @@ public class IsCrouchingControl : MonoBehaviour
     void Awake()
     {
         input = new PlayerControlls();
-       // input.Player.Crouch.performed += ctx => HandleCrouchOrDodge();
-        //input.Player.Dodge.performed += ctx => HandleCrouchOrDodge();
+        input.Player.Crouch.performed += ctx => HandleCrouchOrDodge();
+        input.Player.Dodge.performed += ctx => HandleCrouchOrDodge();
 
         // Sprint input logic
         input.Player.Sprint.performed += ctx => StartSprint();
         input.Player.Sprint.canceled += ctx => StopSprint();
     }
 
-    void Start()
+void Start()
+{
+    playerAnimator = GetComponent<Animator>();
+    if (playerAnimator == null)
     {
-        playerAnimator = GetComponent<Animator>();
-        if (playerAnimator == null)
-        {
-            Debug.LogError("Animator component is missing!");
-            enabled = false;
-            return;
-        }
-        {
-            if (playerAnimator != null)
-            {
-                foreach (var param in playerAnimator.parameters)
-                {
-                    Debug.Log($"Animator Parameter: {param.name} ({param.type})");
-                }
-            }
-            if (playerAnimator == null)
-            {
-                Debug.LogError("Player Animator is not assigned properly!");
-            }
-            else
-            {
-                Debug.Log("Player Animator is assigned and valid.");
-            }
-            if (playerAnimator != null)
-            {
-                Debug.Log("Animator initialized");
-                playerAnimator.SetBool(isCrouchingHash, true);
-            }
-        }
-
-        isCrouchingHash = Animator.StringToHash("isCrouching");
-        isMovingCrouchHash = Animator.StringToHash("isMovingCrouch");
-        isDodgingHash = Animator.StringToHash("isDodging");
-//        dodgeStateHash = Animator.StringToHash("Dodge");
-
-        // Debug log to check if the hash values are correct
-        Debug.Log("isCrouchingHash: " + isCrouchingHash);
-        Debug.Log("isMovingCrouchHash: " + isMovingCrouchHash);
-        Debug.Log("isDodgingHash: " + isDodgingHash);
-        Debug.Log("dodgeStateHash: " + dodgeStateHash);
+        Debug.LogError("Animator component is missing!");
+        enabled = false;
+        return;
     }
+    {
+    if (playerAnimator != null)
+    {
+        foreach (var param in playerAnimator.parameters)
+        {
+            Debug.Log($"Animator Parameter: {param.name} ({param.type})");
+        }
+    }
+    if (playerAnimator == null)
+{
+    Debug.LogError("Player Animator is not assigned properly!");
+}
+else
+{
+    Debug.Log("Player Animator is assigned and valid.");
+}
+if (playerAnimator != null)
+{
+    Debug.Log("Animator initialized");
+    playerAnimator.SetBool(isCrouchingHash, true);
+}
+}
+
+    isCrouchingHash = Animator.StringToHash("isCrouching");
+    isMovingCrouchHash = Animator.StringToHash("isMovingCrouch");
+    isDodgingHash = Animator.StringToHash("isDodging");
+    dodgeStateHash = Animator.StringToHash("Dodge");
+
+    // Debug log to check if the hash values are correct
+    Debug.Log("isCrouchingHash: " + isCrouchingHash);
+    Debug.Log("isMovingCrouchHash: " + isMovingCrouchHash);
+    Debug.Log("isDodgingHash: " + isDodgingHash);
+    Debug.Log("dodgeStateHash: " + dodgeStateHash);
+}
 
     void Update()
     {
@@ -82,7 +82,7 @@ public class IsCrouchingControl : MonoBehaviour
             HandleMovement();
         }
 
-        //DebugDodgeState();
+        DebugDodgeState();
     }
 
     private void DebugDodgeState()
@@ -142,7 +142,7 @@ public class IsCrouchingControl : MonoBehaviour
         }
 
         bool isCrouching = playerAnimator.GetBool(isCrouchingHash);
-/*
+
         if (input.Player.Dodge.WasPressedThisFrame() && (!isCrouching || canDodgeWhileCrouching))
         {
             StartDodge();
@@ -150,7 +150,7 @@ public class IsCrouchingControl : MonoBehaviour
         else if (input.Player.Crouch.WasPressedThisFrame())
         {
             ToggleCrouch();
-        }*/
+        }
     }
 
     private void StartDodge()
