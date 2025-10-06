@@ -2,34 +2,55 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class AIVision : MonoBehaviour
+using Unity.Entities;
+public class Entity_Vision : MonoBehaviour
 {
     [Header("Vision Settings")]
+    //SharedComponent ViewCone
     public float viewDistance = 20f;
-    //[SerializedField]
-    
     [Range(0, 360)] public float viewAngle = 180f;
+    //SharedComponent EyeHeight
     public float eyeHeight = 1.6f;
+    //Component EyePoint
     public Transform eyePoint;
 
     [Header("Crouch Detection Settings")]
     public float crouchDetectionModifier = 0.5f;
 
     [Header("Memory Settings")]
+    //SharedComponent memoryDuration;
     public float memoryDuration = 120f; // seconds AI remembers last seen
+    
+    //Components MemoryTimer
     private float memoryTimer = 0f;
-
-    // Event callback: (playerTransform, isCrouching)
-    public event Action<Transform, bool> OnPlayerDetected;
-
-    // Last seen player info
+    //Component ObjectPermannce
     private Vector3? lastSeenPosition;
     private Transform lastPlayerTransform;
 
+    // Event callback: (playerTransform, isCrouching)
+    // Put in a system triggered by IEnableableComponent
+    public event Action<Transform, bool> OnPlayerDetected;
+
+    // Last seen player info
+    private class Baker: Baker<Entity_Vision>{
+
+      public override void Bake(Entity_Vision author){
+
+
+        
+        Entity entity = GetEntity(TransformUsageFlags.Dynamic);
+        AddSharedComponent<ViewRange>(entity,ViewConeTypes.BaseEnemyCone.range);
+        AddSharedComponent<FieldOfView>(entity,ViewConeTypes.BaseEnemyCone.fov);
+        AddSharedComponent<EyeHeight>(entity,(EyeHeight) author.eyeHeight);
+
+        
+
+      }
+    }
     private void Update()
     {
         // Memory timer: forget after duration
+        // Move to a system
         if (lastSeenPosition.HasValue)
         {
             memoryTimer += Time.deltaTime;
@@ -63,6 +84,7 @@ public class AIVision : MonoBehaviour
         if (angleToPlayer >= viewAngle * 0.5f)
         {
             Debug.Log("[AIVision] Player outside vision cone");
+            return;
         }
         RaycastHit hit;
         if (Physics.Raycast(origin, dir, out hit, detectRange) && hit.collider.CompareTag("Player"))

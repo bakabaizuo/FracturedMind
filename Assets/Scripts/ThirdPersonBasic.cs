@@ -72,27 +72,28 @@ private void HandleGroundCheck()
 
         Vector3 inputDirection = new Vector3(horizontal, 0f, vertical).normalized;
 
-        if (inputDirection.magnitude >= 0.1f)
+        if (inputDirection.magnitude < 0.1f)
         {
-            // Rotate toward movement direction relative to camera
-            float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + Camera.main.transform.eulerAngles.y;
-            Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+          return;
+        }
+        // Rotate toward movement direction relative to camera
+        float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + Camera.main.transform.eulerAngles.y;
+        Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
 
-            // Move in rotated direction
-            Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
+        // Move in rotated direction
+        Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
 
-            if (CanWalkOnSlope(moveDirection))
-            {
-                controller.Move(moveDirection.normalized * moveSpeed * Time.deltaTime);
-            }
+        if (CanWalkOnSlope(moveDirection))
+        {
+            controller.Move(moveDirection.normalized * moveSpeed * Time.deltaTime);
         }
     }
 
     private void HandleJumpAndGravity()
     {
         //  Only allow jump if grounded + cooldown passed
-        bool canJumpNow = isGrounded && (Time.time > lastJumpTime + jumpCooldown);
+        bool canJumpNow = isGrounded && (Time.time > (lastJumpTime + jumpCooldown));
 
         if (Input.GetButtonDown("Jump") && canJumpNow)
         {
