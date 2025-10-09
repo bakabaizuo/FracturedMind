@@ -1,9 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Collections;
-
-using UnityEngine;
 
 /// <summary>
 /// Player torso/head IK aiming toward camera center, with limited yaw range and animation checks.

@@ -76,7 +76,7 @@ public class AIController : MonoBehaviour
         agent.SetDestination(target);
           Vector3 move = agent.nextPosition - transform.position;
         move.y = 0; // prevent lifting
-        GetComponent<CharacterController>().Move(move);
+        GetComponent<CharacterController>().Move(move* Time.deltaTime);
            // Update rotation
         if (move != Vector3.zero)
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(move), 5f * Time.deltaTime);

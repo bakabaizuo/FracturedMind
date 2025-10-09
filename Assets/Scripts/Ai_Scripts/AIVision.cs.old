@@ -4,10 +4,11 @@ using Unity.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
+using Unity.Burst;
 public class AIVision : MonoBehaviour
 {
     [Header("Vision Settings")]
-    public float viewDistance = 20f;
+    public float viewDistance = 120f;
     //[SerializedField]
     private NativeArray<RaycastCommand> viewRays = new NativeArray<RaycastCommand>(1,Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
     private NativeArray<RaycastHit> rayResults = new NativeArray<RaycastHit>(20,Allocator.Persistent,NativeArrayOptions.UninitializedMemory);
@@ -54,6 +55,13 @@ public class AIVision : MonoBehaviour
         }
     }
 //SOMETHING IS DEEPLY WRONG
+    struct PopulateVector3Arrays:IJobFor{
+      public NativeArray<Vector3> target;
+      public Vector3 value;
+      public void Execute(int i){
+        target[i] = value;
+      }
+    }
     private void OnTriggerStay(Collider other)
     {
         if (!other.CompareTag("Player")) return;
@@ -69,37 +77,39 @@ public class AIVision : MonoBehaviour
         Vector3 dir = (targetPos - origin).normalized;
 
         float angleToPlayer = Vector3.Angle(transform.forward, dir);
-        Debug.Log($"[AIVision] AngleToPlayer={angleToPlayer:0.0}°, MaxAllowed={viewAngle * 0.5f}°");
+        //Debug.Log($"[AIVision] AngleToPlayer={angleToPlayer:0.0}°, MaxAllowed={viewAngle * 0.5f}°");
 
         if (angleToPlayer >= viewAngle * 0.5f)
         {
             Debug.Log("[AIVision] Player outside vision cone");
             return;
         }
+        
+        //goto NewRays;
         OldRays:
         if (Physics.Raycast(origin, dir, out RaycastHit hit, detectRange) && hit.collider.CompareTag("Player"))
         {
-            Debug.Log($"[AIVision] Player detected! (Crouching={isCrouching}) Distance={hit.distance:0.0}");
-            OnPlayerDetected?.Invoke(other.transform, isCrouching);
-
-            // Update last seen info
-            lastSeenPosition = hit.collider.transform.position;
-            lastPlayerTransform = hit.collider.transform;
-            memoryTimer = 0f;
+            Detected(hit,isCrouching);
             return;// reset memory timer
         }else{
           goto NoHit;
         }
         NewRays:
-        RaycastCommand.ScheduleBatch(viewRays, rayResults, 1,20, default).Complete();
-        //DO THE PROCESSING HERE
-        return;
         NoHit:
-        Debug.Log($"[AIVision] Line of sight blocked by {hit.collider.name}");
+        Debug.Log($"[AIVision] Line of sight blocked by {hit.colliderInstanceID}");
 
         
     }
+    private void Detected(in RaycastHit hit, bool isCrouching){
+      Debug.Log($"[AIVision] Player detected! (Crouching={isCrouching}) Distance={hit.distance:0.0}");
+      OnPlayerDetected?.Invoke(hit.collider.transform, isCrouching);
 
+      // Update last seen info
+      lastSeenPosition = hit.collider.transform.position;
+      lastPlayerTransform = hit.collider.transform;
+      memoryTimer = 0f;
+
+    }
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Player"))
