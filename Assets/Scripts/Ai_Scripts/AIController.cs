@@ -26,6 +26,9 @@ public class AIController : MonoBehaviour
         }
     }
 
+    void OnTriggerEnter(Collider other){
+      Debug.Log(other.name);
+    }
     private void OnPlayerDetected(Transform player, bool isCrouching)
     {
         currentState = AIState.Chase;

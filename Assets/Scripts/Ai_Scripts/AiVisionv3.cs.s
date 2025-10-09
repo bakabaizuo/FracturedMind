@@ -39,6 +39,7 @@ public class AIVision : MonoBehaviour
     public Vector3 GetLastSeenPosition() => lastSeenPosition.Value;
     void Update()
     {
+      Debug.Log("updated");
         if (lastSeenPosition.HasValue)
         {
             memoryTimer += Time.deltaTime;
@@ -50,9 +51,13 @@ public class AIVision : MonoBehaviour
             }
         }
     }
-
+    void OnTriggerEnter(Collider other){
+      Debug.Log(other.name);
+    }
     void OnTriggerStay(Collider other)
     {
+
+      Debug.Log("Triggered");
         if (!other.CompareTag("Player")) return;
 
         var player = other.GetComponent<ThirdPersonBasic>();
@@ -84,7 +89,7 @@ public class AIVision : MonoBehaviour
     {
         if (currentViewDistance <= 0f)
             return;
-
+        Debug.Log(hit.collider.name);
         if (hit.collider != null && hit.collider.CompareTag("Player"))
         {
             OnPlayerDetected?.Invoke(hit.collider.transform, false);
