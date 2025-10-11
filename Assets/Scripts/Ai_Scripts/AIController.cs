@@ -86,7 +86,7 @@ public class AIController : MonoBehaviour
 
         // Debug line to see target
         Debug.DrawLine(transform.position, target, Color.red);
-        Debug.Log($"[AI] Moving toward player at {target}");
+        //Debug.Log($"[AI] Moving toward player at {target}");
 
         // Switch to investigate if reached last seen
         if (Vector3.Distance(transform.position, target) < 0.5f)

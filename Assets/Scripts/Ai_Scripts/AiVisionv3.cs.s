@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider))]
-public class AIVision : MonoBehaviour
+//[RequireComponent(typeof(Collider))]
+public class AIVision3 : MonoBehaviour
 {
     [Header("Vision Settings")]
     public float viewDistance = 20f;
@@ -52,12 +52,13 @@ public class AIVision : MonoBehaviour
         }
     }
     void OnTriggerEnter(Collider other){
+      Debug.Log("Triggered");
       Debug.Log(other.name);
     }
     void OnTriggerStay(Collider other)
     {
 
-      Debug.Log("Triggered");
+      Debug.Log("Still Triggered");
         if (!other.CompareTag("Player")) return;
 
         var player = other.GetComponent<ThirdPersonBasic>();
@@ -70,7 +71,8 @@ public class AIVision : MonoBehaviour
         Vector3 targetPos = other.transform.position + Vector3.up * (isCrouching ? 0.5f : 1.2f);
         Vector3 dir = (targetPos - origin).normalized;
         float angleToPlayer = Vector3.Angle(transform.forward, dir);
-
+        Debug.Log($"theta = {angleToPlayer}");
+        goto oldray;
         if (angleToPlayer <= viewAngle * 0.5f)
         {
             // Store ray for the batcher to process this frame
@@ -83,12 +85,25 @@ public class AIVision : MonoBehaviour
             // Skip — player not within cone
             currentViewDistance = 0f;
         }
+        oldray:
+        if (Physics.Raycast(origin, dir, out RaycastHit hit, detectRange) && hit.collider.CompareTag("Player"))
+        {
+            ProcessVisionResult(hit);
+            return;// reset memory timer
+        }else{
+          goto NoHit;
+        }
+        NewRays:
+        NoHit:
+        Debug.Log($"[AIVision] Line of sight blocked by {hit.colliderInstanceID}");
     }
 
     public void ProcessVisionResult(RaycastHit hit)
     {
+        Debug.Log(currentViewDistance);
         if (currentViewDistance <= 0f)
             return;
+        Debug.Log("CASTING");
         Debug.Log(hit.collider.name);
         if (hit.collider != null && hit.collider.CompareTag("Player"))
         {
