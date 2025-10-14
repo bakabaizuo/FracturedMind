@@ -6,12 +6,13 @@ using Unity.Jobs;
 public class AIVisionBatcher : MonoBehaviour
 {
     public static AIVisionBatcher Instance;
-
+    private int PlayerColliderInstanceID;
     private List<AIVision> visionAgents = new List<AIVision>();
 
     private NativeArray<RaycastCommand> commands;
     private NativeArray<RaycastHit> results;
-
+JobHandle NearestHitsJob;
+    private int maxHits = 20;
     private JobHandle raycastJob = default;
     private bool jobScheduled = false;
 
@@ -23,10 +24,13 @@ public class AIVisionBatcher : MonoBehaviour
         else
             Destroy(gameObject);
     }
+    void Start(){
+      PlayerColliderInstanceID = GameObject.FindWithTag("Player").GetInstanceID();
+    }
 
     public void Register(AIVision vision)
     {
-      Debug.Log("REgister");
+     // Debug.Log("REgister");
         if (!visionAgents.Contains(vision))
             visionAgents.Add(vision);
         Debug.Log($"registerd{vision.transform.position}");
@@ -63,6 +67,7 @@ public class AIVisionBatcher : MonoBehaviour
         {
             AIVision ai = visionAgents[i];
             commands[i] = new RaycastCommand(ai.rayOrigin, ai.rayDirection, ai.currentViewDistance);
+            Debug.DrawRay(ai.rayOrigin,ai.currentViewDistance*ai.rayDirection);
         }
         /*Parallel:
           BuildCommands cmd = new BuildCommands{
@@ -79,7 +84,26 @@ public class AIVisionBatcher : MonoBehaviour
 
         jobScheduled = true;
     }
+    private struct GetNearestHitJob:IJobFor{
+      [ReadOnly]
+      public NativeArray<RaycastHit> hits;
+      public NativeArray<RaycastHit> firstHits;
+      public int maxHits;
+      public void Execute(int i){
+        int start = i * maxHits;
+        int end = start + maxHits;
+        
+        firstHits[i] = hits[start]; 
+        for(int j = start;j<end;j++){
+          if(hits[j].colliderInstanceID == 0)
+            break;
+          else if(hits[j].distance < firstHits[i].distance )
+            firstHits[i] = hits[j];
 
+        }
+
+      }
+    }
     void Update()
     {        if (visionAgents.Count == 0)
             return;
@@ -110,26 +134,35 @@ Debug.Log("batching");
         raycastJob = 
           RaycastCommand.ScheduleBatch(commands, results, 32,raycastJob);
 
+        NativeArray<RaycastHit> firstHits = new NativeArray<RaycastHit>(commands.Length, Allocator.TempJob);
+        NearestHitsJob = new GetNearestHitJob{
+          hits = results,
+          firstHits = firstHits,
+          maxHits= maxHits
+        }.ScheduleParallel(commands.Length,6,raycastJob);
         jobScheduled = true;
 
         if (!jobScheduled)
             return;
 
         // Wait for job completion before reading results
-        raycastJob.Complete();
+        //raycastJob.Complete();
+        NearestHitsJob.Complete();
         jobScheduled = false;
         
+        //TODO: yield when nearestHitsJob not complete
         for(int i = 0; i < results.Length; i++){
-          Debug.Log($"Name:{results[i].colliderInstanceID}");
+          Debug.Log($"index:{i} id:{results[i].colliderInstanceID}");
         }
         for (int i = 0; i < visionAgents.Count; i++)
         {
           Debug.Log("PASSING");
-            RaycastHit hit = results[i];
+            RaycastHit hit = firstHits[i];
             visionAgents[i].ProcessVisionResult(hit);
         }
 
         commands.Dispose();
         results.Dispose();
+        firstHits.Dispose();
     }
 }

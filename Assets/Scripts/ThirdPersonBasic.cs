@@ -50,14 +50,12 @@ public class ThirdPersonBasic : MonoBehaviour
 private void HandleGroundCheck()
 {
     // Raycast straight down for better detection
-    isGrounded = Physics.Raycast(transform.position, Vector3.down, controller.height / 2 + 0.1f, groundMask);
+    isGrounded = Physics.Raycast(transform.position, Vector3.down, controller.height * 0.5f + 0.1f, groundMask);
         // ✅ Debugging info
-        if (debugGroundCheck)
-        {
-            Debug.Log($"[GroundCheck] Grounded: {isGrounded}");
-        }
-    if (debugGroundCheck)
-        Debug.Log($"Grounded: {isGrounded}");
+    if (debugGroundCheck){
+      
+        //Debug.Log($"Grounded: {isGrounded}");
+    }
 
     if (isGrounded && velocity.y < 0)
         velocity.y = -2f;

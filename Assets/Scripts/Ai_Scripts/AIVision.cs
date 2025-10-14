@@ -182,7 +182,6 @@ public class AIVision : MonoBehaviour
     public Vector3 GetLastSeenPosition() => lastSeenPosition.Value;
     void Update()
     {
-      Debug.Log("updated");
         if (lastSeenPosition.HasValue)
         {
             memoryTimer += Time.deltaTime;
@@ -221,11 +220,11 @@ public class AIVision : MonoBehaviour
 
           
           //Physics.Raycast(origin, dir, out RaycastHit hit, detectRange);
-         // ProcessVisionResult(hit);
-        /*if (Physics.Raycast(origin, dir, out RaycastHit hit, detectRange) && hit.collider.CompareTag("Player"))
-        {
-            ProcessVisionResult(hit);
-        }*/
+          //ProcessVisionResult(hit);
+        //if (Physics.Raycast(origin, dir, out RaycastHit hit, detectRange) && hit.collider.CompareTag("Player"))
+        //{
+          //  ProcessVisionResult(hit);
+        //}
           return;
         }
             // Skip — player not within cone
@@ -235,10 +234,9 @@ public class AIVision : MonoBehaviour
 
     public void ProcessVisionResult(RaycastHit hit)
     {
-        Debug.DrawRay(transform.position, transform.forward * viewDistance);
         if (currentViewDistance <= 0f)
             return;
-        Debug.Log($"hit {hit.collider.name}");
+        Debug.Log($"hit {hit.colliderInstanceID}");
         if (hit.colliderInstanceID != 0 && hit.collider.CompareTag("Player"))
         {
         Debug.Log("CASTed");
@@ -253,7 +251,7 @@ public class AIVision : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         Vector3 origin = transform.position + Vector3.up * eyeHeight;
-        Gizmos.DrawRay(origin, transform.forward * viewDistance);
+        Gizmos.DrawRay(rayOrigin, rayDirection * viewDistance);
 
         Vector3 left = Quaternion.Euler(0, -viewAngle / 2f, 0) * transform.forward;
         Vector3 right = Quaternion.Euler(0, viewAngle / 2f, 0) * transform.forward;

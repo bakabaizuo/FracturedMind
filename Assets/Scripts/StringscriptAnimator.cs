@@ -238,7 +238,7 @@ private void CheckAnimation()
     {
         if (currentState == newState)
         {
-            Debug.Log($"State '{newState}' is already active. No transition needed.");
+    //        Debug.Log($"State '{newState}' is already active. No transition needed.");
             return;
         }
 
@@ -261,11 +261,11 @@ private void CheckAnimation()
     {
         if (delay > 0f)
         {
-            Debug.Log($"Delaying transition to '{newState}' for {delay} seconds...");
+            //Debug.Log($"Delaying transition to '{newState}' for {delay} seconds...");
             yield return new WaitForSeconds(delay);
         }
 
-        Debug.Log($"Transitioning to state: {newState} with duration {transitionDuration} seconds.");
+        //Debug.Log($"Transitioning to state: {newState} with duration {transitionDuration} seconds.");
         animator.CrossFade(newState, transitionDuration);
         currentState = newState;
     }
