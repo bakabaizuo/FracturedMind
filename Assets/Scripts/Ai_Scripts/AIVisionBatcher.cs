@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
-
+using Unity.Burst;
 public class AIVisionBatcher : MonoBehaviour
 {
     public static AIVisionBatcher Instance;
     private int PlayerColliderInstanceID;
     private List<AIVision> visionAgents = new List<AIVision>();
-
+    readonly int layerMask = unchecked((int) 0xFFFFFFFF);
     private NativeArray<RaycastCommand> commands;
     private NativeArray<RaycastHit> results;
 JobHandle NearestHitsJob;
@@ -68,6 +68,7 @@ JobHandle NearestHitsJob;
             AIVision ai = visionAgents[i];
             commands[i] = new RaycastCommand(ai.rayOrigin, ai.rayDirection, ai.currentViewDistance);
             Debug.DrawRay(ai.rayOrigin,ai.currentViewDistance*ai.rayDirection);
+            //TODO: ECS THIS FOR INCREASED PARALLELISM & BURST 
         }
         /*Parallel:
           BuildCommands cmd = new BuildCommands{
@@ -84,6 +85,7 @@ JobHandle NearestHitsJob;
 
         jobScheduled = true;
     }
+    [BurstCompile]
     private struct GetNearestHitJob:IJobFor{
       [ReadOnly]
       public NativeArray<RaycastHit> hits;
@@ -119,7 +121,14 @@ Debug.Log("batching");
         for (int i = 0; i < count; i++)
         {
             AIVision ai = visionAgents[i];
-            commands[i] = new RaycastCommand(ai.rayOrigin, ai.rayDirection, default, ai.currentViewDistance);
+            LayerMask mask = new LayerMask{
+              value = layerMask
+            };
+            QueryParameters parameters = new QueryParameters(
+             layerMask, false,
+             default, false
+             );
+            commands[i] = new RaycastCommand(ai.rayOrigin, ai.rayDirection, parameters, ai.currentViewDistance);
         }
         /*Parallel:
           BuildCommands cmd = new BuildCommands{
