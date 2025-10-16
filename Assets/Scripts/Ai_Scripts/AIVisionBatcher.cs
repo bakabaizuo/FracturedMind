@@ -16,6 +16,7 @@ JobHandle NearestHitsJob;
     private JobHandle raycastJob = default;
     private bool jobScheduled = false;
 
+    
     void Awake()
     {
         Debug.Log("Batcher Awake");
@@ -33,7 +34,6 @@ JobHandle NearestHitsJob;
      // Debug.Log("REgister");
         if (!visionAgents.Contains(vision))
             visionAgents.Add(vision);
-        Debug.Log($"registerd{vision.transform.position}");
     }
 
     public void Unregister(AIVision vision)
@@ -112,12 +112,11 @@ JobHandle NearestHitsJob;
 Debug.Log("batching");
         int count = visionAgents.Count;
         commands = new NativeArray<RaycastCommand>(count, Allocator.TempJob);
-        results = new NativeArray<RaycastHit>(count * 8, Allocator.TempJob);
+        results = new NativeArray<RaycastHit>(count * maxHits, Allocator.TempJob);
 
         // Build all commands
         //
        // goto Parallel;
-        Serial:
         for (int i = 0; i < count; i++)
         {
             AIVision ai = visionAgents[i];
@@ -148,7 +147,7 @@ Debug.Log("batching");
           hits = results,
           firstHits = firstHits,
           maxHits= maxHits
-        }.ScheduleParallel(commands.Length,6,raycastJob);
+        }.ScheduleParallel(commands.Length,1,raycastJob);
         jobScheduled = true;
 
         if (!jobScheduled)
@@ -160,12 +159,8 @@ Debug.Log("batching");
         jobScheduled = false;
         
         //TODO: yield when nearestHitsJob not complete
-        for(int i = 0; i < results.Length; i++){
-          Debug.Log($"index:{i} id:{results[i].colliderInstanceID}");
-        }
         for (int i = 0; i < visionAgents.Count; i++)
         {
-          Debug.Log("PASSING");
             RaycastHit hit = firstHits[i];
             visionAgents[i].ProcessVisionResult(hit);
         }

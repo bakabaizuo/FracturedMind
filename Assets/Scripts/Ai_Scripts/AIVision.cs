@@ -152,6 +152,7 @@ public class AIVision : MonoBehaviour
     public float viewAngle = 120f;
     public float eyeHeight = 1.6f;
 
+    public bool aggro = false;
     [Header("Crouch Detection")]
     public float crouchDetectionModifier = 0.5f;
 
@@ -216,15 +217,13 @@ public class AIVision : MonoBehaviour
           rayOrigin = origin;
           rayDirection = dir;
           currentViewDistance = detectRange;
+          //goto Serial;
+          Parallel:
           AIVisionBatcher.Instance?.Register(this);
-
-          
-          //Physics.Raycast(origin, dir, out RaycastHit hit, detectRange);
-          //ProcessVisionResult(hit);
-        //if (Physics.Raycast(origin, dir, out RaycastHit hit, detectRange) && hit.collider.CompareTag("Player"))
-        //{
-          //  ProcessVisionResult(hit);
-        //}
+          return;
+          Serial:
+          Physics.Raycast(origin, dir, out RaycastHit hit, detectRange);
+         ProcessVisionResult(hit);
           return;
         }
             // Skip — player not within cone
@@ -232,6 +231,7 @@ public class AIVision : MonoBehaviour
       AIVisionBatcher.Instance?.Unregister(this);
     }
 
+    
     public void ProcessVisionResult(RaycastHit hit)
     {
         if (currentViewDistance <= 0f)
@@ -239,7 +239,7 @@ public class AIVision : MonoBehaviour
         Debug.Log($"hit {hit.colliderInstanceID}");
         if (hit.colliderInstanceID != 0 && hit.collider.CompareTag("Player"))
         {
-        Debug.Log("CASTed");
+            Debug.Log($"{this.GetInstanceID()} saw Player");
             OnPlayerDetected?.Invoke(hit.collider.transform, false);
             lastSeenPosition = hit.collider.transform.position;
             lastPlayer = hit.collider.transform;

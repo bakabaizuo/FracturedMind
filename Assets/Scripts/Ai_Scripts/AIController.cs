@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+public enum AIState { Idle, Chase, Investigate }
 public class AIController : MonoBehaviour
 {
     [Header("References")]
@@ -10,7 +11,6 @@ public class AIController : MonoBehaviour
     public AIVision vision;
     public EnemyAnimatorController enemyAnimator;
 
-    private enum AIState { Idle, Chase, Investigate }
     private AIState currentState = AIState.Idle;
 
     private void Start()
@@ -31,8 +31,9 @@ public class AIController : MonoBehaviour
     }
     private void OnPlayerDetected(Transform player, bool isCrouching)
     {
+
         currentState = AIState.Chase;
-        agent.SetDestination(player.position);
+       agent.SetDestination(player.position);
 
         // Set animation: walk if crouching, run otherwise
         enemyAnimator.PlayAnimation(isCrouching ? "Walk_N_Absolute" : "Run_N_Absolute");
@@ -40,6 +41,7 @@ public class AIController : MonoBehaviour
 
     private void Update()
     {
+        currentState = vision.aggro ? AIState.Chase:currentState;
         switch (currentState)
         {
             case AIState.Idle:
