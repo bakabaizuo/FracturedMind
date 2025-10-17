@@ -26,14 +26,11 @@ public class AIController : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter(Collider other){
-      Debug.Log(other.name);
-    }
     private void OnPlayerDetected(Transform player, bool isCrouching)
     {
 
         currentState = AIState.Chase;
-       agent.SetDestination(player.position);
+        agent.SetDestination(player.position);
 
         // Set animation: walk if crouching, run otherwise
         enemyAnimator.PlayAnimation(isCrouching ? "Walk_N_Absolute" : "Run_N_Absolute");
@@ -78,8 +75,8 @@ public class AIController : MonoBehaviour
         }
 
         Vector3 target = vision.GetLastSeenPosition();
-        agent.SetDestination(target);
-          Vector3 move = agent.nextPosition - transform.position;
+        //agent.SetDestination(target);
+          Vector3 move = /*agent.nextPosition*/ target - transform.position;
         move.y = 0; // prevent lifting
         GetComponent<CharacterController>().Move(move* Time.deltaTime);
            // Update rotation
@@ -104,7 +101,7 @@ public class AIController : MonoBehaviour
         }
 
         Vector3 target = vision.GetLastSeenPosition();
-        agent.SetDestination(target);
+       // agent.SetDestination(target);
 
         if (Vector3.Distance(transform.position, target) < 0.5f)
             currentState = AIState.Idle;

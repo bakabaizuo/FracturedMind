@@ -15,7 +15,7 @@ JobHandle NearestHitsJob;
     private int maxHits = 20;
     private JobHandle raycastJob = default;
     private bool jobScheduled = false;
-
+    private NativeArray<RaycastHit> firstHits ;
     
     void Awake()
     {
@@ -27,13 +27,17 @@ JobHandle NearestHitsJob;
     }
     void Start(){
       PlayerColliderInstanceID = GameObject.FindWithTag("Player").GetInstanceID();
+      firstHits = new NativeArray<RaycastHit>(GameObject.FindGameObjectsWithTag("AI").Length, Allocator.Persistent,NativeArrayOptions.UninitializedMemory );
+
+    }
+    void Destroy(){
+      firstHits.Dispose();
     }
 
     public void Register(AIVision vision)
     {
      // Debug.Log("REgister");
-        if (!visionAgents.Contains(vision))
-            visionAgents.Add(vision);
+      visionAgents.Add(vision);
     }
 
     public void Unregister(AIVision vision)
@@ -50,53 +54,22 @@ JobHandle NearestHitsJob;
         commands[i] = new RaycastCommand(ai.rayOrigin, ai.rayDirection, ai.currentViewDistance);
       }
     }*/
-    void U()
-    {
-        if (visionAgents.Count == 0)
-            return;
-
-        int count = visionAgents.Count;
-        commands = new NativeArray<RaycastCommand>(count, Allocator.TempJob);
-        results = new NativeArray<RaycastHit>(count*20, Allocator.TempJob);
-
-        // Build all commands
-        //
-       // goto Parallel;
-        Serial:
-        for (int i = 0; i < count; i++)
-        {
-            AIVision ai = visionAgents[i];
-            commands[i] = new RaycastCommand(ai.rayOrigin, ai.rayDirection, ai.currentViewDistance);
-            Debug.DrawRay(ai.rayOrigin,ai.currentViewDistance*ai.rayDirection);
-            //TODO: ECS THIS FOR INCREASED PARALLELISM & BURST 
-        }
-        /*Parallel:
-          BuildCommands cmd = new BuildCommands{
-            rays = commands,
-            agents = new NativeArray(
-              array = visionAgents.ToArray(),
-              allocator = Allocator.TempJob
-              )
-          };
-        raycastJob = cmd.ScheduleParallel(commands.Length,default);*/
-        // Schedule all raycasts in parallel
-        raycastJob = 
-          RaycastCommand.ScheduleBatch(commands, results, 32,raycastJob);
-
-        jobScheduled = true;
-    }
     [BurstCompile]
     private struct GetNearestHitJob:IJobFor{
       [ReadOnly]
       public NativeArray<RaycastHit> hits;
       public NativeArray<RaycastHit> firstHits;
+      [ReadOnly]
       public int maxHits;
       public void Execute(int i){
         int start = i * maxHits;
         int end = start + maxHits;
         
         firstHits[i] = hits[start]; 
-        for(int j = start;j<end;j++){
+        if(firstHits[i].colliderInstanceID == 0){
+          return;
+        }
+        for(int j = start+1;j<end;j++){
           if(hits[j].colliderInstanceID == 0)
             break;
           else if(hits[j].distance < firstHits[i].distance )
@@ -109,10 +82,9 @@ JobHandle NearestHitsJob;
     void Update()
     {        if (visionAgents.Count == 0)
             return;
-Debug.Log("batching");
         int count = visionAgents.Count;
-        commands = new NativeArray<RaycastCommand>(count, Allocator.TempJob);
-        results = new NativeArray<RaycastHit>(count * maxHits, Allocator.TempJob);
+        commands = new NativeArray<RaycastCommand>(count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+        results = new NativeArray<RaycastHit>(count * maxHits, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
 
         // Build all commands
         //
@@ -129,44 +101,35 @@ Debug.Log("batching");
              );
             commands[i] = new RaycastCommand(ai.rayOrigin, ai.rayDirection, parameters, ai.currentViewDistance);
         }
-        /*Parallel:
-          BuildCommands cmd = new BuildCommands{
-            rays = commands,
-            agents = new NativeArray(
-              array = visionAgents.ToArray(),
-              allocator = Allocator.TempJob
-              )
-          };
-        raycastJob = cmd.ScheduleParallel(commands.Length,default);*/
-        // Schedule all raycasts in parallel
         raycastJob = 
           RaycastCommand.ScheduleBatch(commands, results, 32,raycastJob);
 
-        NativeArray<RaycastHit> firstHits = new NativeArray<RaycastHit>(commands.Length, Allocator.TempJob);
+        
         NearestHitsJob = new GetNearestHitJob{
           hits = results,
           firstHits = firstHits,
           maxHits= maxHits
-        }.ScheduleParallel(commands.Length,1,raycastJob);
+        }.ScheduleParallel(commands.Length,6,raycastJob);
         jobScheduled = true;
 
-        if (!jobScheduled)
-            return;
 
-        // Wait for job completion before reading results
-        //raycastJob.Complete();
         NearestHitsJob.Complete();
-        jobScheduled = false;
-        
-        //TODO: yield when nearestHitsJob not complete
-        for (int i = 0; i < visionAgents.Count; i++)
-        {
-            RaycastHit hit = firstHits[i];
-            visionAgents[i].ProcessVisionResult(hit);
-        }
-
         commands.Dispose();
         results.Dispose();
-        firstHits.Dispose();
+        // Wait for job completion before reading results
+        //raycastJob.Complete();
+        
+        //TODO: yield when nearestHitsJob not complete
+
+    }
+    void LateUpdate(){
+
+        for (int i = 0; i < visionAgents.Count; i++)
+        {
+            if(firstHits[i].collider != null)
+              
+              visionAgents[i].ProcessVisionResult(firstHits[i]);
+        }
+        visionAgents.Clear();
     }
 }
