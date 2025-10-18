@@ -30,15 +30,6 @@ public class AIVision : MonoBehaviour
 
     public event Action<Transform, bool> OnPlayerDetected;
 
-    void OnEnable()
-    {
-        AIVisionBatcher.Instance?.Register(this);
-    }
-
-    void OnDisable()
-    {
-        AIVisionBatcher.Instance?.Unregister(this);
-    }
 
     public bool HasLastSeenPosition() => lastSeenPosition.HasValue;
     public Vector3 GetLastSeenPosition() => lastSeenPosition.Value;
@@ -65,6 +56,7 @@ public class AIVision : MonoBehaviour
        public NativeArray<RaycastHit> hits;
        public NativeArray<RaycastHit>firstHit;
        public void Execute(){
+         
         firstHit[0] = hits[0];
         if(firstHit[0].colliderInstanceID == 0)
           return;
@@ -106,23 +98,20 @@ public class AIVision : MonoBehaviour
           rayOrigin = origin;
           rayDirection = dir;
           currentViewDistance = detectRange;
-          if (AIVisionBatcher.Instance == null){
-          Physics.Raycast(origin, dir, out RaycastHit hit, detectRange);
-
-         ProcessVisionResult(hit, playerID);
-          return;
+          if (AIVisionBatcher.Instance != null){
+          
+           goto Parallel;
           }
-           //goto Parallel;
             NativeArray<RaycastCommand> cmds = new NativeArray<RaycastCommand>(1, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
             NativeArray<RaycastHit> results = new NativeArray<RaycastHit>(20, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
             cmds[0] = new RaycastCommand(rayOrigin, rayDirection, parameters, currentViewDistance);
 
-            JobHandle rayJob = RaycastCommand.ScheduleBatch(cmds, results,1,default);
+            JobHandle jobQueue = RaycastCommand.ScheduleBatch(cmds, results,1,default);
             NativeArray<RaycastHit> firstHit = new NativeArray<RaycastHit>(1,Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-            JobHandle jobQueue = new getNearest{
+             jobQueue = new getNearest{
               hits = results,
               firstHit = firstHit
-            }.Schedule(rayJob);
+            }.Schedule(jobQueue);
 
             //rayJob.Complete();
 
@@ -143,7 +132,6 @@ public class AIVision : MonoBehaviour
 
     public void ProcessVisionResult(RaycastHit hit, int targetID){
 //       Debug.Log($"ID = {hit.colliderInstanceID} is Null: {hit.collider == null}") ;
-       Debug.Log($"collider found = {hit.colliderInstanceID } player ID : {targetID}");
       if(hit.collider != null && hit.collider.CompareTag("Player")){
 
        // Debug.Log($"{this.name} sees: {hit.collider.tag}");

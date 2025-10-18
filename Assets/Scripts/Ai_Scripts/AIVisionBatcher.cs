@@ -8,7 +8,6 @@ public class AIVisionBatcher : MonoBehaviour
     public static AIVisionBatcher Instance;
     private int PlayerColliderInstanceID;
     private List<AIVision> visionAgents = new List<AIVision>();
-    readonly int layerMask = unchecked((int) 0xFFFFFFFF);
     private NativeArray<RaycastCommand> commands;
     private NativeArray<RaycastHit> results;
 JobHandle NearestHitsJob;
@@ -19,7 +18,6 @@ JobHandle NearestHitsJob;
     
     void Awake()
     {
-        Debug.Log("Batcher Awake");
         if (Instance == null)
             Instance = this;
         else
@@ -36,7 +34,6 @@ JobHandle NearestHitsJob;
 
     public void Register(AIVision vision)
     {
-     Debug.Log("REgister");
       visionAgents.Add(vision);
     }
 
@@ -58,47 +55,53 @@ JobHandle NearestHitsJob;
     private struct GetNearestHitJob:IJobFor{
       [ReadOnly]
       public NativeArray<RaycastHit> hits;
+      [NativeDisableParallelForRestriction]
       public NativeArray<RaycastHit> firstHits;
       [ReadOnly]
       public int maxHits;
       public void Execute(int i){
-        int start = i * maxHits;
-        int end = start + maxHits;
-        
-        firstHits[i] = hits[start]; 
-        if(firstHits[i].colliderInstanceID == 0){
+        if(i >= firstHits.Length){
           return;
         }
-        for(int j = start+1;j<end;j++){
-          if(hits[j].colliderInstanceID == 0)
-            break;
-          else if(hits[j].distance < firstHits[i].distance )
-            firstHits[i] = hits[j];
+        int start = i * maxHits;
 
+        Debug.Log($"i = {i} start = {start} len = {hits.Length} ");
+
+        firstHits[i] = hits[start];
+        if(firstHits[i].colliderInstanceID == 0)
+          return;
+        NativeArray<RaycastHit> hitSubArray = hits.GetSubArray(start+1,maxHits-1);
+        for (int j = 1; j < maxHits-1; j ++){
+          if(hitSubArray[j].colliderInstanceID==0)
+            return;
+          else if (hitSubArray[j].distance < firstHits[i].distance){
+            firstHits[i]=hitSubArray[j];
+          }
         }
 
       }
     }
     void Update()
-    {        if (visionAgents.Count == 0)
+    { 
+      Debug.Log("UPDATING");
+      if (visionAgents.Count == 0)
             return;
         int count = visionAgents.Count;
         commands = new NativeArray<RaycastCommand>(count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
         results = new NativeArray<RaycastHit>(count * maxHits, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
 
+            QueryParameters parameters = new QueryParameters(
+             new LayerMask{
+              value =  unchecked((int) 0xFFFFFFFF)
+            }, false,
+             default, false
+             );
         // Build all commands
         //
        // goto Parallel;
         for (int i = 0; i < count; i++)
         {
             AIVision ai = visionAgents[i];
-            LayerMask mask = new LayerMask{
-              value = layerMask
-            };
-            QueryParameters parameters = new QueryParameters(
-             layerMask, false,
-             default, false
-             );
             commands[i] = new RaycastCommand(ai.rayOrigin, ai.rayDirection, parameters, ai.currentViewDistance);
         }
         raycastJob = 
@@ -109,7 +112,7 @@ JobHandle NearestHitsJob;
           hits = results,
           firstHits = firstHits,
           maxHits= maxHits
-        }.ScheduleParallel(commands.Length,6,raycastJob);
+        }.ScheduleParallel(count ,6,raycastJob);
         jobScheduled = true;
 
 
