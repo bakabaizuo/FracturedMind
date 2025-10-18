@@ -55,12 +55,36 @@ public class AIVision : MonoBehaviour
             }
         }
     }
+    private  QueryParameters parameters = new QueryParameters(
+       unchecked((int) 0xFFFFFFFF), false,
+       default, false
+       );
+    struct getNearest:IJob
+    {
+      [ReadOnly]
+       public NativeArray<RaycastHit> hits;
+       public NativeArray<RaycastHit>firstHit;
+       public void Execute(){
+        firstHit[0] = hits[0];
+        if(firstHit[0].colliderInstanceID == 0)
+          return;
+        
+        for(int i = 1; i < hits.Length; i++){
+          if(hits[i].colliderInstanceID == 0)
+            return;
+          if(firstHit[0].distance<hits[i].distance)
+            firstHit[0] = hits[i];
+        }
+       }
+
+    }
     void OnTriggerStay(Collider other)
     {
 
         if (!other.CompareTag("Player")) return;
 
         var player = other.GetComponent<ThirdPersonBasic>();
+        int playerID = other.GetInstanceID();
         if (player == null) return;
 
         bool isCrouching = player.isCrouching;
@@ -72,41 +96,63 @@ public class AIVision : MonoBehaviour
         float angleToPlayer = Vector3.Angle(transform.forward, dir);
         //Debug.Log($"theta = {angleToPlayer<=viewAngle*0.5f}");
         //goto oldray;
-        if (viewDistance > 0f||angleToPlayer <= viewAngle * 0.5f)
+        if (viewDistance <= 0f||angleToPlayer > viewAngle * 0.5f)
         {
+          return;
             // Store ray for the batcher to process this frame
+        }
+            // Skip — player not within cone
+
           rayOrigin = origin;
           rayDirection = dir;
           currentViewDistance = detectRange;
-          if (AIVisionBatcher.Instance == null)
-            goto Serial;
+          if (AIVisionBatcher.Instance == null){
+          Physics.Raycast(origin, dir, out RaycastHit hit, detectRange);
+
+         ProcessVisionResult(hit, playerID);
+          return;
+          }
+           //goto Parallel;
+            NativeArray<RaycastCommand> cmds = new NativeArray<RaycastCommand>(1, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+            NativeArray<RaycastHit> results = new NativeArray<RaycastHit>(20, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+            cmds[0] = new RaycastCommand(rayOrigin, rayDirection, parameters, currentViewDistance);
+
+            JobHandle rayJob = RaycastCommand.ScheduleBatch(cmds, results,1,default);
+            NativeArray<RaycastHit> firstHit = new NativeArray<RaycastHit>(1,Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+            JobHandle jobQueue = new getNearest{
+              hits = results,
+              firstHit = firstHit
+            }.Schedule(rayJob);
+
+            //rayJob.Complete();
+
+            jobQueue.Complete();
+            
+            cmds.Dispose();
+            results.Dispose();
+
+            ProcessVisionResult(firstHit[0],playerID);
+            
+            firstHit.Dispose();
+            
+            return;
           Parallel:
           AIVisionBatcher.Instance?.Register(this);
-          return;
-          Serial:
-          Physics.Raycast(origin, dir, out RaycastHit hit, detectRange);
-         ProcessVisionResult(hit);
-          return;
-        }
-            // Skip — player not within cone
-      currentViewDistance = 0f;
-      AIVisionBatcher.Instance?.Unregister(this);
+      
     }
 
-    
-    public void ProcessVisionResult(RaycastHit hit)
-    {
-        
+    public void ProcessVisionResult(RaycastHit hit, int targetID){
+//       Debug.Log($"ID = {hit.colliderInstanceID} is Null: {hit.collider == null}") ;
+       Debug.Log($"collider found = {hit.colliderInstanceID } player ID : {targetID}");
+      if(hit.collider != null && hit.collider.CompareTag("Player")){
 
-        if ( hit.collider.CompareTag("Player"))
-        {
        // Debug.Log($"{this.name} sees: {hit.collider.tag}");
         Debug.DrawRay(rayOrigin, rayDirection*viewDistance);
             OnPlayerDetected?.Invoke(hit.collider.transform, false);
             lastSeenPosition = hit.collider.transform.position;
             lastPlayer = hit.collider.transform;
             memoryTimer = 0f;
-        }
+      }
     }
 
     void OnDrawGizmosSelected()

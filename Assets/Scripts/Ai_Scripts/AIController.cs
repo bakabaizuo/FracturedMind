@@ -36,9 +36,9 @@ public class AIController : MonoBehaviour
         enemyAnimator.PlayAnimation(isCrouching ? "Walk_N_Absolute" : "Run_N_Absolute");
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
-        currentState = vision.aggro ? AIState.Chase:currentState;
+        //currentState = vision.aggro ? AIState.Chase:currentState;
         switch (currentState)
         {
             case AIState.Idle:

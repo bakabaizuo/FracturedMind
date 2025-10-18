@@ -36,7 +36,7 @@ JobHandle NearestHitsJob;
 
     public void Register(AIVision vision)
     {
-     // Debug.Log("REgister");
+     Debug.Log("REgister");
       visionAgents.Add(vision);
     }
 
@@ -128,7 +128,7 @@ JobHandle NearestHitsJob;
         {
             if(firstHits[i].collider != null)
               
-              visionAgents[i].ProcessVisionResult(firstHits[i]);
+              visionAgents[i].ProcessVisionResult(firstHits[i],PlayerColliderInstanceID);
         }
         visionAgents.Clear();
     }
