@@ -18,7 +18,7 @@ public class AIVision : MonoBehaviour
     public float crouchDetectionModifier = 0.5f;
 
     [Header("Memory")]
-    public float memoryDuration = 60f;
+    private  float memoryDuration = 1000f;
 
     private float memoryTimer = 0f;
     private Vector3? lastSeenPosition;
@@ -29,25 +29,33 @@ public class AIVision : MonoBehaviour
     [HideInInspector] public float currentViewDistance;
 
     public event Action<Transform, bool> OnPlayerDetected;
-
+    public AIState state = AIState.Idle;
 
     public bool HasLastSeenPosition() => lastSeenPosition.HasValue;
     public Vector3 GetLastSeenPosition() => lastSeenPosition.Value;
+    void OnTriggerExit(Collider other){
+      if(other.CompareTag("Player")){
+
+        state = AIState.Investigate;
+        AIVisionBatcher.Instance?.Unregister(this);
+      }
+    }
     void Update()
     {
-        if (lastSeenPosition.HasValue)
+
+        if (state == AIState.Investigate )
         {
             memoryTimer += Time.deltaTime;
-            if (memoryTimer > memoryDuration)
+        if (memoryTimer > memoryDuration)
             {
+              state = AIState.Idle;
                 lastSeenPosition = null;
                 lastPlayer = null;
                 memoryTimer = 0f;
             }
-        }
-    }
+    }}
     private  QueryParameters parameters = new QueryParameters(
-       unchecked((int) 0xFFFFFFFF), false,
+       unchecked((int) 0xFFFFFF7F), false,
        default, false
        );
     struct getNearest:IJob
@@ -120,7 +128,7 @@ public class AIVision : MonoBehaviour
             cmds.Dispose();
             results.Dispose();
 
-            ProcessVisionResult(firstHit[0],playerID);
+            ProcessVisionResult(firstHit[0]);
             
             firstHit.Dispose();
             
@@ -130,13 +138,13 @@ public class AIVision : MonoBehaviour
       
     }
 
-    public void ProcessVisionResult(RaycastHit hit, int targetID){
+    public void ProcessVisionResult(RaycastHit hit){
 //       Debug.Log($"ID = {hit.colliderInstanceID} is Null: {hit.collider == null}") ;
       if(hit.collider != null && hit.collider.CompareTag("Player")){
 
        // Debug.Log($"{this.name} sees: {hit.collider.tag}");
+       state = AIState.Chase;
         Debug.DrawRay(rayOrigin, rayDirection*viewDistance);
-            OnPlayerDetected?.Invoke(hit.collider.transform, false);
             lastSeenPosition = hit.collider.transform.position;
             lastPlayer = hit.collider.transform;
             memoryTimer = 0f;

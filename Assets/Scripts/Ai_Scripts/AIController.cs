@@ -10,13 +10,12 @@ public class AIController : MonoBehaviour
     public NavMeshAgent agent;
     public AIVision vision;
     public EnemyAnimatorController enemyAnimator;
-
+GameObject player;
     private AIState currentState = AIState.Idle;
 
     private void Start()
     {
-        if (vision != null)
-            vision.OnPlayerDetected += OnPlayerDetected;
+      player = GameObject.FindWithTag("Player");
 
         // Ensure agent moves automatically
         if (agent != null)
@@ -26,19 +25,10 @@ public class AIController : MonoBehaviour
         }
     }
 
-    private void OnPlayerDetected(Transform player, bool isCrouching)
-    {
-
-        currentState = AIState.Chase;
-        agent.SetDestination(player.position);
-
-        // Set animation: walk if crouching, run otherwise
-        enemyAnimator.PlayAnimation(isCrouching ? "Walk_N_Absolute" : "Run_N_Absolute");
-    }
 
     private void FixedUpdate()
     {
-        //currentState = vision.aggro ? AIState.Chase:currentState;
+        currentState = vision.state;
         switch (currentState)
         {
             case AIState.Idle:
@@ -74,14 +64,14 @@ public class AIController : MonoBehaviour
             return;
         }
 
-        Vector3 target = vision.GetLastSeenPosition();
-        //agent.SetDestination(target);
-          Vector3 move = /*agent.nextPosition*/ target - transform.position;
-        move.y = 0; // prevent lifting
-        GetComponent<CharacterController>().Move(move* Time.deltaTime);
+        Vector3 target = player.transform.position;
+        target.y = 0;
+        agent.SetDestination(target);
+        //GetComponent<CharacterController>().Move(move* Time.deltaTime);
            // Update rotation
-        if (move != Vector3.zero)
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(move), 5f * Time.deltaTime);
+        if (agent.nextPosition - target != Vector3.zero)
+          transform.LookAt(player.transform);
+            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(move), 5f * Time.deltaTime);
 
         // Debug line to see target
         Debug.DrawLine(transform.position, target, Color.red);
