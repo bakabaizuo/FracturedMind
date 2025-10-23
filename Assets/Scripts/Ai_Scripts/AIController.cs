@@ -58,11 +58,11 @@ GameObject player;
 
     private void Chase()
     {
-        if (!vision.HasLastSeenPosition())
+        /*if (!vision.HasLastSeenPosition())
         {
             currentState = AIState.Idle;
             return;
-        }
+        }*/
 
         Vector3 target = player.transform.position;
         target.y = 0;
@@ -79,21 +79,15 @@ GameObject player;
 
         // Switch to investigate if reached last seen
         if (Vector3.Distance(transform.position, target) < 0.5f)
-            currentState = AIState.Investigate;
+            vision.state = AIState.Investigate;
     }
 
     private void Investigate()
     {
-        if (!vision.HasLastSeenPosition())
-        {
-            currentState = AIState.Idle;
-            return;
-        }
 
-        Vector3 target = vision.GetLastSeenPosition();
-       // agent.SetDestination(target);
+        if (Vector3.Distance(transform.position, player.transform.position) < 0.5f)
+          transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 5f * Time.deltaTime);
 
-        if (Vector3.Distance(transform.position, target) < 0.5f)
-            currentState = AIState.Idle;
+          //  vision.state = AIState.Idle;
     }
 }
