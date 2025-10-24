@@ -100,7 +100,6 @@ JobHandle NearestHitsJob;
              );
     void FixedUpdate()
     { 
-      Debug.Log("UPDATING");
       if (visionAgents.Count == 0)
             return;
         int count = visionAgents.Count;
@@ -162,8 +161,5 @@ JobHandle NearestHitsJob;
         commands.Clear();
      //   firstHits.Dispose();
 
-    }
-    void LateUpdate(){
-//StartCoroutine(GetHits());
     }
 }

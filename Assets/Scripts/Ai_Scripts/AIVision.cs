@@ -21,18 +21,22 @@ public class AIVision : MonoBehaviour
     private  float memoryDuration = 1000f;
 
     private float memoryTimer = 0f;
-    private Vector3? lastSeenPosition;
-    private Transform lastPlayer;
+//    private Vector3? lastSeenPosition;
+//    private Transform lastPlayer;
 
     [HideInInspector] public Vector3 rayOrigin;
     [HideInInspector] public Vector3 rayDirection;
     [HideInInspector] public float currentViewDistance;
-
-    public event Action<Transform, bool> OnPlayerDetected;
+    private Vector3 eyePosition ;
     public AIState state = AIState.Idle;
 
-    public bool HasLastSeenPosition() => lastSeenPosition.HasValue;
-    public Vector3 GetLastSeenPosition() => lastSeenPosition.Value;
+    //public bool HasLastSeenPosition() => lastSeenPosition.HasValue;
+    //public Vector3 GetLastSeenPosition() => lastSeenPosition.Value;
+    void Start(){
+
+     eyePosition = new Vector3(0,eyeHeight,0);
+
+    }
     void OnTriggerExit(Collider other){
       if(other.CompareTag("Player")){
 
@@ -40,17 +44,24 @@ public class AIVision : MonoBehaviour
         AIVisionBatcher.Instance?.Unregister(this);
       }
     }
-    void Update()
+    void FixedUpdate()
     {
+      origin = 
+          transform.position + eyePosition;
+
+
 
         if (state == AIState.Investigate )
         {
             memoryTimer += Time.deltaTime;
         if (memoryTimer > memoryDuration)
-            {
+        
+
+
+        {
               state = AIState.Idle;
-                lastSeenPosition = null;
-                lastPlayer = null;
+                //lastSeenPosition = null;
+                //lastPlayer = null;
                 memoryTimer = 0f;
             }
     }}
@@ -58,6 +69,7 @@ public class AIVision : MonoBehaviour
        unchecked((int) 0xFFFFFF7F), false,
        default, false
        );
+    Vector3 origin;
     struct getNearest:IJob
     {
       [ReadOnly]
@@ -84,14 +96,12 @@ public class AIVision : MonoBehaviour
         if (!other.CompareTag("Player")) return;
 
         var player = other.GetComponent<ThirdPersonBasic>();
-        int playerID = other.GetInstanceID();
         if (player == null) return;
 
         bool isCrouching = player.isCrouching;
         float detectRange = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
 
-        Vector3 origin = transform.position + Vector3.up * eyeHeight;
-        Vector3 targetPos = other.transform.position + Vector3.up * (isCrouching ? 0.5f : 1.2f);
+        Vector3 targetPos = other.transform.position /*+ Vector3.up * (isCrouching ? 0.5f : 1.2f)*/;
         Vector3 dir = (targetPos - origin).normalized;
         float angleToPlayer = Vector3.Angle(transform.forward, dir);
         //Debug.Log($"theta = {angleToPlayer<=viewAngle*0.5f}");
@@ -108,8 +118,9 @@ public class AIVision : MonoBehaviour
           currentViewDistance = detectRange;
           if (AIVisionBatcher.Instance != null){
           
-           goto Parallel;
+           goto Batched;
           }
+          //goto Serial;
             NativeArray<RaycastCommand> cmds = new NativeArray<RaycastCommand>(1, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
             NativeArray<RaycastHit> results = new NativeArray<RaycastHit>(20, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
             cmds[0] = new RaycastCommand(rayOrigin, rayDirection, parameters, currentViewDistance);
@@ -133,7 +144,12 @@ public class AIVision : MonoBehaviour
             firstHit.Dispose();
             
             return;
-          Parallel:
+            Serial:
+              RaycastHit hit;
+              Physics.Raycast(origin,dir, out hit,detectRange, unchecked((int) 0xFFFFFF7F) );
+            ProcessVisionResult(hit);
+              return;
+          Batched:
           AIVisionBatcher.Instance?.Register(this);
       
     }
@@ -144,10 +160,13 @@ public class AIVision : MonoBehaviour
 
        // Debug.Log($"{this.name} sees: {hit.collider.tag}");
        state = AIState.Chase;
-        Debug.DrawRay(rayOrigin, rayDirection*viewDistance);
-            lastSeenPosition = hit.collider.transform.position;
-            lastPlayer = hit.collider.transform;
+        //Debug.DrawRay(rayOrigin, rayDirection*viewDistance);
+          //  lastSeenPosition = hit.collider.transform.position;
+            //lastPlayer = hit.collider.transform;
             memoryTimer = 0f;
+      }else
+      {
+          state = AIState.Investigate;
       }
     }
 
