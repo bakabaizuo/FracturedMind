@@ -12,15 +12,20 @@ public class AIVision : MonoBehaviour
     public float viewDistance = 20f;
     public float viewAngle = 120f;
     public float eyeHeight = 1.6f;
-
-    public bool aggro = false;
+    
+    private Vector3 origin;
+    
+    public QueryParameters parameters = new QueryParameters(
+       unchecked((int) 0xFFFFFF7F), false,
+       default, false
+       );
+    
     [Header("Crouch Detection")]
     public float crouchDetectionModifier = 0.5f;
 
     [Header("Memory")]
-    private  float memoryDuration = 1000f;
-
-    private float memoryTimer = 0f;
+    readonly static int memoryDuration = 100;
+    readonly static int gracePeriod = 200;
 //    private Vector3? lastSeenPosition;
 //    private Transform lastPlayer;
 
@@ -30,46 +35,77 @@ public class AIVision : MonoBehaviour
     private Vector3 eyePosition ;
     public AIState state = AIState.Idle;
 
-    //public bool HasLastSeenPosition() => lastSeenPosition.HasValue;
-    //public Vector3 GetLastSeenPosition() => lastSeenPosition.Value;
+    Coroutine timer = null;
     void Start(){
 
      eyePosition = new Vector3(0,eyeHeight,0);
 
     }
-    void OnTriggerExit(Collider other){
-      if(other.CompareTag("Player")){
 
-        state = AIState.Investigate;
-        AIVisionBatcher.Instance?.Unregister(this);
+    void OnPlayerLost(){
+      switch(state){
+        case AIState.Idle: break;
+        case AIState.Chase: 
+          ticks = memoryDuration;
+          state = AIState.Investigate;
+          if(scan != null){
+            StopCoroutine(scan);
+            scan = null;
+          }
+          timer ??= StartCoroutine(StartTimer());
+          search ??= StartCoroutine(ForgetPlayer());
+          break;
+        case AIState.Investigate: 
+          break;
       }
+    }
+    void OnPlayerSeen(){
+      switch(state){
+        case AIState.Chase:break;
+        case AIState.Investigate:
+          break;
+        case AIState.Idle:
+          ticks = gracePeriod;
+          state = AIState.Investigate;
+          if(search != null){
+            StopCoroutine(search);
+            search = null;
+          }
+          timer ??= StartCoroutine(StartTimer());
+          scan ??= StartCoroutine(ScanPlayer());
+          break;
+      }
+    }
+
+    int ticks = 0;
+    Coroutine scan = null;
+    Coroutine search = null;
+    IEnumerator StartTimer(){
+      for (; ticks > 0; ticks--)
+      {
+        yield return new WaitForFixedUpdate();
+      }
+    }
+    IEnumerator ScanPlayer(){
+      yield return timer;
+      timer = null;
+      state = AIState.Chase;
+    }
+    IEnumerator ForgetPlayer(){
+      yield return timer;
+      timer = null;
+      state = AIState.Idle;
+    }
+    void OnTriggerExit(Collider other){
+      if(!other.CompareTag("Player") )
+        return;
+      OnPlayerLost();
     }
     void FixedUpdate()
     {
-      origin = 
+      rayOrigin = 
           transform.position + eyePosition;
-
-
-
-        if (state == AIState.Investigate )
-        {
-            memoryTimer += Time.deltaTime;
-        if (memoryTimer > memoryDuration)
-        
-
-
-        {
-              state = AIState.Idle;
-                //lastSeenPosition = null;
-                //lastPlayer = null;
-                memoryTimer = 0f;
-            }
-    }}
-    private  QueryParameters parameters = new QueryParameters(
-       unchecked((int) 0xFFFFFF7F), false,
-       default, false
-       );
-    Vector3 origin;
+    }
     struct getNearest:IJob
     {
       [ReadOnly]
@@ -102,10 +138,8 @@ public class AIVision : MonoBehaviour
         float detectRange = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
 
         Vector3 targetPos = other.transform.position /*+ Vector3.up * (isCrouching ? 0.5f : 1.2f)*/;
-        Vector3 dir = (targetPos - origin).normalized;
+        Vector3 dir = (targetPos - rayOrigin).normalized;
         float angleToPlayer = Vector3.Angle(transform.forward, dir);
-        //Debug.Log($"theta = {angleToPlayer<=viewAngle*0.5f}");
-        //goto oldray;
         if (viewDistance <= 0f||angleToPlayer > viewAngle * 0.5f)
         {
           return;
@@ -113,7 +147,6 @@ public class AIVision : MonoBehaviour
         }
             // Skip — player not within cone
 
-          rayOrigin = origin;
           rayDirection = dir;
           currentViewDistance = detectRange;
           if (AIVisionBatcher.Instance != null){
@@ -146,8 +179,9 @@ public class AIVision : MonoBehaviour
             return;
             Serial:
               RaycastHit hit;
-              Physics.Raycast(origin,dir, out hit,detectRange, unchecked((int) 0xFFFFFF7F) );
-            ProcessVisionResult(hit);
+              bool detected = Physics.Raycast(rayOrigin,dir, out hit,detectRange, unchecked((int) 0xFFFFFF7F) );
+              if(detected)
+                ProcessVisionResult(hit);
               return;
           Batched:
           AIVisionBatcher.Instance?.Register(this);
@@ -155,30 +189,22 @@ public class AIVision : MonoBehaviour
     }
 
     public void ProcessVisionResult(RaycastHit hit){
-//       Debug.Log($"ID = {hit.colliderInstanceID} is Null: {hit.collider == null}") ;
-      if(hit.collider != null && hit.collider.CompareTag("Player")){
+      if(hit.collider == null || !hit.collider.CompareTag("Player"))
+        OnPlayerLost();
+      else
+        OnPlayerSeen();
+      
 
-       // Debug.Log($"{this.name} sees: {hit.collider.tag}");
-       state = AIState.Chase;
-        //Debug.DrawRay(rayOrigin, rayDirection*viewDistance);
-          //  lastSeenPosition = hit.collider.transform.position;
-            //lastPlayer = hit.collider.transform;
-            memoryTimer = 0f;
-      }else
-      {
-          state = AIState.Investigate;
-      }
     }
 
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
-        Vector3 origin = transform.position + Vector3.up * eyeHeight;
         //Gizmos.DrawRay(rayOrigin, rayDirection * viewDistance);
 
         Vector3 left = Quaternion.Euler(0, -viewAngle / 2f, 0) * transform.forward;
         Vector3 right = Quaternion.Euler(0, viewAngle / 2f, 0) * transform.forward;
-        Gizmos.DrawRay(origin, left * viewDistance);
-        Gizmos.DrawRay(origin, right * viewDistance);
+        Gizmos.DrawRay(rayOrigin, left * viewDistance);
+        Gizmos.DrawRay(rayOrigin, right * viewDistance);
     }
 }
