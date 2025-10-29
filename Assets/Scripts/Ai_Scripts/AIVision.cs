@@ -24,8 +24,8 @@ public class AIVision : MonoBehaviour
     public float crouchDetectionModifier = 0.5f;
 
     [Header("Memory")]
-    readonly static int memoryDuration = 100;
-    readonly static int gracePeriod = 200;
+    readonly static int memoryDuration = 10;
+    readonly static int gracePeriod = 20;
 //    private Vector3? lastSeenPosition;
 //    private Transform lastPlayer;
 
@@ -60,6 +60,7 @@ public class AIVision : MonoBehaviour
       }
     }
     void OnPlayerSeen(){
+      
       switch(state){
         case AIState.Chase:break;
         case AIState.Investigate:
@@ -84,6 +85,7 @@ public class AIVision : MonoBehaviour
       for (; ticks > 0; ticks--)
       {
         yield return new WaitForFixedUpdate();
+        Debug.Log("Tick");
       }
     }
     IEnumerator ScanPlayer(){
@@ -103,8 +105,8 @@ public class AIVision : MonoBehaviour
     }
     void FixedUpdate()
     {
-      rayOrigin = 
-          transform.position + eyePosition;
+      rayOrigin = transform.position;
+      rayOrigin.y += eyeHeight; 
     }
     struct getNearest:IJob
     {
@@ -132,7 +134,7 @@ public class AIVision : MonoBehaviour
         if (!other.CompareTag("Player")) return;
 
         var player = other.GetComponent<ThirdPersonBasic>();
-        if (player == null) return;
+        if (viewDistance <= 0f||player == null) return;
 
         bool isCrouching = player.isCrouching;
         float detectRange = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
@@ -140,59 +142,57 @@ public class AIVision : MonoBehaviour
         Vector3 targetPos = other.transform.position /*+ Vector3.up * (isCrouching ? 0.5f : 1.2f)*/;
         Vector3 dir = (targetPos - rayOrigin).normalized;
         float angleToPlayer = Vector3.Angle(transform.forward, dir);
-        if (viewDistance <= 0f||angleToPlayer > viewAngle * 0.5f)
+        if (angleToPlayer > viewAngle * 0.5f)
         {
           return;
-            // Store ray for the batcher to process this frame
         }
-            // Skip — player not within cone
+        rayDirection = dir;
+        currentViewDistance = detectRange;
+        if (AIVisionBatcher.Instance != null)
+         goto Batched;
+        //goto Serial;
+        NativeArray<RaycastCommand> cmds = 
+          new NativeArray<RaycastCommand>(1, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+        NativeArray<RaycastHit> results =
+          new NativeArray<RaycastHit>(20, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+        cmds[0] = new RaycastCommand(rayOrigin, rayDirection, parameters, currentViewDistance);
 
-          rayDirection = dir;
-          currentViewDistance = detectRange;
-          if (AIVisionBatcher.Instance != null){
-          
-           goto Batched;
-          }
-          //goto Serial;
-            NativeArray<RaycastCommand> cmds = new NativeArray<RaycastCommand>(1, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-            NativeArray<RaycastHit> results = new NativeArray<RaycastHit>(20, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-            cmds[0] = new RaycastCommand(rayOrigin, rayDirection, parameters, currentViewDistance);
+        JobHandle jobQueue = RaycastCommand.ScheduleBatch(cmds, results,1,default);
+        NativeArray<RaycastHit> firstHit =
+          new NativeArray<RaycastHit>(1,Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+         jobQueue = new getNearest{
+          hits = results,
+          firstHit = firstHit
+        }.Schedule(jobQueue);
 
-            JobHandle jobQueue = RaycastCommand.ScheduleBatch(cmds, results,1,default);
-            NativeArray<RaycastHit> firstHit = new NativeArray<RaycastHit>(1,Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-             jobQueue = new getNearest{
-              hits = results,
-              firstHit = firstHit
-            }.Schedule(jobQueue);
+        //rayJob.Complete();
 
-            //rayJob.Complete();
+        jobQueue.Complete();
+        
+        cmds.Dispose();
+        results.Dispose();
 
-            jobQueue.Complete();
-            
-            cmds.Dispose();
-            results.Dispose();
-
-            ProcessVisionResult(firstHit[0]);
-            
-            firstHit.Dispose();
-            
-            return;
-            Serial:
-              RaycastHit hit;
-              bool detected = Physics.Raycast(rayOrigin,dir, out hit,detectRange, unchecked((int) 0xFFFFFF7F) );
-              if(detected)
-                ProcessVisionResult(hit);
-              return;
-          Batched:
-          AIVisionBatcher.Instance?.Register(this);
-      
+        ProcessVisionResult(firstHit[0]);
+        
+        firstHit.Dispose();
+        
+        return;
+        Serial:
+          RaycastHit hit;
+          bool detected = Physics.Raycast(rayOrigin,dir, out hit,detectRange, unchecked((int) 0xFFFFFF7F) );
+          if(detected)
+            ProcessVisionResult(hit);
+          return;
+        Batched:
+        AIVisionBatcher.Instance?.Register(this);
+    
     }
 
     public void ProcessVisionResult(RaycastHit hit){
-      if(hit.collider == null || !hit.collider.CompareTag("Player"))
-        OnPlayerLost();
-      else
+      if(hit.collider != null && hit.collider.CompareTag("Player"))
         OnPlayerSeen();
+      else
+        OnPlayerLost();
       
 
     }
@@ -202,8 +202,8 @@ public class AIVision : MonoBehaviour
         Gizmos.color = Color.yellow;
         //Gizmos.DrawRay(rayOrigin, rayDirection * viewDistance);
 
-        Vector3 left = Quaternion.Euler(0, -viewAngle / 2f, 0) * transform.forward;
-        Vector3 right = Quaternion.Euler(0, viewAngle / 2f, 0) * transform.forward;
+        Vector3 left = Quaternion.Euler(0, -viewAngle , 0) * transform.forward;
+        Vector3 right = Quaternion.Euler(0, viewAngle, 0) * transform.forward;
         Gizmos.DrawRay(rayOrigin, left * viewDistance);
         Gizmos.DrawRay(rayOrigin, right * viewDistance);
     }

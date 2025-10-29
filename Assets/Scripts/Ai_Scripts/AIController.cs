@@ -84,7 +84,7 @@ GameObject player;
 
     private void Investigate()
     {
-
+        Debug.DrawLine(transform.position,player.transform.position);
         if (Vector3.Distance(transform.position, player.transform.position) < 0.5f)
           transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 5f * Time.deltaTime);
 

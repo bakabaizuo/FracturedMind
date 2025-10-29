@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 367796292622242287}
   - component: {fileID: 681473318836461994}
   - component: {fileID: 6979558487875592337}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: ESPTrigger
-  m_TagString: Untagged
+  m_TagString: AI
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -69,7 +69,6 @@ MonoBehaviour:
   viewDistance: 20
   viewAngle: 120
   eyeHeight: 1
-  aggro: 0
   crouchDetectionModifier: 0.5
   rayOrigin: {x: 0, y: 0, z: 0}
   rayDirection: {x: 0, y: 0, z: 0}

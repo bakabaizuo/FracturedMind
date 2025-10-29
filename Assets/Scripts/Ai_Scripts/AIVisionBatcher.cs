@@ -7,16 +7,21 @@ using Unity.Burst;
 public class AIVisionBatcher : MonoBehaviour
 {
     public static AIVisionBatcher Instance;
-    private int PlayerColliderInstanceID;
     private List<AIVision> visionAgents = new List<AIVision>();
     private NativeList<RaycastCommand> commands;
     private NativeArray<RaycastHit> results;
-JobHandle NearestHitsJob;
-    private int maxHits = 20;
-    private JobHandle raycastJob = default;
-    private bool jobScheduled = false;
     private NativeArray<RaycastHit> firstHits ;
+    JobHandle NearestHitsJob;
+    private readonly int maxHits = 20;
+    private JobHandle raycastJob = default;
+    //private bool jobScheduled = false;
     
+    QueryParameters parameters = new QueryParameters(
+       new LayerMask{
+        value =  unchecked((int) 0xFFFFFF7F)
+      }, false,
+       default, false
+     );
     void Awake()
     {
         if (Instance == null)
@@ -26,10 +31,8 @@ JobHandle NearestHitsJob;
     }
     void Start(){
       commands = new NativeList<RaycastCommand>(GameObject.FindGameObjectsWithTag("AI").Length,Allocator.Persistent);
-      PlayerColliderInstanceID = GameObject.FindWithTag("Player").GetInstanceID();
-
     }
-    void Destroy(){
+    void OnDestroy(){
       //firstHits.Dispose();
       commands.Dispose();
     }
@@ -43,7 +46,7 @@ JobHandle NearestHitsJob;
       }
       else
       {
-          commands.Add(cmd);
+        commands.Add(cmd);
       }
 
     }
@@ -81,30 +84,22 @@ JobHandle NearestHitsJob;
         firstHits[i] = hits[start];
         if(firstHits[i].colliderInstanceID == 0)
           return;
-        NativeArray<RaycastHit> hitSubArray = hits.GetSubArray(start+1,maxHits-1);
-        for (int j = 1; j < maxHits-1; j ++){
-          if(hitSubArray[j].colliderInstanceID==0)
+        for (int j = start+1; j < start+maxHits; j++){
+          if(hits[j].colliderInstanceID==0)
             return;
-          else if (hitSubArray[j].distance < firstHits[i].distance){
-            firstHits[i]=hitSubArray[j];
+          else if (hits[j].distance < firstHits[i].distance){
+            firstHits[i]=hits[j];
           }
         }
 
       }
     }
-            QueryParameters parameters = new QueryParameters(
-             new LayerMask{
-              value =  unchecked((int) 0xFFFFFFFF)
-            }, false,
-             default, false
-             );
     void FixedUpdate()
     { 
       if (visionAgents.Count == 0)
             return;
         int count = visionAgents.Count;
         firstHits = new NativeArray<RaycastHit>(count, Allocator.TempJob,NativeArrayOptions.UninitializedMemory );
-//        commands = new NativeArray<RaycastCommand>(count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
         results = new NativeArray<RaycastHit>(count * maxHits, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
 
         // Build all commands
@@ -117,7 +112,7 @@ JobHandle NearestHitsJob;
         }
         */
         raycastJob = 
-          RaycastCommand.ScheduleBatch(commands, results, 32,raycastJob);
+          RaycastCommand.ScheduleBatch(commands.AsArray(), results, 1,raycastJob);
 
         
         NearestHitsJob = new GetNearestHitJob{
@@ -125,7 +120,7 @@ JobHandle NearestHitsJob;
           firstHits = firstHits,
           maxHits= maxHits
         }.ScheduleParallel(count,6,raycastJob);
-        jobScheduled = true;
+        //jobScheduled = true;
 
         NearestHitsJob.Complete();
        // commands.Dispose();
@@ -139,6 +134,7 @@ JobHandle NearestHitsJob;
               
               visionAgents[i].ProcessVisionResult(firstHits[i]);
         }
+        firstHits.Dispose();
         visionAgents.Clear();
         commands.Clear();
 
