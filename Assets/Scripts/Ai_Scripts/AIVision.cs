@@ -36,8 +36,7 @@ public class AIVision : MonoBehaviour
     public float crouchDetectionModifier = 0.5f;
     
     [Header("Memory")]
-    readonly static int memoryDuration = 100;
-    readonly static int gracePeriod = 200;
+    readonly static int gracePeriod = 100;
     
     public QueryParameters parameters = new QueryParameters(
        unchecked((int) 0xFFFFFF7F), false,
@@ -54,19 +53,8 @@ public class AIVision : MonoBehaviour
     public AIState state = AIState.Idle;
 
 
-    IEnumerator StartForgetting(){
-      while(!aggro && ticks > 0){
-        yield return new WaitForFixedUpdate();
-        Debug.Log($"Forgetting {state}");
-        ticks -=1;
-      }
-      state = aggro ? AIState.Investigate:AIState.Idle ;
-      timer = null;
-      yield return null;
-    }
     void OnPlayerLost(){
       aggro = false;
-      Debug.Log($"Forgetting {state}");
       switch(state){
         case AIState.Idle: 
           
@@ -74,17 +62,17 @@ public class AIVision : MonoBehaviour
         case AIState.Chase: 
           ticks = gracePeriod;
           state = AIState.Investigate;
-          timer ??= StartCoroutine(StartForgetting());
           break;
         case AIState.Investigate:
-          timer ??= StartCoroutine(StartForgetting());
+          //TODO do not use a magic number
+          if(ticks > 0) ticks -= 1;
+          else state = AIState.Idle;
           break;
         default: throw new  InvalidOperationException("Reached Impossible State");
       }
     }
     void OnPlayerSeen(){
       aggro = true;
-      Debug.Log($"Scann {state}");
       switch(state){
         case AIState.Chase:break;
         case AIState.Investigate:
@@ -102,33 +90,18 @@ public class AIVision : MonoBehaviour
       }
     }
 
-    IEnumerator StartTimer(){
-      for (; ticks > 0; ticks--)
-      {
-        yield return new WaitForFixedUpdate();
-        Debug.Log(ticks);
-      }
-      Debug.Log("Timer at 0");
-    }
-    IEnumerator ScanPlayer(){
-      yield return timer;
-      timer = null;
-      state = AIState.Chase;
-    }
-    IEnumerator ForgetPlayer(){
-      yield return timer;
-      timer = null;
-      state = AIState.Idle;
-    }
-    void OnTriggerExit(Collider other){
-      if(!other.CompareTag("Player") )
-        return;
-      OnPlayerLost();
-    }
     void FixedUpdate()
     {
+          Debug.Log($"{ticks} {aggro}");
       rayOrigin = transform.position;
       rayOrigin.y += eyeHeight; 
+      if( aggro || state != AIState.Investigate ){
+        return;
+      }
+      if( ticks > 0)
+        ticks -=1;
+      else
+        state = AIState.Idle;
     }
     struct getNearest:IJob
     {
@@ -150,6 +123,20 @@ public class AIVision : MonoBehaviour
        }
 
     }
+    void StopChase(){
+      aggro = false;
+
+      if ( state == AIState.Chase)
+      {
+        ticks = gracePeriod;
+        state = AIState.Investigate;
+      }
+    }
+    void OnTriggerExit(Collider other){
+      if(other.CompareTag("Player")){
+        StopChase();
+      }
+    }
     void OnTriggerStay(Collider other)
     {
 
@@ -170,9 +157,12 @@ public class AIVision : MonoBehaviour
         }
         rayDirection = dir;
         currentViewDistance = detectRange;
+        //Problems:
+        //Batcher too inconsistent
+        //The angle calculations are broken in serial raycasts
         if (AIVisionBatcher.Instance != null)
          goto Batched;
-        //goto Serial;
+        goto Serial;
         NativeArray<RaycastCommand> cmds = 
           new NativeArray<RaycastCommand>(1, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
         NativeArray<RaycastHit> results =
@@ -214,8 +204,7 @@ public class AIVision : MonoBehaviour
       if(hit.collider != null && hit.collider.CompareTag("Player"))
         OnPlayerSeen();
       else
-        OnPlayerLost();
-      
+        StopChase();
 
     }
 
