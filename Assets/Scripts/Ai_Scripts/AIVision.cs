@@ -5,88 +5,110 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
 using Unity.Burst;
+/*
+ * close enough, welcome back ecs sharedcomponent
+ *
+ * -Brownie
+*/
+//make an array holding different common values
+
+public struct AIVisionSettings{
+  public float maxViewDistance;
+  public float minViewDistance;
+  public float fovAngle;
+  public float eyeHeight;
+
+}
+
+public struct AIAttentionSettings{
+  public int AttentionSpan;
+  public int gracePeriod;
+}
+
+
 public class AIVision : MonoBehaviour
 {
-
+  //ECS Would be nice if it had any good pathfinding 
     [Header("Vision Settings")]
     public float viewDistance = 20f;
     public float viewAngle = 120f;
     public float eyeHeight = 1.6f;
+    public float crouchDetectionModifier = 0.5f;
     
-    private Vector3 origin;
+    [Header("Memory")]
+    readonly static int memoryDuration = 100;
+    readonly static int gracePeriod = 200;
     
     public QueryParameters parameters = new QueryParameters(
        unchecked((int) 0xFFFFFF7F), false,
        default, false
        );
-    
-    [Header("Crouch Detection")]
-    public float crouchDetectionModifier = 0.5f;
-
-    [Header("Memory")]
-    readonly static int memoryDuration = 10;
-    readonly static int gracePeriod = 20;
-//    private Vector3? lastSeenPosition;
-//    private Transform lastPlayer;
+    Coroutine timer=null;
+    [Header("Memory Tracking")]
+    private bool aggro = false; 
+    public int ticks = 0;
 
     [HideInInspector] public Vector3 rayOrigin;
     [HideInInspector] public Vector3 rayDirection;
     [HideInInspector] public float currentViewDistance;
-    private Vector3 eyePosition ;
     public AIState state = AIState.Idle;
 
-    Coroutine timer = null;
-    void Start(){
 
-     eyePosition = new Vector3(0,eyeHeight,0);
-
+    IEnumerator StartForgetting(){
+      while(!aggro && ticks > 0){
+        yield return new WaitForFixedUpdate();
+        Debug.Log($"Forgetting {state}");
+        ticks -=1;
+      }
+      state = aggro ? AIState.Investigate:AIState.Idle ;
+      timer = null;
+      yield return null;
     }
-
     void OnPlayerLost(){
+      aggro = false;
+      Debug.Log($"Forgetting {state}");
       switch(state){
-        case AIState.Idle: break;
+        case AIState.Idle: 
+          
+          break;
         case AIState.Chase: 
-          ticks = memoryDuration;
+          ticks = gracePeriod;
           state = AIState.Investigate;
-          if(scan != null){
-            StopCoroutine(scan);
-            scan = null;
-          }
-          timer ??= StartCoroutine(StartTimer());
-          search ??= StartCoroutine(ForgetPlayer());
+          timer ??= StartCoroutine(StartForgetting());
           break;
-        case AIState.Investigate: 
+        case AIState.Investigate:
+          timer ??= StartCoroutine(StartForgetting());
           break;
+        default: throw new  InvalidOperationException("Reached Impossible State");
       }
     }
     void OnPlayerSeen(){
-      
+      aggro = true;
+      Debug.Log($"Scann {state}");
       switch(state){
         case AIState.Chase:break;
         case AIState.Investigate:
+
+          if(ticks < gracePeriod)
+            ticks+=1;
+          else
+            state = AIState.Chase;
           break;
         case AIState.Idle:
-          ticks = gracePeriod;
+          ticks = 0;
           state = AIState.Investigate;
-          if(search != null){
-            StopCoroutine(search);
-            search = null;
-          }
-          timer ??= StartCoroutine(StartTimer());
-          scan ??= StartCoroutine(ScanPlayer());
           break;
+        default: throw new  InvalidOperationException("Reached Impossible State");
       }
     }
 
-    int ticks = 0;
-    Coroutine scan = null;
-    Coroutine search = null;
     IEnumerator StartTimer(){
       for (; ticks > 0; ticks--)
       {
         yield return new WaitForFixedUpdate();
-        Debug.Log("Tick");
+        Debug.Log(ticks);
       }
+      Debug.Log("Timer at 0");
     }
     IEnumerator ScanPlayer(){
       yield return timer;
