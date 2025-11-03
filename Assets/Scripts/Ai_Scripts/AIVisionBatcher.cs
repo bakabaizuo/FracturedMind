@@ -31,6 +31,7 @@ public class AIVisionBatcher : MonoBehaviour
             Destroy(gameObject);
     }
     void Start(){
+
       int len =GameObject.FindGameObjectsWithTag("AI").Length;
       visionAgents = new List<AIVision>(len);
       commands = new NativeList<RaycastCommand>(len,Allocator.Persistent);
@@ -42,7 +43,7 @@ public class AIVisionBatcher : MonoBehaviour
 
     public IEnumerator Register(AIVision vision)
     {
-      yield return WaitForFixedUpdate();
+      yield return new WaitForFixedUpdate();
       visionAgents.Add(vision);
       RaycastCommand cmd = vision.GetCommand();
       if(commands.Length < commands.Capacity){
@@ -57,7 +58,7 @@ public class AIVisionBatcher : MonoBehaviour
 
     public IEnumerator Unregister(AIVision vision)
     {
-      yield return WaitForFixedUpdate();
+      yield return new WaitForFixedUpdate();
       visionAgents.Remove(vision);
     }
 
