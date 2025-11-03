@@ -118,11 +118,11 @@ private void HandleGroundCheck()
         {
             float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
 
-            if (debugGroundCheck)
+/*            if (debugGroundCheck)
             {
                 Debug.Log($"[SlopeCheck] Angle: {slopeAngle}");
             }
-
+*/
             return slopeAngle <= slopeLimit;
         }
         return true; // No ground detected → assume walkable
