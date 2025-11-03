@@ -5,6 +5,8 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Burst;
+using System.Threading.Tasks;
+
 public class AIVisionBatcher : MonoBehaviour
 {
     public static AIVisionBatcher Instance;
@@ -14,16 +16,10 @@ public class AIVisionBatcher : MonoBehaviour
     JobHandle NearestHitsJob;
     private readonly int maxHits = 20;
     private JobHandle raycastJob = default;
-    private HashSet<AIVision> registration = new HashSet<AIVision>();
     int playerID;
+    NativeBitArray goodHits;
     //private bool jobScheduled = false;
     
-    QueryParameters parameters = new QueryParameters(
-       new LayerMask{
-        value =  unchecked((int) 0xFFFFFF7F)
-      }, false,
-       default, false
-     );
     void Awake()
     {
         if (Instance == null)
@@ -37,30 +33,33 @@ public class AIVisionBatcher : MonoBehaviour
       visionAgents = new List<AIVision>(len);
       commands = new NativeList<RaycastCommand>(len,Allocator.Persistent);
       playerID = GameObject.FindWithTag("Player").GetComponent<Collider>().GetInstanceID();
+      //It's small enough not to be a tax to memory and allocations slow it down anyway.
+      goodHits = new NativeBitArray(64, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
     }
     void OnDestroy(){
       commands.Dispose();
+      goodHits.Dispose();
     }
 
-    public IEnumerator Register(AIVision vision)
+    public void Register(AIVision vision)
     {
       
-      yield return new WaitForFixedUpdate();
+      // yield return new WaitForFixedUpdate();
       visionAgents.Add(vision);
-      RaycastCommand cmd = vision.GetCommand();
-      if(commands.Length < commands.Capacity){
-        commands.AddNoResize(cmd);
-      }
-      else
-      {
-        commands.Add(cmd);
-      }
+      // RaycastCommand cmd = vision.GetCommand();
+      // if(commands.Length < commands.Capacity){
+      //   commands.AddNoResize(cmd);
+      // }
+      // else
+      // {
+      //   commands.Add(cmd);
+      // }
 
     }
 
-    public IEnumerator Unregister(AIVision vision)
+    public void Unregister(AIVision vision)
     {
-      yield return new WaitForFixedUpdate();
+      // yield return new WaitForFixedUpdate();
       visionAgents.Remove(vision);
     }
 
@@ -89,7 +88,7 @@ public class AIVisionBatcher : MonoBehaviour
             firstHit=hits[j];
           }
         }
-        goodHits.Set(i,firstHit.colliderInstanceID== playerID);
+        goodHits.Set(i,firstHit.colliderInstanceID == playerID);
 
       }
     }
@@ -98,28 +97,35 @@ public class AIVisionBatcher : MonoBehaviour
       if (visionAgents.Count == 0)
         return;
       int count = visionAgents.Count;
+      var cmds = new NativeArray<RaycastCommand>(count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
       results = 
         new NativeArray<RaycastHit>(count * maxHits, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-      NativeBitArray goodHits = 
-        new NativeBitArray(count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+      Parallel.For(0,count, (i) => cmds[i] = visionAgents[i].GetCommand());
       raycastJob = 
-        RaycastCommand.ScheduleBatch(commands.AsArray(), results, 1,raycastJob);
-
+        RaycastCommand.ScheduleBatch(cmds, results, 1,raycastJob);
       
       NearestHitsJob = new GetNearestHitJob{
         hits = results,
         maxHits= maxHits,
         goodHits = goodHits,
         playerID= playerID,
-      }.ScheduleParallel(count,6,raycastJob);
+      }.ScheduleParallel(count,4,raycastJob);
 
       NearestHitsJob.Complete();
-      commands.Clear();
+      cmds.Dispose();
+      //:while (true)
+      {
+          
+      }commands.Clear();
       results.Dispose();
-      for (int i = 0; i < visionAgents.Count; i++){
+      Parallel.For(0,count, (i) => {
         visionAgents[i].ProcessVisionResult(goodHits.IsSet(i));
+          Debug.Log($"{i} {visionAgents[i].aggro} ");
       }
-      goodHits.Dispose();
+);
+      // for (int i = 0; i < visionAgents.Count; i++){
+      //   visionAgents[i].ProcessVisionResult(goodHits.IsSet(i));
+      // }
       visionAgents.Clear();
 
     }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
 using Unity.Burst;
+using static targettingList;
 /*
  * close enough, welcome back ecs sharedcomponent
  *
@@ -13,16 +14,27 @@ using Unity.Burst;
 //make an array holding different common values
 
 public struct AIVisionSettings{
-  public float maxViewDistance;
-  public float minViewDistance;
-  public float fovAngle;
-  public float eyeHeight;
+  public readonly float maxViewDistance;
+  public readonly float minViewDistance;
+  public readonly float fovAngle;
+  public readonly float eyeHeight;
 
 }
 
 public struct AIAttentionSettings{
-  public int AttentionSpan;
-  public int gracePeriod;
+  public readonly int detectSpeed;
+  public readonly int forgetSpeed;
+  public readonly int gracePeriod;
+}
+//Bastardized "sharedcomponent" for QueryParameters
+public ref struct targettingList{
+  public static readonly QueryParameters[] targetLists=  {
+    new (
+       -129, false,
+       default, false
+       ),
+
+  } ;
 }
 
 
@@ -41,12 +53,9 @@ public class AIVision : MonoBehaviour
     [Header("Memory")]
     readonly static int gracePeriod = 100;
     
-    public QueryParameters parameters = new QueryParameters(
-       unchecked((int) 0xFFFFFF7F), false,
-       default, false
-       );
+    public QueryParameters rayTargeting = targetLists[0];
     [Header("Memory Tracking")]
-    private bool aggro = false; 
+    public bool aggro = false; 
     public int ticks = 0;
 
     [HideInInspector] public Vector3 rayOrigin;
@@ -96,11 +105,9 @@ public class AIVision : MonoBehaviour
 
 
     public RaycastCommand GetCommand() => cmd;
-    void FixedUpdate()
-    {
+    void FixedUpdate() {
       if(!inRange)
         AIVisionBatcher.Instance?.Unregister(this);
-      //Debug.Log(ticks);
       if(aggro)
         OnPlayerSeen();
       else
@@ -111,16 +118,14 @@ public class AIVision : MonoBehaviour
     void OnTriggerExit(Collider other){
       aggro = aggro && !other.CompareTag("Player");
       inRange = inRange && aggro;
-      
     }
     void OnTriggerStay(Collider other)
     {
-      inRange = false;
-      if (!other.CompareTag("Player")) return;
+      if (!other.CompareTag("Player")) goto Fail;
 // less lines and kinder to my laptop with editor
       other.TryGetComponent(out ThirdPersonBasic player);
 
-      if (player == null||viewDistance <= 0f) return;
+      if (player == null||viewDistance <= 0f) goto Fail;
 
       bool isCrouching = player.isCrouching;
       currentViewDistance = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
@@ -128,13 +133,13 @@ public class AIVision : MonoBehaviour
       Vector3 targetPos = other.transform.position /*+ Vector3.up * (isCrouching ? 0.5f : 1.2f)*/;
       rayDirection = (targetPos - rayOrigin).normalized;
       float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);
-      if (angleToPlayer < CosFOV) return;
+      if (angleToPlayer < CosFOV) goto Fail;
       inRange = true;
       //Problems:
       //Batcher too inconsistent
       if (AIVisionBatcher.Instance != null){
-        cmd = new RaycastCommand(rayOrigin, rayDirection, parameters, currentViewDistance);
-        StartCoroutine(AIVisionBatcher.Instance.Register(this));
+        cmd = new RaycastCommand(rayOrigin, rayDirection, rayTargeting, currentViewDistance);
+        AIVisionBatcher.Instance.Register(this);
       }else{
         aggro = 
           Physics.Raycast(
@@ -146,7 +151,9 @@ public class AIVision : MonoBehaviour
           );
         aggro = aggro && hit.collider.CompareTag("Player");
       }
-      
+      return;
+      Fail:
+        inRange = false;
       
     
     }
