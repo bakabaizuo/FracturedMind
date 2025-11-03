@@ -7,13 +7,14 @@ using Unity.Burst;
 public class AIVisionBatcher : MonoBehaviour
 {
     public static AIVisionBatcher Instance;
-    private List<AIVision> visionAgents = new List<AIVision>();
+    private List<AIVision> visionAgents ;
     private NativeList<RaycastCommand> commands;
     private NativeArray<RaycastHit> results;
     private NativeArray<RaycastHit> firstHits ;
     JobHandle NearestHitsJob;
     private readonly int maxHits = 20;
     private JobHandle raycastJob = default;
+    private HashSet<AIVision> registration = new HashSet<AIVision>();
     //private bool jobScheduled = false;
     
     QueryParameters parameters = new QueryParameters(
@@ -30,17 +31,20 @@ public class AIVisionBatcher : MonoBehaviour
             Destroy(gameObject);
     }
     void Start(){
-      commands = new NativeList<RaycastCommand>(GameObject.FindGameObjectsWithTag("AI").Length,Allocator.Persistent);
+      int len =GameObject.FindGameObjectsWithTag("AI").Length;
+      visionAgents = new List<AIVision>(len);
+      commands = new NativeList<RaycastCommand>(len,Allocator.Persistent);
     }
     void OnDestroy(){
       //firstHits.Dispose();
       commands.Dispose();
     }
 
-    public void Register(AIVision vision)
+    public IEnumerator Register(AIVision vision)
     {
+      yield return WaitForFixedUpdate();
       visionAgents.Add(vision);
-      RaycastCommand cmd = new RaycastCommand(vision.rayOrigin, vision.rayDirection, parameters, vision.currentViewDistance);
+      RaycastCommand cmd = vision.GetCommand();
       if(commands.Length < commands.Capacity){
         commands.AddNoResize(cmd);
       }
@@ -51,9 +55,10 @@ public class AIVisionBatcher : MonoBehaviour
 
     }
 
-    public void Unregister(AIVision vision)
+    public IEnumerator Unregister(AIVision vision)
     {
-        visionAgents.Remove(vision);
+      yield return WaitForFixedUpdate();
+      visionAgents.Remove(vision);
     }
 
    /* private struct BuildCommands:IJobFor{

@@ -29,11 +29,15 @@ public struct AIAttentionSettings{
 public class AIVision : MonoBehaviour
 {
   //ECS Would be nice if it had any good pathfinding 
+  RaycastCommand cmd;
     [Header("Vision Settings")]
     public float viewDistance = 20f;
-    public float viewAngle = 120f;
     public float eyeHeight = 1.6f;
     public float crouchDetectionModifier = 0.5f;
+    // the cosine of planned viewangle
+    readonly float cosine = 0.5f;
+    public float viewAngle =Mathf.Acos(cosine);
+
     
     [Header("Memory")]
     readonly static int gracePeriod = 100;
@@ -42,7 +46,6 @@ public class AIVision : MonoBehaviour
        unchecked((int) 0xFFFFFF7F), false,
        default, false
        );
-    Coroutine timer=null;
     [Header("Memory Tracking")]
     private bool aggro = false; 
     public int ticks = 0;
@@ -64,7 +67,7 @@ public class AIVision : MonoBehaviour
           state = AIState.Investigate;
           break;
         case AIState.Investigate:
-          //TODO do not use a magic number
+          //TODO Do not use magic number
           if(ticks > 0) ticks -= 1;
           else state = AIState.Idle;
           break;
@@ -76,8 +79,9 @@ public class AIVision : MonoBehaviour
       switch(state){
         case AIState.Chase:break;
         case AIState.Investigate:
-
+          
           if(ticks < gracePeriod)
+          //TODO Do not use magic number
             ticks+=1;
           else
             state = AIState.Chase;
@@ -90,121 +94,55 @@ public class AIVision : MonoBehaviour
       }
     }
 
+
+    public RaycastCommand GetCommand() => cmd;
     void FixedUpdate()
     {
-          Debug.Log($"{ticks} {aggro}");
+      if(aggro)
+        OnPlayerSeen();
+      else
+        OnPlayerLost();
       rayOrigin = transform.position;
       rayOrigin.y += eyeHeight; 
-      if( aggro || state != AIState.Investigate ){
-        return;
-      }
-      if( ticks > 0)
-        ticks -=1;
-      else
-        state = AIState.Idle;
-    }
-    struct getNearest:IJob
-    {
-      [ReadOnly]
-       public NativeArray<RaycastHit> hits;
-       public NativeArray<RaycastHit>firstHit;
-       public void Execute(){
-         
-        firstHit[0] = hits[0];
-        if(firstHit[0].colliderInstanceID == 0)
-          return;
-        
-        for(int i = 1; i < hits.Length; i++){
-          if(hits[i].colliderInstanceID == 0)
-            return;
-          if(firstHit[0].distance<hits[i].distance)
-            firstHit[0] = hits[i];
-        }
-       }
-
-    }
-    void StopChase(){
-      aggro = false;
-
-      if ( state == AIState.Chase)
-      {
-        ticks = gracePeriod;
-        state = AIState.Investigate;
-      }
     }
     void OnTriggerExit(Collider other){
-      if(other.CompareTag("Player")){
-        StopChase();
-      }
+      if(other.CompareTag("Player"))
+        OnPlayerLost();
     }
     void OnTriggerStay(Collider other)
     {
+      if (!other.CompareTag("Player")) return;
 
-        if (!other.CompareTag("Player")) return;
+      var player = other.GetComponent<ThirdPersonBasic>();
+      if (viewDistance <= 0f||player == null) return;
 
-        var player = other.GetComponent<ThirdPersonBasic>();
-        if (viewDistance <= 0f||player == null) return;
+      bool isCrouching = player.isCrouching;
+      float detectRange = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
 
-        bool isCrouching = player.isCrouching;
-        float detectRange = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
-
-        Vector3 targetPos = other.transform.position /*+ Vector3.up * (isCrouching ? 0.5f : 1.2f)*/;
-        Vector3 dir = (targetPos - rayOrigin).normalized;
-        float angleToPlayer = Vector3.Angle(transform.forward, dir);
-        if (angleToPlayer > viewAngle * 0.5f)
-        {
-          return;
-        }
-        rayDirection = dir;
-        currentViewDistance = detectRange;
-        //Problems:
-        //Batcher too inconsistent
-        //The angle calculations are broken in serial raycasts
-        if (AIVisionBatcher.Instance != null)
-         goto Batched;
-        goto Serial;
-        NativeArray<RaycastCommand> cmds = 
-          new NativeArray<RaycastCommand>(1, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-        NativeArray<RaycastHit> results =
-          new NativeArray<RaycastHit>(20, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-        cmds[0] = new RaycastCommand(rayOrigin, rayDirection, parameters, currentViewDistance);
-
-        JobHandle jobQueue = RaycastCommand.ScheduleBatch(cmds, results,1,default);
-        NativeArray<RaycastHit> firstHit =
-          new NativeArray<RaycastHit>(1,Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-         jobQueue = new getNearest{
-          hits = results,
-          firstHit = firstHit
-        }.Schedule(jobQueue);
-
-        //rayJob.Complete();
-
-        jobQueue.Complete();
-        
-        cmds.Dispose();
-        results.Dispose();
-
-        ProcessVisionResult(firstHit[0]);
-        
-        firstHit.Dispose();
-        
-        return;
-        Serial:
-          RaycastHit hit;
-          bool detected = Physics.Raycast(rayOrigin,dir, out hit,detectRange, unchecked((int) 0xFFFFFF7F) );
-          if(detected)
-            ProcessVisionResult(hit);
-          return;
-        Batched:
+      Vector3 targetPos = other.transform.position /*+ Vector3.up * (isCrouching ? 0.5f : 1.2f)*/;
+      Vector3 dir = (targetPos - rayOrigin).normalized;
+      float angleToPlayer = Vector3.Dot(transform.forward, dir);
+      if (angleToPlayer > cosine) return;
+      rayDirection = dir;
+      currentViewDistance = detectRange;
+      //Problems:
+      //Batcher too inconsistent
+      //The angle calculations are broken in serial raycasts
+      if (AIVisionBatcher.Instance == null){
+        bool detected = Physics.Raycast(rayOrigin,dir, out RaycastHit hit,detectRange, unchecked((int) 0xFFFFFF7F) );
+        aggro = detected && hit?.CompareTag("Player") ?? false;
+      }
+      else{
+        cmd = new RaycastCommand(rayOrigin, dir, parameters, detectRange);
         AIVisionBatcher.Instance?.Register(this);
+
+      }
+      
     
     }
 
     public void ProcessVisionResult(RaycastHit hit){
-      if(hit.collider != null && hit.collider.CompareTag("Player"))
-        OnPlayerSeen();
-      else
-        StopChase();
+      aggro = hit?.CompareTag("Player")??false;
 
     }
 
