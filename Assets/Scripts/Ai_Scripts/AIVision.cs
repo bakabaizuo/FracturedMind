@@ -37,7 +37,7 @@ public class AIVision : MonoBehaviour
     // the cosine of planned viewangle
     public float CosFOV = 0.5f;
 
-    
+   bool inRange = false; 
     [Header("Memory")]
     readonly static int gracePeriod = 100;
     
@@ -55,8 +55,8 @@ public class AIVision : MonoBehaviour
     public AIState state = AIState.Idle;
 
 
+    [BurstCompile]
     void OnPlayerLost(){
-      aggro = false;
       switch(state){
         case AIState.Idle: 
           
@@ -73,8 +73,9 @@ public class AIVision : MonoBehaviour
         default: throw new  InvalidOperationException("Reached Impossible State");
       }
     }
+
+    [BurstCompile]
     void OnPlayerSeen(){
-      aggro = true;
       switch(state){
         case AIState.Chase:break;
         case AIState.Investigate:
@@ -93,15 +94,13 @@ public class AIVision : MonoBehaviour
       }
     }
 
-    void Start(){
-      //this is BrowNie's invers of pi. calculated as 113/355 up to 7 digits
-//float inversePI = 0.3183099f;
-//conversion value for rad to deg. it's 180 * 113 / 355 up to 8 digits (float can only do 7 digits accurate)
-    }
 
     public RaycastCommand GetCommand() => cmd;
     void FixedUpdate()
     {
+      if(!inRange)
+        AIVisionBatcher.Instance?.Unregister(this);
+      //Debug.Log(ticks);
       if(aggro)
         OnPlayerSeen();
       else
@@ -110,49 +109,61 @@ public class AIVision : MonoBehaviour
       rayOrigin.y += eyeHeight; 
     }
     void OnTriggerExit(Collider other){
-      if(other.CompareTag("Player"))
-        OnPlayerLost();
+      aggro = aggro && !other.CompareTag("Player");
+      inRange = inRange && aggro;
+      
     }
     void OnTriggerStay(Collider other)
     {
+      inRange = false;
       if (!other.CompareTag("Player")) return;
 // less lines and kinder to my laptop with editor
       other.TryGetComponent(out ThirdPersonBasic player);
-//      ThirdPersonBasic player = other.GetComponent<ThirdPersonBasic>();
+
       if (player == null||viewDistance <= 0f) return;
 
       bool isCrouching = player.isCrouching;
-      float detectRange = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
+      currentViewDistance = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
 
       Vector3 targetPos = other.transform.position /*+ Vector3.up * (isCrouching ? 0.5f : 1.2f)*/;
-      Vector3 dir = (targetPos - rayOrigin).normalized;
-      float angleToPlayer = Vector3.Dot(transform.forward, dir);
+      rayDirection = (targetPos - rayOrigin).normalized;
+      float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);
       if (angleToPlayer < CosFOV) return;
-      Debug.Log("See");
-      rayDirection = dir;
-      currentViewDistance = detectRange;
+      inRange = true;
       //Problems:
       //Batcher too inconsistent
-      //The angle calculations are broken in serial raycasts
       if (AIVisionBatcher.Instance != null){
-        cmd = new RaycastCommand(rayOrigin, dir, parameters, detectRange);
-        AIVisionBatcher.Instance?.Register(this);
-        return;
+        cmd = new RaycastCommand(rayOrigin, rayDirection, parameters, currentViewDistance);
+        StartCoroutine(AIVisionBatcher.Instance.Register(this));
+      }else{
+        aggro = 
+          Physics.Raycast(
+              rayOrigin,
+              rayDirection,
+              out RaycastHit hit,
+              currentViewDistance,
+              unchecked((int) 0xFFFFFF7F)
+          );
+        aggro = aggro && hit.collider.CompareTag("Player");
       }
-      aggro = Physics.Raycast(rayOrigin,dir, out RaycastHit hit,detectRange, unchecked((int) 0xFFFFFF7F) );
-      aggro = aggro && hit.collider.CompareTag("Player");
+      
       
     
+    }
+    public void ProcessVisionResult(bool hit){
+      aggro = hit;
     }
 
     public void ProcessVisionResult(RaycastHit hit){
       
       aggro = hit.collider?.CompareTag("Player") ?? false;
+      Debug.Log(aggro);
 
     }
 
     void OnDrawGizmosSelected()
     {
+      //For converting rad to deg. derived from 180 * 113 /355 up to 8 significant figures
       const float converter = 57.2957746f;
       float viewAngle =Mathf.Acos(CosFOV) * converter;
         Gizmos.color = Color.yellow;
