@@ -49,7 +49,6 @@ public class AIVision : MonoBehaviour
     // the cosine of planned viewangle
     public float CosFOV = 0.5f;
 
-   bool inRange = false; 
     [Header("Memory")]
     readonly static int gracePeriod = 100;
     
@@ -106,8 +105,6 @@ public class AIVision : MonoBehaviour
 
     public RaycastCommand GetCommand() => cmd;
     void FixedUpdate() {
-      if(!inRange)
-        AIVisionBatcher.Instance?.Unregister(this);
       if(aggro)
         OnPlayerSeen();
       else
@@ -116,8 +113,10 @@ public class AIVision : MonoBehaviour
       rayOrigin.y += eyeHeight; 
     }
     void OnTriggerExit(Collider other){
-      aggro = aggro && !other.CompareTag("Player");
-      inRange = inRange && aggro;
+      if(other.CompareTag("Player")){
+        aggro = false;
+        AIVisionBatcher.Instance?.Unregister(this);
+      }
     }
     void OnTriggerStay(Collider other)
     {
@@ -134,9 +133,6 @@ public class AIVision : MonoBehaviour
       rayDirection = (targetPos - rayOrigin).normalized;
       float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);
       if (angleToPlayer < CosFOV) goto Fail;
-      inRange = true;
-      //Problems:
-      //Batcher too inconsistent
       if (AIVisionBatcher.Instance != null){
         cmd = new RaycastCommand(rayOrigin, rayDirection, rayTargeting, currentViewDistance);
         AIVisionBatcher.Instance.Register(this);
@@ -153,19 +149,14 @@ public class AIVision : MonoBehaviour
       }
       return;
       Fail:
-        inRange = false;
-      
-    
+        AIVisionBatcher.Instance?.Unregister(this);
     }
     public void ProcessVisionResult(bool hit){
       aggro = hit;
     }
 
     public void ProcessVisionResult(RaycastHit hit){
-      
       aggro = hit.collider?.CompareTag("Player") ?? false;
-      Debug.Log(aggro);
-
     }
 
     void OnDrawGizmosSelected()

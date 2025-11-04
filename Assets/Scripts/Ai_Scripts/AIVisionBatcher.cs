@@ -36,6 +36,9 @@ public class AIVisionBatcher : MonoBehaviour
       //It's small enough not to be a tax to memory and allocations slow it down anyway.
       goodHits = new NativeBitArray(64, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
     }
+    void OnDisable(){
+      Instance = null;
+    }
     void OnDestroy(){
       commands.Dispose();
       goodHits.Dispose();
@@ -44,23 +47,17 @@ public class AIVisionBatcher : MonoBehaviour
     public void Register(AIVision vision)
     {
       
-      // yield return new WaitForFixedUpdate();
-      visionAgents.Add(vision);
-      // RaycastCommand cmd = vision.GetCommand();
-      // if(commands.Length < commands.Capacity){
-      //   commands.AddNoResize(cmd);
-      // }
-      // else
-      // {
-      //   commands.Add(cmd);
-      // }
+      if(visionAgents.Contains(vision))
+        return;
+      visionAgents?.Add(vision);
+      Debug.Log($"{Time.deltaTime} {vision}");
 
     }
 
     public void Unregister(AIVision vision)
     {
       // yield return new WaitForFixedUpdate();
-      visionAgents.Remove(vision);
+      visionAgents?.Remove(vision);
     }
 
     [BurstCompile]
@@ -97,12 +94,16 @@ public class AIVisionBatcher : MonoBehaviour
       if (visionAgents.Count == 0)
         return;
       int count = visionAgents.Count;
-      var cmds = new NativeArray<RaycastCommand>(count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+      if( count != commands.Length){
+        commands.ResizeUninitialized(count);
+      }
       results = 
         new NativeArray<RaycastHit>(count * maxHits, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-      Parallel.For(0,count, (i) => cmds[i] = visionAgents[i].GetCommand());
+      for(int i = 0;i<count; i++){
+        commands[i] = visionAgents[i].GetCommand();
+      }
       raycastJob = 
-        RaycastCommand.ScheduleBatch(cmds, results, 1,raycastJob);
+        RaycastCommand.ScheduleBatch(commands.AsArray(), results, 2,raycastJob);
       
       NearestHitsJob = new GetNearestHitJob{
         hits = results,
@@ -112,21 +113,9 @@ public class AIVisionBatcher : MonoBehaviour
       }.ScheduleParallel(count,4,raycastJob);
 
       NearestHitsJob.Complete();
-      cmds.Dispose();
-      //:while (true)
-      {
-          
-      }commands.Clear();
       results.Dispose();
-      Parallel.For(0,count, (i) => {
+      for(int i =0; i < count; i ++) {
         visionAgents[i].ProcessVisionResult(goodHits.IsSet(i));
-          Debug.Log($"{i} {visionAgents[i].aggro} ");
       }
-);
-      // for (int i = 0; i < visionAgents.Count; i++){
-      //   visionAgents[i].ProcessVisionResult(goodHits.IsSet(i));
-      // }
-      visionAgents.Clear();
-
     }
 }
