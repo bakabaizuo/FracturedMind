@@ -11,8 +11,6 @@ public class AIVisionBatcher : MonoBehaviour
 {
     public static AIVisionBatcher Instance;
     private List<AIVision> visionAgents ;
-    private NativeList<RaycastCommand> commands;
-    private NativeArray<RaycastHit> results;
     JobHandle NearestHitsJob;
     private readonly int maxHits = 20;
     private JobHandle raycastJob = default;
@@ -31,7 +29,6 @@ public class AIVisionBatcher : MonoBehaviour
 
       int len =GameObject.FindGameObjectsWithTag("AI").Length;
       visionAgents = new List<AIVision>(len);
-      commands = new NativeList<RaycastCommand>(len,Allocator.Persistent);
       playerID = GameObject.FindWithTag("Player").GetComponent<Collider>().GetInstanceID();
       //It's small enough not to be a tax to memory and allocations slow it down anyway.
       goodHits = new NativeBitArray(64, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -40,24 +37,22 @@ public class AIVisionBatcher : MonoBehaviour
       Instance = null;
     }
     void OnDestroy(){
-      commands.Dispose();
       goodHits.Dispose();
     }
 
     public void Register(AIVision vision)
     {
       
-      if(visionAgents.Contains(vision))
-        return;
+      // if(visionAgents.Contains(vision))
+      //   return;
       visionAgents?.Add(vision);
-      Debug.Log($"{Time.deltaTime} {vision}");
 
     }
 
     public void Unregister(AIVision vision)
     {
       // yield return new WaitForFixedUpdate();
-      visionAgents?.Remove(vision);
+      // visionAgents?.Remove(vision);
     }
 
     [BurstCompile]
@@ -85,37 +80,43 @@ public class AIVisionBatcher : MonoBehaviour
             firstHit=hits[j];
           }
         }
+        Debug.Log($"{firstHit.colliderInstanceID}");
         goodHits.Set(i,firstHit.colliderInstanceID == playerID);
 
       }
     }
+
     void FixedUpdate()
     { 
+
       if (visionAgents.Count == 0)
         return;
       int count = visionAgents.Count;
-      if( count != commands.Length){
-        commands.ResizeUninitialized(count);
-      }
-      results = 
+      // if( count != commands.Length){
+      //   commands.ResizeUninitialized(count);
+      // }
+      NativeArray<RaycastCommand> cmds =
+        new NativeArray<RaycastCommand>(count, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+      NativeArray<RaycastHit> results = 
         new NativeArray<RaycastHit>(count * maxHits, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-      for(int i = 0;i<count; i++){
-        commands[i] = visionAgents[i].GetCommand();
-      }
+      Parallel.For(0,count, i =>{
+        cmds[i] = visionAgents[i].GetCommand();
+      });
       raycastJob = 
-        RaycastCommand.ScheduleBatch(commands.AsArray(), results, 2,raycastJob);
-      
+        RaycastCommand.ScheduleBatch(cmds, results, 2,raycastJob);
       NearestHitsJob = new GetNearestHitJob{
         hits = results,
         maxHits= maxHits,
         goodHits = goodHits,
-        playerID= playerID,
+        playerID= GameObject.FindWithTag("Player").GetComponent<Collider>().GetInstanceID(),
       }.ScheduleParallel(count,4,raycastJob);
 
       NearestHitsJob.Complete();
+      cmds.Dispose();
       results.Dispose();
       for(int i =0; i < count; i ++) {
-        visionAgents[i].ProcessVisionResult(goodHits.IsSet(i));
+        visionAgents[i].aggro = (goodHits.IsSet(i));
       }
+      visionAgents.Clear();
     }
 }

@@ -30,7 +30,7 @@ public struct AIAttentionSettings{
 public ref struct targettingList{
   public static readonly QueryParameters[] targetLists=  {
     new (
-       -129, false,
+       unchecked((int) 0xFFFFFF7F), false,
        default, false
        ),
 
@@ -71,7 +71,7 @@ public class AIVision : MonoBehaviour
           break;
         case AIState.Chase: 
           ticks = gracePeriod;
-          state = AIState.Investigate;
+          // state = AIState.Investigate;
           break;
         case AIState.Investigate:
           //TODO Do not use magic number
@@ -82,6 +82,13 @@ public class AIVision : MonoBehaviour
       }
     }
 
+    void Start(){
+      SphereCollider ESPTrigger;
+      bool hasTrigger = this.TryGetComponent(out ESPTrigger);
+      if(!hasTrigger)
+        ESPTrigger = gameObject.AddComponent(typeof(SphereCollider)) as SphereCollider;
+      ESPTrigger.radius = viewDistance;
+    }
     [BurstCompile]
     void OnPlayerSeen(){
       switch(state){
@@ -104,6 +111,7 @@ public class AIVision : MonoBehaviour
 
 
     public RaycastCommand GetCommand() => cmd;
+
     void FixedUpdate() {
       if(aggro)
         OnPlayerSeen();
@@ -122,9 +130,11 @@ public class AIVision : MonoBehaviour
     {
       if (!other.CompareTag("Player")) goto Fail;
 // less lines and kinder to my laptop with editor
-      other.TryGetComponent(out ThirdPersonBasic player);
 
-      if (player == null||viewDistance <= 0f) goto Fail;
+      bool hasPlayer = other.TryGetComponent(out ThirdPersonBasic player);
+      Debug.Log($"plyerID{GameObject.FindWithTag("Player").GetComponent<Collider>().GetInstanceID()} == detect{other.GetInstanceID()}");
+
+      if (!hasPlayer || player == null) goto Fail;
 
       bool isCrouching = player.isCrouching;
       currentViewDistance = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
@@ -137,6 +147,7 @@ public class AIVision : MonoBehaviour
         cmd = new RaycastCommand(rayOrigin, rayDirection, rayTargeting, currentViewDistance);
         AIVisionBatcher.Instance.Register(this);
       }else{
+          //Debug.DrawLine(rayOrigin, currentViewDistance* rayDirection, Color.black);
         aggro = 
           Physics.Raycast(
               rayOrigin,

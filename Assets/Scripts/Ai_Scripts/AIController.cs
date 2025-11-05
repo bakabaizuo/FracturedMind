@@ -58,24 +58,13 @@ GameObject player;
 
     private void Chase()
     {
-        /*if (!vision.HasLastSeenPosition())
-        {
-            currentState = AIState.Idle;
-            return;
-        }*/
 
         Vector3 target = player.transform.position;
-        target.y = 0;
-        agent.SetDestination(target);
-        //GetComponent<CharacterController>().Move(move* Time.deltaTime);
-           // Update rotation
-        if (agent.nextPosition - target != Vector3.zero)
+        if (Vector3.Distance(agent.nextPosition,target) > 5.0f && vision.aggro){
+          agent.destination = target;
           transform.LookAt(player.transform);
-            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(move), 5f * Time.deltaTime);
-
-        // Debug line to see target
-        Debug.DrawLine(transform.position, target, Color.red);
-        //Debug.Log($"[AI] Moving toward player at {target}");
+          Debug.DrawLine(transform.position, target, Color.red);
+        }          
 
         // Switch to investigate if reached last seen
         if (Vector3.Distance(transform.position, target) < 0.5f)
@@ -87,7 +76,5 @@ GameObject player;
         Debug.DrawLine(transform.position,player.transform.position);
         if (Vector3.Distance(transform.position, player.transform.position) < 0.5f)
           transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 5f * Time.deltaTime);
-
-          //  vision.state = AIState.Idle;
     }
 }
