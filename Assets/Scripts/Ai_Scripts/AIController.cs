@@ -15,7 +15,7 @@ GameObject player;
 
     private void Start()
     {
-      player = GameObject.FindWithTag("Player");
+      player = GameObject.FindWithTag("PlayerCollider");
 
         // Ensure agent moves automatically
         if (agent != null)

@@ -30,7 +30,8 @@ public struct AIAttentionSettings{
 public ref struct targettingList{
   public static readonly QueryParameters[] targetLists=  {
     new (
-       unchecked((int) 0xFFFFFF7F), false,
+      // unchecked((int) 0xFFFFFCFF)
+       128, false,
        default, false
        ),
 
@@ -43,7 +44,7 @@ public class AIVision : MonoBehaviour
   //ECS Would be nice if it had any good pathfinding 
   RaycastCommand cmd;
     [Header("Vision Settings")]
-    public float viewDistance = 20f;
+    public float viewDistance = 2f;
     public float eyeHeight = 1.6f;
     public float crouchDetectionModifier = 0.5f;
     // the cosine of planned viewangle
@@ -68,10 +69,11 @@ public class AIVision : MonoBehaviour
       switch(state){
         case AIState.Idle: 
           
+          AIVisionBatcher.Instance?.Unregister(this);
           break;
         case AIState.Chase: 
           ticks = gracePeriod;
-          // state = AIState.Investigate;
+          state = AIState.Investigate;
           break;
         case AIState.Investigate:
           //TODO Do not use magic number
@@ -121,18 +123,17 @@ public class AIVision : MonoBehaviour
       rayOrigin.y += eyeHeight; 
     }
     void OnTriggerExit(Collider other){
-      if(other.CompareTag("Player")){
+      if(other.CompareTag("PlayerCollider")){
         aggro = false;
         AIVisionBatcher.Instance?.Unregister(this);
       }
     }
     void OnTriggerStay(Collider other)
     {
-      if (!other.CompareTag("Player")) goto Fail;
+      if (!other.CompareTag("PlayerCollider")) return;
 // less lines and kinder to my laptop with editor
 
       bool hasPlayer = other.TryGetComponent(out ThirdPersonBasic player);
-      Debug.Log($"plyerID{GameObject.FindWithTag("Player").GetComponent<Collider>().GetInstanceID()} == detect{other.GetInstanceID()}");
 
       if (!hasPlayer || player == null) goto Fail;
 
@@ -143,20 +144,21 @@ public class AIVision : MonoBehaviour
       rayDirection = (targetPos - rayOrigin).normalized;
       float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);
       if (angleToPlayer < CosFOV) goto Fail;
-      if (AIVisionBatcher.Instance != null){
+      if (AIVisionBatcher.Instance?.isActiveAndEnabled ?? false){
         cmd = new RaycastCommand(rayOrigin, rayDirection, rayTargeting, currentViewDistance);
-        AIVisionBatcher.Instance.Register(this);
+        AIVisionBatcher.Instance?.Register(this);
       }else{
-          //Debug.DrawLine(rayOrigin, currentViewDistance* rayDirection, Color.black);
+          Debug.DrawLine(rayOrigin, currentViewDistance * rayDirection, Color.black);
         aggro = 
           Physics.Raycast(
               rayOrigin,
               rayDirection,
               out RaycastHit hit,
               currentViewDistance,
-              unchecked((int) 0xFFFFFF7F)
-          );
-        aggro = aggro && hit.collider.CompareTag("Player");
+              unchecked((int) 0xFFFFFEFF)
+          ) &&
+          hit.collider.CompareTag("PlayerCollider");
+        
       }
       return;
       Fail:
