@@ -140,7 +140,7 @@ public class AIVision : MonoBehaviour
       bool isCrouching = player.isCrouching;
       currentViewDistance = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
 
-      Vector3 targetPos = other.transform.position /*+ Vector3.up * (isCrouching ? 0.5f : 1.2f)*/;
+      Vector3 targetPos = other.transform.position + Vector3.up * (isCrouching ? 0.5f : 1.2f);
       rayDirection = (targetPos - rayOrigin).normalized;
       float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);
       if (angleToPlayer < CosFOV) goto Fail;

@@ -12,7 +12,7 @@ public class AIVisionBatcher : MonoBehaviour
     public static AIVisionBatcher Instance;
     private List<AIVision> visionAgents ;
     JobHandle NearestHitsJob;
-    private readonly int maxHits = 20;
+    private readonly int maxHits = 30;
     private JobHandle raycastJob = default;
     int playerID;
     NativeBitArray goodHits;
@@ -42,13 +42,9 @@ public class AIVisionBatcher : MonoBehaviour
 
     public void Register(AIVision vision)
     {
-      if(!this.isActiveAndEnabled){
-        Instance = null;
-      }
       
-      if(visionAgents?.Contains(vision)??false)
-        return;
-      visionAgents?.Add(vision);
+      if(this.isActiveAndEnabled && !(visionAgents?.Contains(vision)??false))
+        visionAgents?.Add(vision);
 
     }
 
@@ -74,21 +70,23 @@ public class AIVisionBatcher : MonoBehaviour
       public void Execute(int i){
         
         int start = i * maxHits;
-        if(hits[start].colliderInstanceID == 0){
+        RaycastHit firstHit = hits[start];
+        firstHits[i]=firstHit;
+        if(!Resources.InstanceIDIsValid(hits[start].colliderInstanceID)){
           goodHits.Set(i,false);
           return;
         }
-        RaycastHit firstHit = hits[start];
         for (int j = start+1; j < start+maxHits; j++){
-          if(hits[j].colliderInstanceID==0)
+          Debug.Log($"{i} {j} ");
+          if(!Resources.InstanceIDIsValid(hits[j].colliderInstanceID))
             break;
-          else if (hits[j].distance < firstHit.distance){
+          if (hits[j].distance < firstHit.distance){
             firstHit=hits[j];
           }
         }
-        // if(firstHit.colliderInstanceID== playerID)
         firstHits[i]=firstHit;
-        Debug.Log($"{firstHit.colliderInstanceID} {playerID}");
+
+        Debug.DrawLine(new Vector3(1f,1f,1f), firstHit.point, Color.black);
         goodHits.Set(i,firstHit.colliderInstanceID == playerID);
 
       }
@@ -101,7 +99,8 @@ public class AIVisionBatcher : MonoBehaviour
       public NativeArray<RaycastCommand> cmds;
 
       public void Execute(int i){
-        Debug.DrawLine(cmds[i].from, firstHits[i].point);
+        if(firstHits[i].colliderInstanceID!=0)
+          Debug.DrawLine(cmds[i].from, firstHits[i].point, Color.black);
       }
 
     }
@@ -139,11 +138,15 @@ public class AIVisionBatcher : MonoBehaviour
         firstHits = hits
       }.ScheduleParallel(count, 4, NearestHitsJob);
       debug.Complete();
+      string how = "howtf";
+      for(int i = 0; i < hits.Length; i++){
+        Debug.Log($"{hits[i].colliderInstanceID} {hits[i].distance} {hits[i].collider?.name ?? how}");
+      }
       hits.Dispose();
       cmds.Dispose();
       results.Dispose();
       for(int i =0; i < count; i ++) {
-        visionAgents[i].aggro = (goodHits.IsSet(i));
+        visionAgents[i].aggro = goodHits.IsSet(i);
       }
       // visionAgents.Clear();
     }
