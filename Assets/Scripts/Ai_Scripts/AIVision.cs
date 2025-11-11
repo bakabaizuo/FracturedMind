@@ -31,7 +31,7 @@ public ref struct targettingList{
   public static readonly QueryParameters[] targetLists=  {
     new (
       // unchecked((int) 0xFFFFFCFF)
-       128, false,
+       0x80, false,
        default, false
        ),
 
@@ -51,7 +51,7 @@ public class AIVision : MonoBehaviour
     public float CosFOV = 0.5f;
 
     [Header("Memory")]
-    readonly static int gracePeriod = 100;
+    readonly static int gracePeriod = 10;
     
     public QueryParameters rayTargeting = targetLists[0];
     [Header("Memory Tracking")]
@@ -77,7 +77,7 @@ public class AIVision : MonoBehaviour
           break;
         case AIState.Investigate:
           //TODO Do not use magic number
-          if(ticks > 0) ticks -= 1;
+          if(ticks > 0) ticks -= 2;
           else state = AIState.Idle;
           break;
         default: throw new  InvalidOperationException("Reached Impossible State");
