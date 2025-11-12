@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
 using Unity.Burst;
-using static targettingList;
+using static AIConfigs.targettingList;
 /*
  * close enough, welcome back ecs sharedcomponent
  *
@@ -13,36 +13,13 @@ using static targettingList;
 */
 //make an array holding different common values
 
-public struct AIVisionSettings{
-  public readonly float maxViewDistance;
-  public readonly float minViewDistance;
-  public readonly float fovAngle;
-  public readonly float eyeHeight;
-
-}
-
-public struct AIAttentionSettings{
-  public readonly int detectSpeed;
-  public readonly int forgetSpeed;
-  public readonly int gracePeriod;
-}
-//Bastardized "sharedcomponent" for QueryParameters
-public ref struct targettingList{
-  public static readonly QueryParameters[] targetLists=  {
-    new (
-      // unchecked((int) 0xFFFFFCFF)
-       0x80, false,
-       default, false
-       ),
-
-  } ;
-}
 
 
 public class AIVision : MonoBehaviour
 {
   //ECS Would be nice if it had any good pathfinding 
   RaycastCommand cmd;
+  //TODO: make this a config probably using the above structs
     [Header("Vision Settings")]
     public float viewDistance = 2f;
     public float eyeHeight = 1.6f;
@@ -69,7 +46,6 @@ public class AIVision : MonoBehaviour
       switch(state){
         case AIState.Idle: 
           
-          AIVisionBatcher.Instance?.Unregister(this);
           break;
         case AIState.Chase: 
           ticks = gracePeriod;
@@ -77,8 +53,12 @@ public class AIVision : MonoBehaviour
           break;
         case AIState.Investigate:
           //TODO Do not use magic number
-          if(ticks > 0) ticks -= 2;
-          else state = AIState.Idle;
+          if(ticks > 0) {ticks -= 1;Debug.Log($"{this.name} cooling");}
+          else {
+            Debug.Log($"{this.name}:IForgor");
+            state = AIState.Idle;
+            // AIVisionBatcher.Instance?.Unregister(this);
+          }
           break;
         default: throw new  InvalidOperationException("Reached Impossible State");
       }
@@ -115,6 +95,7 @@ public class AIVision : MonoBehaviour
     public RaycastCommand GetCommand() => cmd;
 
     void FixedUpdate() {
+      Debug.Log($"{this.name} {aggro}");
       if(aggro)
         OnPlayerSeen();
       else
@@ -125,7 +106,7 @@ public class AIVision : MonoBehaviour
     void OnTriggerExit(Collider other){
       if(other.CompareTag("PlayerCollider")){
         aggro = false;
-        AIVisionBatcher.Instance?.Unregister(this);
+        // AIVisionBatcher.Instance?.Unregister(this);
       }
     }
     void OnTriggerStay(Collider other)
@@ -135,7 +116,7 @@ public class AIVision : MonoBehaviour
 
       bool hasPlayer = other.TryGetComponent(out ThirdPersonBasic player);
 
-      if (!hasPlayer || player == null) goto Fail;
+      if (!hasPlayer || player == null) {aggro = false; return;}
 
       bool isCrouching = player.isCrouching;
       currentViewDistance = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
@@ -143,7 +124,8 @@ public class AIVision : MonoBehaviour
       Vector3 targetPos = other.transform.position + Vector3.up * (isCrouching ? 0.5f : 1.2f);
       rayDirection = (targetPos - rayOrigin).normalized;
       float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);
-      if (angleToPlayer < CosFOV) goto Fail;
+      if (angleToPlayer < CosFOV) {aggro = false; return;}
+      Debug.Log(AIVisionBatcher.Instance?.isActiveAndEnabled ?? false);
       if (AIVisionBatcher.Instance?.isActiveAndEnabled ?? false){
         cmd = new RaycastCommand(rayOrigin, rayDirection, rayTargeting, currentViewDistance);
         AIVisionBatcher.Instance?.Register(this);
@@ -160,9 +142,6 @@ public class AIVision : MonoBehaviour
           hit.collider.CompareTag("PlayerCollider");
         
       }
-      return;
-      Fail:
-        AIVisionBatcher.Instance?.Unregister(this);
     }
     public void ProcessVisionResult(bool hit){
       aggro = hit;
