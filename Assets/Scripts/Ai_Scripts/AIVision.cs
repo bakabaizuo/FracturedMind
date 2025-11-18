@@ -21,11 +21,12 @@ public class AIVision : MonoBehaviour
   RaycastCommand cmd;
   //TODO: make this a config probably using the above structs
     [Header("Vision Settings")]
-    public float viewDistance = 2f;
-    public float eyeHeight = 1.6f;
-    public float crouchDetectionModifier = 0.5f;
+      public    BaseEnemyConfiguration config;
+    // public float viewDistance = 2f;
+    // public float eyeHeight = 1.6f;
+    // public float crouchDetectionModifier = 0.5f;
     // the cosine of planned viewangle
-    public float CosFOV = 0.5f;
+    // public float fovCosTheta = 0.5f;
 
     [Header("Memory")]
     readonly static int gracePeriod = 10;
@@ -69,7 +70,7 @@ public class AIVision : MonoBehaviour
       bool hasTrigger = this.TryGetComponent(out ESPTrigger);
       if(!hasTrigger)
         ESPTrigger = gameObject.AddComponent(typeof(SphereCollider)) as SphereCollider;
-      ESPTrigger.radius = viewDistance;
+      ESPTrigger.radius = config.visionSettings.viewDistance;
     }
     [BurstCompile]
     void OnPlayerSeen(){
@@ -101,7 +102,7 @@ public class AIVision : MonoBehaviour
       else
         OnPlayerLost();
       rayOrigin = transform.position;
-      rayOrigin.y += eyeHeight; 
+      rayOrigin.y += config.visionSettings.eyeHeight; 
     }
     void OnTriggerExit(Collider other){
       if(other.CompareTag("PlayerCollider")){
@@ -119,12 +120,15 @@ public class AIVision : MonoBehaviour
       if (!hasPlayer || player == null) {aggro = false; return;}
 
       bool isCrouching = player.isCrouching;
-      currentViewDistance = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
+      currentViewDistance = isCrouching ? config.visionSettings.viewDistance * config.visionSettings.crouchDetectionModifier : config.visionSettings.viewDistance;
 
+      LayerMask layerMask = 
+        config.npcTargets.layerMask;
+        // unchecked((int) 0xFFFFFEFF);
       Vector3 targetPos = other.transform.position + Vector3.up * (isCrouching ? 0.5f : 1.2f);
       rayDirection = (targetPos - rayOrigin).normalized;
       float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);
-      if (angleToPlayer < CosFOV) {aggro = false; return;}
+      if (angleToPlayer < config.visionSettings.fovCosTheta) {aggro = false; return;}
       Debug.Log(AIVisionBatcher.Instance?.isActiveAndEnabled ?? false);
       if (AIVisionBatcher.Instance?.isActiveAndEnabled ?? false){
         cmd = new RaycastCommand(rayOrigin, rayDirection, rayTargeting, currentViewDistance);
@@ -137,7 +141,8 @@ public class AIVision : MonoBehaviour
               rayDirection,
               out RaycastHit hit,
               currentViewDistance,
-              unchecked((int) 0xFFFFFEFF)
+              layerMask
+              // config.npcTargets.query.layerMask
           ) &&
           hit.collider.CompareTag("PlayerCollider");
         
@@ -155,13 +160,13 @@ public class AIVision : MonoBehaviour
     {
       //For converting rad to deg. derived from 180 * 113 /355 up to 8 significant figures
       const float converter = 57.2957746f;
-      float viewAngle =Mathf.Acos(CosFOV) * converter;
+      float viewAngle =Mathf.Acos(config.visionSettings.fovCosTheta) * converter;
         Gizmos.color = Color.yellow;
-        //Gizmos.DrawRay(rayOrigin, rayDirection * viewDistance);
+        //Gizmos.DrawRay(rayOrigin, rayDirection * config.visionSettings.viewDistance);
 
         Vector3 left = Quaternion.Euler(0, -viewAngle , 0) * transform.forward;
         Vector3 right = Quaternion.Euler(0, viewAngle, 0) * transform.forward;
-        Gizmos.DrawRay(rayOrigin, left * viewDistance);
-        Gizmos.DrawRay(rayOrigin, right * viewDistance);
+        Gizmos.DrawRay(rayOrigin, left * config.visionSettings.viewDistance);
+        Gizmos.DrawRay(rayOrigin, right * config.visionSettings.viewDistance);
     }
 }

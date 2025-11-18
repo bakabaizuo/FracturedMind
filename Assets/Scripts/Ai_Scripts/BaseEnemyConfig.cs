@@ -1,7 +1,7 @@
 using UnityEngine;
 [CreateAssetMenu(menuName = "NPC Configuration/Enemy Configuration/Base Enemy",fileName="BaseEnemyConfiguration")]
 
-sealed public class EnemyConfiguration: ScriptableObject{
+sealed public class BaseEnemyConfiguration: ScriptableObject{
   public NPCVision visionSettings;
   public EnemyAttention attentionSettings;
 
@@ -12,15 +12,15 @@ sealed public class EnemyConfiguration: ScriptableObject{
 [CreateAssetMenu(menuName = "NPC Configuration/Enemy Configuration/Base Enemy Vision",fileName="BaseEnemyVision")]
  sealed public class NPCVision : ScriptableObject{
    [field:SerializeField]
-    public  float maxViewDistance{get; private set;}
-   [field:SerializeField]
-    public  float minViewDistance{get; private set;}
+    public  float viewDistance{get; private set;}
+   // [field:SerializeField]
+   //  public  float minViewDistance{get; private set;}
    [field:SerializeField]
     public  float fovCosTheta{get; private set;}
    [field:SerializeField]
     public  float eyeHeight{get; private set;}
    [field:SerializeField]
-    public  float crouchModifier{get; private set;}
+    public  float crouchDetectionModifier{get; private set;}
 
  }
 
@@ -34,8 +34,7 @@ sealed public class EnemyConfiguration: ScriptableObject{
     
 [CreateAssetMenu(menuName = "NPC Configuration/Enemy Configuration/Base Enemy Vision Behavior",fileName="BaseNPCVisionBehavior")]
 sealed public class NPCVisionBehavior:ScriptableObject{
-  [SerializeField]
-  private int layerMask;
+  public LayerMask layerMask;
   [SerializeField]
   private bool hitBackFace;
   [SerializeField]

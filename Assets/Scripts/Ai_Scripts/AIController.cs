@@ -60,7 +60,7 @@ GameObject player;
     {
 
         Vector3 target = player.transform.position;
-        if (Vector3.Distance(agent.nextPosition,target) > 5.0f && vision.aggro){
+        if (Vector3.Distance(agent.nextPosition,target) > 1.0f && vision.aggro){
           agent.destination = target;
           transform.LookAt(player.transform);
           Debug.DrawLine(transform.position, target, Color.red);
