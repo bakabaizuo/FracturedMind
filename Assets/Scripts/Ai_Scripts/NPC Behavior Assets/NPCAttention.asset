@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: BaseEnemyAttention
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyAttention
-  <alertDuration>k__BackingField: 0
-  <detectDuration>k__BackingField: 0
+  m_Script: {fileID: 11500000, guid: 4e4774100e3626e46ba0712e1e9a8570, type: 3}
+  m_Name: NPCAttention
+  m_EditorClassIdentifier: Assembly-CSharp:NPCConfigs:EnemyAttention
+  alertDuration: 0
+  detectDuration: 0

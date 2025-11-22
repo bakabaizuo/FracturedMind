@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4978d2f9e82b0f9428f07a74526657ad, type: 3}
-  m_Name: BaseEnemyConfiguration
+  m_Name: NPCConfiguration
   m_EditorClassIdentifier: 
-  visionSettings: {fileID: 0}
-  attentionSettings: {fileID: 0}
-  npcTargets: {fileID: 0}
+  visionSettings: {fileID: 11400000, guid: b8d18f756022e4f40acba7cab62e4fea, type: 2}
+  attentionSettings: {fileID: 11400000, guid: 6eb9c011fff8b0b4dad11349620837fa, type: 2}
+  npcTargets: {fileID: 11400000, guid: 616d56b78a9f01c4d934591cafaa94de, type: 2}

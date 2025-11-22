@@ -21,7 +21,7 @@ public class AIVision : MonoBehaviour
   RaycastCommand cmd;
   //TODO: make this a config probably using the above structs
     [Header("Vision Settings")]
-      public    BaseEnemyConfiguration config;
+      public    NPCConfiguration config;
     // public float viewDistance = 2f;
     // public float eyeHeight = 1.6f;
     // public float crouchDetectionModifier = 0.5f;
@@ -54,9 +54,12 @@ public class AIVision : MonoBehaviour
           break;
         case AIState.Investigate:
           //TODO Do not use magic number
-          if(ticks > 0) {ticks -= 1;Debug.Log($"{this.name} cooling");}
+          if(ticks > 0) {
+            ticks -= 1;
+            // Debug.Log($"{this.name} cooling");
+          }
           else {
-            Debug.Log($"{this.name}:IForgor");
+            // Debug.Log($"{this.name}:IForgor");
             state = AIState.Idle;
             // AIVisionBatcher.Instance?.Unregister(this);
           }
@@ -96,7 +99,7 @@ public class AIVision : MonoBehaviour
     public RaycastCommand GetCommand() => cmd;
 
     void FixedUpdate() {
-      Debug.Log($"{this.name} {aggro}");
+      // Debug.Log($"{this.name} {aggro}");
       if(aggro)
         OnPlayerSeen();
       else
@@ -115,26 +118,24 @@ public class AIVision : MonoBehaviour
       if (!other.CompareTag("PlayerCollider")) return;
 // less lines and kinder to my laptop with editor
 
-      bool hasPlayer = other.TryGetComponent(out ThirdPersonBasic player);
+      aggro = other.TryGetComponent(out ThirdPersonBasic player);
+     
 
-      if (!hasPlayer || player == null) {aggro = false; return;}
+      if (!aggro) { return;}
 
       bool isCrouching = player.isCrouching;
       currentViewDistance = isCrouching ? config.visionSettings.viewDistance * config.visionSettings.crouchDetectionModifier : config.visionSettings.viewDistance;
 
-      LayerMask layerMask = 
-        config.npcTargets.layerMask;
-        // unchecked((int) 0xFFFFFEFF);
+      LayerMask layerMask = config.npcTargets.layerMask;
       Vector3 targetPos = other.transform.position + Vector3.up * (isCrouching ? 0.5f : 1.2f);
       rayDirection = (targetPos - rayOrigin).normalized;
       float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);
-      if (angleToPlayer < config.visionSettings.fovCosTheta) {aggro = false; return;}
-      Debug.Log(AIVisionBatcher.Instance?.isActiveAndEnabled ?? false);
-      if (AIVisionBatcher.Instance?.isActiveAndEnabled ?? false){
-        cmd = new RaycastCommand(rayOrigin, rayDirection, rayTargeting, currentViewDistance);
-        AIVisionBatcher.Instance?.Register(this);
+      if (aggro =  config.visionSettings.fovCosTheta < angleToPlayer) {
+        return;
       }else{
-          Debug.DrawLine(rayOrigin, currentViewDistance * rayDirection, Color.black);
+
+        Old:
+          
         aggro = 
           Physics.Raycast(
               rayOrigin,
@@ -145,8 +146,8 @@ public class AIVision : MonoBehaviour
               // config.npcTargets.query.layerMask
           ) &&
           hit.collider.CompareTag("PlayerCollider");
-        
       }
+        
     }
     public void ProcessVisionResult(bool hit){
       aggro = hit;
