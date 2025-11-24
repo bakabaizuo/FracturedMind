@@ -11,8 +11,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54039bfa77d08e349ac796f9e4e0073b, type: 3}
   m_Name: NPCVision
-  m_EditorClassIdentifier: Assembly-CSharp:NPCConfigs:NPCVision
-  <viewDistance>k__BackingField: 100
-  <fovCosTheta>k__BackingField: 0.25
+  m_EditorClassIdentifier: 
+  <viewDistance>k__BackingField: 10
+  <fovCosTheta>k__BackingField: 0.5
   <eyeHeight>k__BackingField: 1.6
-  <crouchDetectionModifier>k__BackingField: 0
+  <crouchDetectionModifier>k__BackingField: 0.5
+  <targetList>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 640

@@ -5,8 +5,4 @@ using UnityEngine;
   sealed public class NPCConfiguration: ScriptableObject{
     public NPCVision visionSettings;
     public EnemyAttention attentionSettings;
-
-    public NPCVisionBehavior npcTargets;
-
-
   }

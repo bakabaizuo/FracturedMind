@@ -12,6 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4978d2f9e82b0f9428f07a74526657ad, type: 3}
   m_Name: NPCConfiguration
   m_EditorClassIdentifier: 
-  visionSettings: {fileID: 11400000, guid: b8d18f756022e4f40acba7cab62e4fea, type: 2}
+  visionSettings: {fileID: 11400000, guid: b2405112666a179408e7d66d6bb5b2d6, type: 2}
   attentionSettings: {fileID: 11400000, guid: 6eb9c011fff8b0b4dad11349620837fa, type: 2}
-  npcTargets: {fileID: 11400000, guid: 616d56b78a9f01c4d934591cafaa94de, type: 2}

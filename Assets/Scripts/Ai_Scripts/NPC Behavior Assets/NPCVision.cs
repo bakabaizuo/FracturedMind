@@ -1,6 +1,6 @@
 
 using UnityEngine;  
-[CreateAssetMenu(menuName = "NPC Configuration/Enemy Vision",fileName="NPCVision")]
+[CreateAssetMenu(menuName = "NPC Configuration/Vision",fileName="NPCVision")]
 
    sealed public class NPCVision : ScriptableObject{
      [field:SerializeField]
@@ -11,5 +11,7 @@ using UnityEngine;
       public  float eyeHeight{get; private set;}
      [field:SerializeField]
       public  float crouchDetectionModifier{get; private set;}
+     [field:SerializeField]
+     public LayerMask targetList{get; private set;}
 
    }

@@ -31,7 +31,7 @@ public class AIVision : MonoBehaviour
     [Header("Memory")]
     readonly static int gracePeriod = 10;
     
-    public QueryParameters rayTargeting = targetLists[0];
+    LayerMask rayTargeting;
     [Header("Memory Tracking")]
     public bool aggro = false; 
     public int ticks = 0;
@@ -126,7 +126,7 @@ public class AIVision : MonoBehaviour
       bool isCrouching = player.isCrouching;
       currentViewDistance = isCrouching ? config.visionSettings.viewDistance * config.visionSettings.crouchDetectionModifier : config.visionSettings.viewDistance;
 
-      LayerMask layerMask = config.npcTargets.layerMask;
+      LayerMask layerMask = config.visionSettings.targetList;
       Vector3 targetPos = other.transform.position + Vector3.up * (isCrouching ? 0.5f : 1.2f);
       rayDirection = (targetPos - rayOrigin).normalized;
       float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);

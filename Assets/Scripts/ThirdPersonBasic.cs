@@ -52,10 +52,10 @@ private void HandleGroundCheck()
     // Raycast straight down for better detection
     isGrounded = Physics.Raycast(transform.position, Vector3.down, controller.height * 0.5f + 0.1f, groundMask);
         // ✅ Debugging info
-    if (debugGroundCheck){
-      
-        //Debug.Log($"Grounded: {isGrounded}");
-    }
+    // if (debugGroundCheck){
+    //
+    //     Debug.Log($"Grounded: {isGrounded}");
+    // }
 
     if (isGrounded && velocity.y < 0)
         velocity.y = -2f;
@@ -65,24 +65,30 @@ private void HandleGroundCheck()
 
     private void HandleMovement()
     {
+      //Replace wtih Input System later
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
         Vector3 inputDirection = new Vector3(horizontal, 0f, vertical).normalized;
 
-        if (inputDirection.magnitude < 0.1f)
+        if (inputDirection.sqrMagnitude < 0.01f)
         {
           return;
         }
         // Rotate toward movement direction relative to camera
-        float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + Camera.main.transform.eulerAngles.y;
+        // Replace the magic number with our const later
+        float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * 57.2957746f + Camera.main.transform.eulerAngles.y;
         Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
 
         // Move in rotated direction
         Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
+        //Test Slope traversability
+        bool slopeTest = !Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 1.5f, groundMask) ||
+                          Vector3.Angle(hit.normal, Vector3.up) > slopeLimit;
 
-        if (CanWalkOnSlope(moveDirection))
+        // if (CanWalkOnSlope(moveDirection))
+        if(slopeTest)
         {
             controller.Move(moveDirection.normalized * moveSpeed * Time.deltaTime);
         }
@@ -97,7 +103,7 @@ private void HandleGroundCheck()
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             lastJumpTime = Time.time; // prevent spam
-            Debug.Log("[Jump] Jumped!");
+            // Debug.Log("[Jump] Jumped!");
         }
 
         // Apply gravity
@@ -111,22 +117,28 @@ private void HandleGroundCheck()
 
 
 
-    private bool CanWalkOnSlope(Vector3 moveDirection)
-    {
-        // Raycast down to detect slope angle
-        if (Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 1.5f, groundMask))
-        {
-            float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
+    // private bool CanWalkOnSlope(Vector3 moveDirection) =>
+    // !Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 1.5f, groundMask) 
+    // ||
+    // Vector3.Angle(hit.normal, Vector3.up) > slopeLimit;
 
-/*            if (debugGroundCheck)
-            {
-                Debug.Log($"[SlopeCheck] Angle: {slopeAngle}");
-            }
-*/
-            return slopeAngle <= slopeLimit;
-        }
-        return true; // No ground detected → assume walkable
-    }
+
+//     {
+//         // Raycast down to detect slope angle
+//        bool rayCheck = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 1.5f, groundMask); 
+//       if (rayCheck)
+//         {
+//             float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
+//
+// /*            if (debugGroundCheck)
+//             {
+//                 Debug.Log($"[SlopeCheck] Angle: {slopeAngle}");
+//             }
+// */
+//             return slopeAngle <= slopeLimit;
+//         }
+//         // return true; // No ground detected → assume walkable
+//     }
 
     //  Draw Gizmos in Scene View for easier debugging
 private void OnDrawGizmosSelected()
