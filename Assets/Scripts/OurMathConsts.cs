@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public namespace OurMath
+namespace OurMath
 {
 public static class OurMathConsts {
   public static readonly float Rad2Deg = 57.2957746f;
