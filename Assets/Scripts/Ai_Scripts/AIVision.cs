@@ -39,6 +39,7 @@ public class AIVision : MonoBehaviour
     [HideInInspector] public Vector3 rayOrigin;
     [HideInInspector] public Vector3 rayDirection;
     [HideInInspector] public float currentViewDistance;
+    [HideInInspector] LayerMask layerMask = config.visionSettings.targetList;
     public AIState state = AIState.Idle;
 
 
@@ -46,7 +47,6 @@ public class AIVision : MonoBehaviour
     void OnPlayerLost(){
       switch(state){
         case AIState.Idle: 
-          
           break;
         case AIState.Chase: 
           ticks = gracePeriod;
@@ -54,15 +54,10 @@ public class AIVision : MonoBehaviour
           break;
         case AIState.Investigate:
           //TODO Do not use magic number
-          if(ticks > 0) {
+          if(ticks > 0) 
             ticks -= 1;
-            // Debug.Log($"{this.name} cooling");
-          }
-          else {
-            // Debug.Log($"{this.name}:IForgor");
+          else
             state = AIState.Idle;
-            // AIVisionBatcher.Instance?.Unregister(this);
-          }
           break;
         default: throw new  InvalidOperationException("Reached Impossible State");
       }
@@ -99,62 +94,45 @@ public class AIVision : MonoBehaviour
     public RaycastCommand GetCommand() => cmd;
 
     void FixedUpdate() {
-      // Debug.Log($"{this.name} {aggro}");
-      if(aggro)
-        OnPlayerSeen();
-      else
+      if(!aggro)
         OnPlayerLost();
-      rayOrigin = transform.position;
-      rayOrigin.y += config.visionSettings.eyeHeight; 
     }
     void OnTriggerExit(Collider other){
       if(other.CompareTag("PlayerCollider")){
         aggro = false;
-        // AIVisionBatcher.Instance?.Unregister(this);
       }
     }
     void OnTriggerStay(Collider other)
     {
       if (!other.CompareTag("PlayerCollider")) return;
-// less lines and kinder to my laptop with editor
-
       aggro = other.TryGetComponent(out ThirdPersonBasic player);
-     
-
       if (!aggro) { return;}
 
       bool isCrouching = player.isCrouching;
       currentViewDistance = isCrouching ? config.visionSettings.viewDistance * config.visionSettings.crouchDetectionModifier : config.visionSettings.viewDistance;
+      rayOrigin = transform.position;
+      rayOrigin.y += config.visionSettings.eyeHeight; 
 
-      LayerMask layerMask = config.visionSettings.targetList;
+      
       Vector3 targetPos = other.transform.position + Vector3.up * (isCrouching ? 0.5f : 1.2f);
       rayDirection = (targetPos - rayOrigin).normalized;
       float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);
-      if (aggro =  config.visionSettings.fovCosTheta < angleToPlayer) {
-        return;
-      }else{
-
-        Old:
-          
-        aggro = 
-          Physics.Raycast(
+      //Short circuiting operator (ab)use. 
+      aggro = 
+        angleToPlayer < config.visionSettings.fovCosTheta &&
+        Physics.Raycast(
               rayOrigin,
               rayDirection,
               out RaycastHit hit,
               currentViewDistance,
               layerMask
-              // config.npcTargets.query.layerMask
           ) &&
           hit.collider.CompareTag("PlayerCollider");
-      }
-        
+      if(aggro)  
+        OnPlayerSeen();
     }
     public void ProcessVisionResult(bool hit){
       aggro = hit;
-    }
-
-    public void ProcessVisionResult(RaycastHit hit){
-      aggro = hit.collider?.CompareTag("Player") ?? false;
     }
 
     void OnDrawGizmosSelected()

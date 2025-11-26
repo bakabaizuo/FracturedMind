@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -11,7 +9,6 @@ public class AIController : MonoBehaviour
     public AIVision vision;
     public EnemyAnimatorController enemyAnimator;
 GameObject player;
-    private AIState currentState = AIState.Idle;
 
     private void Start()
     {
@@ -28,8 +25,7 @@ GameObject player;
 
     private void FixedUpdate()
     {
-        currentState = vision.state;
-        switch (currentState)
+        switch (vision.state)
         {
             case AIState.Idle:
                 Idle();
@@ -45,12 +41,12 @@ GameObject player;
         }
 
         // Update movement animation every frame
-        enemyAnimator.SetMovementAnimation(agent.velocity, currentState == AIState.Chase);
+        // enemyAnimator.SetMovementAnimation(agent.velocity, currentState == AIState.Chase);
     }
 
     private void Idle()
     {
-        if (!agent.pathPending && agent.remainingDistance < 0.1f)
+        if (agent.pathPending)
             agent.ResetPath();
 
         enemyAnimator.PlayAnimation("Idle_Absolute");
@@ -67,14 +63,14 @@ GameObject player;
         }          
 
         // Switch to investigate if reached last seen
-        if (Vector3.Distance(transform.position, target) < 0.5f)
-            vision.state = AIState.Investigate;
+        // if (Vector3.Distance(transform.position, target) < 0.5f)
+        //     vision.state = AIState.Investigate;
     }
 
     private void Investigate()
     {
-        Debug.DrawLine(transform.position,player.transform.position);
-        if (Vector3.Distance(transform.position, player.transform.position) < 0.5f)
+        Debug.DrawLine(transform.position,agent.destination);
+        if (Vector3.Distance(transform.position, agent.destination) > 0.5f)
           transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 5f * Time.deltaTime);
     }
 }
