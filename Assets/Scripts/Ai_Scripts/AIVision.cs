@@ -39,8 +39,8 @@ public class AIVision : MonoBehaviour
     [HideInInspector] public Vector3 rayOrigin;
     [HideInInspector] public Vector3 rayDirection;
     [HideInInspector] public float currentViewDistance;
-    [HideInInspector] LayerMask layerMask = config.visionSettings.targetList;
-    public AIState state = AIState.Idle;
+    [HideInInspector] LayerMask layerMask;
+      public AIState state = AIState.Idle;
 
 
     [BurstCompile]
@@ -69,6 +69,8 @@ public class AIVision : MonoBehaviour
       if(!hasTrigger)
         ESPTrigger = gameObject.AddComponent(typeof(SphereCollider)) as SphereCollider;
       ESPTrigger.radius = config.visionSettings.viewDistance;
+      layerMask = config.visionSettings.targetList;
+
     }
     [BurstCompile]
     void OnPlayerSeen(){
