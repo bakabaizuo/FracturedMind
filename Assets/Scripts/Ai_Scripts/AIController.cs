@@ -8,11 +8,12 @@ public class AIController : MonoBehaviour
     public NavMeshAgent agent;
     public AIVision vision;
     public EnemyAnimatorController enemyAnimator;
-GameObject player;
+    Transform player;
 
     private void Start()
     {
-      player = GameObject.FindWithTag("PlayerCollider");
+      player = GameObject.FindWithTag("PlayerCollider").transform;
+      //Singleton the player
 
         // Ensure agent moves automatically
         if (agent != null)
@@ -55,12 +56,12 @@ GameObject player;
     private void Chase()
     {
 
-        Vector3 target = player.transform.position;
-        if (Vector3.Distance(agent.nextPosition,target) > 1.0f && vision.aggro){
+        Vector3 target = player.position;
+        if (vision.aggro && Vector3.Distance(agent.nextPosition,target) > 1.0f){
           agent.destination = target;
-          transform.LookAt(player.transform);
-          Debug.DrawLine(transform.position, target, Color.red);
+          // Debug.DrawLine(transform.position, target, Color.red);
         }          
+        transform.LookAt(player);
 
         // Switch to investigate if reached last seen
         // if (Vector3.Distance(transform.position, target) < 0.5f)
@@ -69,6 +70,7 @@ GameObject player;
 
     private void Investigate()
     {
+        // transform.LookAt(player.transform);
         Debug.DrawLine(transform.position,agent.destination);
         if (Vector3.Distance(transform.position, agent.destination) > 0.5f)
           transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 5f * Time.deltaTime);
