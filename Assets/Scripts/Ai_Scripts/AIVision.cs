@@ -25,12 +25,16 @@ public class AIVision : MonoBehaviour
     public int ticks = 0;
 
     [HideInInspector] public Vector3 rayOrigin;
-    [HideInInspector] public Vector3 rayDirection;
+    // [HideInInspector] public Vector3 rayDirection;
     [HideInInspector] public float currentViewDistance;
       public AIState state = AIState.Idle;
 
 
     void OnPlayerLost(){
+      if(ticks<=0){
+        state = AIState.Idle;
+        return;
+      }
       switch(state){
         case AIState.Idle: 
           break;
@@ -40,10 +44,7 @@ public class AIVision : MonoBehaviour
           break;
         case AIState.Investigate:
           //TODO Do not use magic number
-          if(ticks > 0) 
-            ticks -= 1;
-          else
-            state = AIState.Idle;
+          ticks -= 1;
           break;
        default: throw new  InvalidOperationException("Reached Impossible State");
       }
@@ -58,15 +59,17 @@ public class AIVision : MonoBehaviour
 
     }
     void OnPlayerSeen(){
+      if(gracePeriod<=ticks){
+
+        state = AIState.Chase;
+        return;
+      }
       switch(state){
         case AIState.Chase:break;
         case AIState.Investigate:
           
-          if(ticks < gracePeriod)
           //TODO Do not use magic number
-            ticks+=1;
-          else
-            state = AIState.Chase;
+          ticks+=1;
           break;
         case AIState.Idle:
           ticks = 0;
@@ -81,10 +84,6 @@ public class AIVision : MonoBehaviour
     void FixedUpdate() {
       if(!aggro && AIState.Idle != state)
         OnPlayerLost();
-      else
-      {
-          Debug.Log(state);
-      }
     }
     void OnTriggerExit(Collider other){
       if(other.CompareTag("PlayerCollider"))
@@ -98,35 +97,27 @@ public class AIVision : MonoBehaviour
       var player = ThirdPersonBasic.Instance;
       aggro = player !=null;
       if (!aggro) return;
+      
+      float3 pos= transform.position;
+      float3 posOther= other.transform.position;
 
       bool isCrouching = player.isCrouching ;
       isCrouching=false;
-      currentViewDistance = NPCConfiguration.getViewDistance(isCrouching,config.visionSettings.viewDistance, config.visionSettings.crouchDetectionModifier);
+      currentViewDistance = AIVisionUtils.getViewDistance(isCrouching,config.visionSettings.viewDistance, config.visionSettings.crouchDetectionModifier);
       ESPTrigger.radius = currentViewDistance;
-      float3 pos= transform.position;
-      float3 posOther= other.transform.position;
-      rayOrigin = pos +  config.visionSettings.eyeOrigin; 
 
-      
-      // float3 targetPos = posOther+  (isCrouching ? config.visionSettings.crouchDetectionModifier*config.visionSettings.eyeOrigin : config.visionSettings.eyeOrigin);
-      // NPCConfiguration.getTargetDirection(ref targetPos,ref rayOrigin,out rayOrigin);
       float3 targetDir;
-      NPCConfiguration.getTargetDirection(isCrouching, config.visionSettings.crouchDetectionModifier,config.visionSettings.eyeOrigin, posOther - pos,out targetDir);
-        rayDirection =  targetDir;
-        // rayDirection = (targetPos - rayOrigin).normalized;
-      //Short circuiting operator (ab)use. 
+      AIVisionUtils.getTargetDirection(isCrouching, config.visionSettings.crouchDetectionModifier,config.visionSettings.eyeOrigin, posOther - pos,out targetDir);
       float3 front = transform.forward;
       aggro = 
-        math.dot(front, targetDir) > config.visionSettings.fovCosTheta &&
-        Physics.Raycast(
-              rayOrigin,
-              // targetDir,
-              rayDirection,
-              out RaycastHit hit,
-              currentViewDistance,
-              config.visionSettings.targetList
-          );
-        // &&hit.colliderInstanceID == other.GetInstanceID();
+        AIVisionUtils.fovCheck(config.visionSettings.fovCosTheta,front,targetDir) &&
+        AIVisionUtils.rayCast(
+            other.GetInstanceID(),
+            pos + config.visionSettings.eyeOrigin,
+            targetDir,
+            currentViewDistance,
+            config.visionSettings.targetList
+            );
       if(aggro && state != AIState.Chase)  
         OnPlayerSeen();
     }
