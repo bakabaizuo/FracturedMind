@@ -1,35 +1,23 @@
 using System;
-using System.Collections;
-using Unity.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Unity.Jobs;
-using Unity.Burst;
-using static AIConfigs.targettingList;
-/*
- * close enough, welcome back ecs sharedcomponent
- *
- * -Brownie
-*/
-//make an array holding different common values
+using Unity.Mathematics;
 
 
 
 public class AIVision : MonoBehaviour
 {
-  //ECS Would be nice if it had any good pathfinding 
-  RaycastCommand cmd;
   //TODO: make this a config probably using the above structs
     [Header("Vision Settings")]
-      public    NPCConfiguration config;
+      public  NPCConfiguration config;
     // public float viewDistance = 2f;
-    // public float eyeHeight = 1.6f;
+    // public float eyeOrigin = 1.6f;
     // public float crouchDetectionModifier = 0.5f;
     // the cosine of planned viewangle
     // public float fovCosTheta = 0.5f;
 
     [Header("Memory")]
-    readonly static int gracePeriod = 10;
+    [SerializeField]
+    int gracePeriod = 10;
     
     LayerMask rayTargeting;
     [Header("Memory Tracking")]
@@ -39,11 +27,9 @@ public class AIVision : MonoBehaviour
     [HideInInspector] public Vector3 rayOrigin;
     [HideInInspector] public Vector3 rayDirection;
     [HideInInspector] public float currentViewDistance;
-    [HideInInspector] LayerMask layerMask;
       public AIState state = AIState.Idle;
 
 
-    [BurstCompile]
     void OnPlayerLost(){
       switch(state){
         case AIState.Idle: 
@@ -59,20 +45,18 @@ public class AIVision : MonoBehaviour
           else
             state = AIState.Idle;
           break;
-        default: throw new  InvalidOperationException("Reached Impossible State");
+       default: throw new  InvalidOperationException("Reached Impossible State");
       }
     }
 
-    void Start(){
       SphereCollider ESPTrigger;
+    void Start(){
       bool hasTrigger = this.TryGetComponent(out ESPTrigger);
       if(!hasTrigger)
         ESPTrigger = gameObject.AddComponent(typeof(SphereCollider)) as SphereCollider;
       ESPTrigger.radius = config.visionSettings.viewDistance;
-      layerMask = config.visionSettings.targetList;
 
     }
-    [BurstCompile]
     void OnPlayerSeen(){
       switch(state){
         case AIState.Chase:break;
@@ -93,55 +77,63 @@ public class AIVision : MonoBehaviour
     }
 
 
-    public RaycastCommand GetCommand() => cmd;
 
     void FixedUpdate() {
-      if(!aggro)
+      if(!aggro && AIState.Idle != state)
         OnPlayerLost();
-    }
-    void OnTriggerExit(Collider other){
-      if(other.CompareTag("PlayerCollider")){
-        aggro = false;
+      else
+      {
+          Debug.Log(state);
       }
     }
+    void OnTriggerExit(Collider other){
+      if(other.CompareTag("PlayerCollider"))
+        aggro = false;
+    }
+    float getViewDistance(bool isCrouching)=> isCrouching ? config.visionSettings.viewDistance * config.visionSettings.crouchDetectionModifier : config.visionSettings.viewDistance;
+
     void OnTriggerStay(Collider other)
     {
       if (!other.CompareTag("PlayerCollider")) return;
-      aggro = other.TryGetComponent(out ThirdPersonBasic player);
-      if (!aggro) { return;}
+      var player = ThirdPersonBasic.Instance;
+      aggro = player !=null;
+      if (!aggro) return;
 
-      bool isCrouching = player.isCrouching;
-      currentViewDistance = isCrouching ? config.visionSettings.viewDistance * config.visionSettings.crouchDetectionModifier : config.visionSettings.viewDistance;
-      rayOrigin = transform.position;
-      rayOrigin.y += config.visionSettings.eyeHeight; 
+      bool isCrouching = player.isCrouching ;
+      isCrouching=false;
+      currentViewDistance = NPCConfiguration.getViewDistance(isCrouching,config.visionSettings.viewDistance, config.visionSettings.crouchDetectionModifier);
+      ESPTrigger.radius = currentViewDistance;
+      float3 pos= transform.position;
+      float3 posOther= other.transform.position;
+      rayOrigin = pos +  config.visionSettings.eyeOrigin; 
 
       
-      Vector3 targetPos = other.transform.position + Vector3.up * (isCrouching ? 0.5f : 1.2f);
-      rayDirection = (targetPos - rayOrigin).normalized;
-      float angleToPlayer = Vector3.Dot(transform.forward, rayDirection);
+      // float3 targetPos = posOther+  (isCrouching ? config.visionSettings.crouchDetectionModifier*config.visionSettings.eyeOrigin : config.visionSettings.eyeOrigin);
+      // NPCConfiguration.getTargetDirection(ref targetPos,ref rayOrigin,out rayOrigin);
+      float3 targetDir;
+      NPCConfiguration.getTargetDirection(isCrouching, config.visionSettings.crouchDetectionModifier,config.visionSettings.eyeOrigin, posOther - pos,out targetDir);
+        rayDirection =  targetDir;
+        // rayDirection = (targetPos - rayOrigin).normalized;
       //Short circuiting operator (ab)use. 
+      float3 front = transform.forward;
       aggro = 
-        angleToPlayer < config.visionSettings.fovCosTheta &&
+        math.dot(front, targetDir) > config.visionSettings.fovCosTheta &&
         Physics.Raycast(
               rayOrigin,
+              // targetDir,
               rayDirection,
               out RaycastHit hit,
               currentViewDistance,
-              layerMask
-          ) &&
-          hit.collider.CompareTag("PlayerCollider");
-      if(aggro)  
+              config.visionSettings.targetList
+          );
+        // &&hit.colliderInstanceID == other.GetInstanceID();
+      if(aggro && state != AIState.Chase)  
         OnPlayerSeen();
-    }
-    public void ProcessVisionResult(bool hit){
-      aggro = hit;
     }
 
     void OnDrawGizmosSelected()
     {
-      //For converting rad to deg. derived from 180 * 113 /355 up to 8 significant figures
-      const float converter = 57.2957746f;
-      float viewAngle =Mathf.Acos(config.visionSettings.fovCosTheta) * converter;
+      float viewAngle =Mathf.Acos(config.visionSettings.fovCosTheta) * Mathf.Rad2Deg;
         Gizmos.color = Color.yellow;
         //Gizmos.DrawRay(rayOrigin, rayDirection * config.visionSettings.viewDistance);
 

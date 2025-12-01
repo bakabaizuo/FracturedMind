@@ -14,8 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <viewDistance>k__BackingField: 10
   <fovCosTheta>k__BackingField: 0.5
-  <eyeHeight>k__BackingField: 1.6
+  <eyeOrigin>k__BackingField:
+    x: 0
+    y: 0
+    z: 0
   <crouchDetectionModifier>k__BackingField: 0.5
   <targetList>k__BackingField:
     serializedVersion: 2
-    m_Bits: 640
+    m_Bits: 695

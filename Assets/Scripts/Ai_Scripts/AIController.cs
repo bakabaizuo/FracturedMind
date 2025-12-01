@@ -57,11 +57,12 @@ public class AIController : MonoBehaviour
     {
 
         Vector3 target = player.position;
-        if (vision.aggro && Vector3.Distance(agent.nextPosition,target) > 1.0f){
+        if (/*vision.aggro &&*/ Vector3.Distance(agent.nextPosition,target) > 1.0f){
           agent.destination = target;
           // Debug.DrawLine(transform.position, target, Color.red);
         }          
-        transform.LookAt(player);
+          // transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 5f * Time.deltaTime);
+        // transform.LookAt(player);
 
         // Switch to investigate if reached last seen
         // if (Vector3.Distance(transform.position, target) < 0.5f)
@@ -72,7 +73,7 @@ public class AIController : MonoBehaviour
     {
         // transform.LookAt(player.transform);
         Debug.DrawLine(transform.position,agent.destination);
-        if (Vector3.Distance(transform.position, agent.destination) > 0.5f)
-          transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 5f * Time.deltaTime);
+        // if (Vector3.Distance(transform.position, agent.destination) > 0.5f)
+        //   transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 5f * Time.deltaTime);
     }
 }
