@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class ThirdPersonBasic : MonoBehaviour
@@ -9,8 +7,7 @@ public class ThirdPersonBasic : MonoBehaviour
     public float rotationSpeed = 10f;
     public float jumpHeight = 2f;
     public float gravity = -40f;   // Stronger gravity for snappier feel
-    public float slopeLimit = 0.70710678f;
-     // 45f; // Max walkable slope angle
+    public float slopeLimit = 45f; // Max walkable slope angle
 
     [Header("Ground Detection")]
     public Transform groundCheck;
@@ -26,16 +23,33 @@ public class ThirdPersonBasic : MonoBehaviour
     private float jumpCooldown = 0.1f;  // short buffer
     private float lastJumpTime = -1f;
     public bool isCrouching;
+    Transform camera;
+    float slopeLimitCos;
+    public static ThirdPersonBasic Instance ;
+    void Awake()
+    {
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(this);
+    }
     private void Start()
     {
+      position= transform.position;
+      slopeLimitCos = Mathf.Cos(slopeLimit * Mathf.Deg2Rad);
+      camera =Camera.main.transform;
         controller = GetComponent<CharacterController>();
-    }
 
-    private void Update()
+    }
+    Vector3 position;
+
+    private void FixedUpdate()
     {
-        HandleGroundCheck();
-        HandleMovement();
-        HandleJumpAndGravity();   
+      if(transform.hasChanged)
+        position = transform.position;
+      HandleGroundCheck();
+      HandleMovement();
+      HandleJumpAndGravity();   
         
          
     
@@ -46,11 +60,10 @@ public class ThirdPersonBasic : MonoBehaviour
     }
 
 
-
 private void HandleGroundCheck()
 {
     // Raycast straight down for better detection
-    isGrounded = Physics.Raycast(transform.position, Vector3.down, controller.height * 0.5f + 0.1f, groundMask);
+    isGrounded = Physics.Raycast(position, Vector3.down, controller.height * 0.5f + 0.1f, groundMask);
         // ✅ Debugging info
     //     if (debugGroundCheck)
     //     {
@@ -60,7 +73,7 @@ private void HandleGroundCheck()
         velocity.y = -2f;
 }
 
-   Transform camera = Camera.main.transform; 
+    
 
     private void HandleMovement()
     {
@@ -69,13 +82,11 @@ private void HandleGroundCheck()
 
         Vector3 inputDirection = new Vector3(horizontal, 0f, vertical).normalized;
 
-        if (
-            inputDirection.sqrMagnitude < 0.01f
-            && Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 1.5f, groundMask) 
-            && slopeLimit < Vector3.Dot(hit.normal, Vector3.up)
-        ) return;
+        if (inputDirection.sqrMagnitude < 0.01f || 
+            Physics.Raycast(position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 1.5f, groundMask) 
+            && Vector3.Dot(hit.normal, Vector3.up) < slopeLimitCos) return;
+            
         // Rotate toward movement direction relative to camera
-       
         float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + camera.eulerAngles.y;
         Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
@@ -84,31 +95,27 @@ private void HandleGroundCheck()
         Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
 
         // if (CanWalkOnSlope(moveDirection))
-        controller.Move(moveDirection.normalized * moveSpeed * Time.deltaTime);
-            
-        
-    }
+          controller.Move(moveDirection.normalized * moveSpeed * Time.deltaTime);
 
+    }
     private void HandleJumpAndGravity()
     {
+      //Would moving this to FixedUpdate Reduce Time.deltaTime calls?
         //  Only allow jump if grounded + cooldown passed
         bool canJumpNow = isGrounded && (Time.deltaTime > /*lastJumpTime +*/ jumpCooldown);
 
         if (canJumpNow && Input.GetButtonDown("Jump"))
         {
-          //Coroutine This so it's smoother ig
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             // lastJumpTime = Time.time; // prevent spam
             Debug.Log("[Jump] Jumped!");
         }
 
-        if(!isGrounded)
         // Apply gravity
-        {
-          velocity.y += gravity * Time.deltaTime;
+        velocity.y += gravity * Time.deltaTime;
 
         // Apply vertical movement
-        }
+        controller.Move(velocity * Time.deltaTime);
     }
  
 
