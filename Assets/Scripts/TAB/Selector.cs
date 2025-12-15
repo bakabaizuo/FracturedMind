@@ -1,60 +1,45 @@
 using UnityEngine;
+using System;
 
 public class Selector : MonoBehaviour
 {
-    private LineRenderer _lineRenderer;
-	public void Start()
-	{
-    if(TryGetComponent<LineRenderer>(out _lineRenderer))
-	  
-        _lineRenderer.SetWidth(0.2f, 0.2f);
-        _lineRenderer.enabled = false;
-	}
-
-    private Vector3 _initialPosition;
-    private Vector3 _currentPosition;
-    public void Update()
-    {
-            
-            _lineRenderer.SetPosition(0, Vector3.zero);
-            _lineRenderer.SetVertexCount(1);
-            _lineRenderer.enabled = true;
-        // if (Input.GetMouseButtonDown(0))
-        // {
-        //     _initialPosition = GetCurrentMousePosition().GetValueOrDefault();
-        //     _lineRenderer.SetPosition(0, _initialPosition);
-        //     _lineRenderer.SetVertexCount(1);
-        //     _lineRenderer.enabled = true;
-        // } 
-        // else if (Input.GetMouseButton(0))
-        // {
-            _currentPosition = GetCurrentMousePosition().GetValueOrDefault();
-            _lineRenderer.SetVertexCount(2);
-            _lineRenderer.SetPosition(1, _currentPosition);
-        //
-        // } 
-        // else if (Input.GetMouseButtonUp(0))
-        // {
-        //     _lineRenderer.enabled = false;
-        //     var releasePosition = GetCurrentMousePosition().GetValueOrDefault();
-        //     var direction = releasePosition - _initialPosition;
-        //     Debug.Log("Process direction " + direction);
-        // }
+  bool test = true;
+  Camera eye;
+  RadialItem[] items;
+  void DoSomething(RadialItem item){
+  }
+  Vector2 pointer;
+  static float halfWidth= Screen.width*0.5f;
+  static float halfHeight = Screen.height*0.5f;
+  static Vector2 cartesianer = new (halfWidth,halfHeight);
+  void Select(){
+    if(items == null || items.Length == 0 )
+      if(test)
+        items = new RadialItem[3];
+      else 
+        return;
+    pointer = cartesianer - (Vector2) Input.mousePosition;
+    // pointer.x = halfWidth-Input.mousePosition.x;
+    // pointer.y = halfHeight - Input.mousePosition.y;
+    if(pointer == Vector2.zero)
+      return ;
+    pointer.Normalize();
+    float theta = MathF.Atan2(pointer.y,pointer.x) + MathF.PI * 0.5f;
+    this.transform.rotation = Quaternion.Euler(0, 0, theta * 180f/MathF.PI);
+    if(theta < 0){
+      theta += MathF.PI*2f;
     }
-
-    private Vector3? GetCurrentMousePosition()
-    {
-        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        var plane = new Plane(Vector3.forward, Vector3.zero);
-
-        float rayDistance;
-        if (plane.Raycast(ray, out rayDistance))
-        {
-            return ray.GetPoint(rayDistance);
-            
-        }
-
-        return null;
-    }
+    Debug.Log($"{theta * 180f/MathF.PI} deg");
+    float slice = MathF.PI*2f/items.Length;
+    //TODO: do whatever you need from this:
+   //item selection is clockwise starting from top right
+    int index = items.Length-(int)MathF.Floor(theta/slice) - 1;
+    Debug.Log($"ind {index}");
+    if(items.Length> index && index > 0);
+      DoSomething(items[index]);
+  }
+  void Update(){
+    Select();
+  }
     
 }
