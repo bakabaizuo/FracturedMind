@@ -52,11 +52,11 @@ public class AIVision : MonoBehaviour
 
       SphereCollider ESPTrigger;
     void Start(){
+      var rand = new System.Random();
       bool hasTrigger = this.TryGetComponent(out ESPTrigger);
       if(!hasTrigger)
         ESPTrigger = gameObject.AddComponent(typeof(SphereCollider)) as SphereCollider;
       ESPTrigger.radius = config.visionSettings.viewDistance;
-
     }
     void OnPlayerSeen(){
       if(gracePeriod<=ticks){

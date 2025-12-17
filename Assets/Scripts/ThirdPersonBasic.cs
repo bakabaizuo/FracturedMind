@@ -13,7 +13,7 @@ public class ThirdPersonBasic : MonoBehaviour
     public Transform groundCheck;
     public float groundDistance = 0.2f;
     public LayerMask groundMask;
-    public bool debugGroundCheck = true; // toggle debug drawing/logging
+    public bool debugGroundCheck = false; // toggle debug drawing/logging
 
     private CharacterController controller;
     private Vector3 velocity;
@@ -43,7 +43,7 @@ public class ThirdPersonBasic : MonoBehaviour
     }
     Vector3 position;
 
-    private void FixedUpdate()
+    private void Update()
     {
       if(transform.hasChanged)
         position = transform.position;

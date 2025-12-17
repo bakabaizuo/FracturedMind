@@ -19,26 +19,23 @@ public class Selector : MonoBehaviour
   static Vector2 cartesianer = new (halfWidth,halfHeight);
   
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
-  void Select(){
+  int? Select(){
     pointer = cartesianer - (Vector2) Input.mousePosition;
     // pointer.x = halfWidth-Input.mousePosition.x;
     // pointer.y = halfHeight - Input.mousePosition.y;
     if(pointer == Vector2.zero)
-      return ;
+      return null;
     pointer.Normalize();
     float theta = MathF.Atan2(pointer.y,pointer.x) + MathF.PI * 0.5f;
     this.transform.rotation = Quaternion.Euler(0, 0, theta * Mathf.Rad2Deg);
     if(theta < 0){
       theta += MathF.PI*2f;
     }
-    if (items?.Count < 1)
-        return;
+    if (items == null || items.Count < 1)
+        return null;
     //TODO: do whatever you need from this:
    //item selection is clockwise starting from top right
-    int index = items.Count-(int)MathF.Floor(theta/slice) - 1;
-    Debug.Log(index);
-    if(items?.Count> index && index > 0);
-      DoSomething(items[index]);
+    return items.Count-(int)MathF.Floor(theta/slice) - 1;
   }
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
   void Update(){

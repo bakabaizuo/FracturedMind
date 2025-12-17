@@ -7,8 +7,17 @@ GameObject Menu;
 GameObject Selector;
 public List<RadialItem> items{get; private set;}
 public float slice{ get; private set;}
+[SerializeField]
+bool test = true;
 void Start(){
+  if(test)
+  {
     items = new(3);
+    RadialItem[] test = new RadialItem[5];
+    for(int i = 0; i < test.Length; i++){
+      items.Add(test[i]);
+    }
+  }
     Menu = gameObject.transform.GetChild(0).gameObject;
     Selector =  gameObject.transform.GetChild(1).gameObject;
     slice = MathF.PI*2f/(items?.Count??1);
