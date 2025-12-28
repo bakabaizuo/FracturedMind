@@ -15,41 +15,54 @@ public class ItemMenu : MonoBehaviour
   [SerializeField]
   SpriteAtlas atlas;
   //Make panels an ObjectPool
+  [SerializeField]
   List<ItemPanel> panels;
-  List<RadialItem> items;
+  [SerializeField]
+  bool test;
+  public List<RadialItem> items;
   public float slice{get; set;}
     // Start is called before the first frame update
     void Start()
     {
+
        panels = new(items?.Count??0); 
        RadialMenu parent;
        if(!transform.parent.gameObject.TryGetComponent(out parent))
          return;
        slice = parent.slice;
-       items = parent.items;
-       if(items == null)
+       if(test)
+         items = parent.items;
+       
+       if((items?.Count??0 )< 1)
          return;
        foreach(RadialItem item in items){
          MakeEntry(item);
        }
+       Rearrange();
     }
     void MakeEntry(RadialItem item){
       GameObject entry = Instantiate(EntryPrefab, transform);
       ItemPanel pane;
-      if(!TryGetComponent( out pane))
+      if(!entry.TryGetComponent( out pane)){
         return;
-      pane.SetLabel(item.name);
-      pane.SetLabel(item.name);
+      }
+      pane.SetLabel(item.Pseudonym);
+      pane.SetSprite(atlas.GetSprite(item.SpriteName));
       panels.Add(pane);
     }
     void Rearrange(){
       //Call Rearrange when slice changes?
-      int max = items.Count;
+      int max = panels.Count;
+      Debug.Log(max);
+      if(max < 1)
+        return;
       RectTransform m_RectTransform;
       for(int i =0; i < max; i++){
         if(!panels[i].TryGetComponent(out m_RectTransform))
           continue;
-        m_RectTransform.anchoredPosition = new(MathF.Sin(slice * i),MathF.Cos(slice*i));
+        m_RectTransform.anchoredPosition = 
+          // Vector2.zero;
+          (new(MathF.Sin(slice * i),MathF.Cos(slice*i)));
         m_RectTransform.anchoredPosition *= radius;
       }
 

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 using UnityEngine.U2D;
 
 public class ItemPanel : MonoBehaviour
@@ -15,18 +15,24 @@ public class ItemPanel : MonoBehaviour
   public void SetLabel(string text){
     label.text = text;
   }
-  public void SetSprite(Texture sprite){
-    if(spriteHolder!= null)
-    spriteHolder.image ??= sprite;
-  }
+  // public void SetSprite(Texture sprite){
+  //   spriteHolder.image ??= sprite;
+  // }
   public void SetSprite(string name, SpriteAtlas atlas){
-    if(spriteHolder != null)
-      spriteHolder.sprite ??= atlas.GetSprite(name);
+    SetSprite(atlas.GetSprite(name));
+  }
+  public void SetSprite(Sprite sprite){
+    if(spriteHolder == null){
+      return;
+    }
+    spriteHolder.sprite ??= sprite;
   }
     // Start is called before the first frame update
     void Start()
     {
       SetLabel("Lorem Ipsum Dolor");
-      spriteHolder =  GetComponentInChildren<Image>();
+    }
+    void OnEnable(){
+      Debug.Log(transform.position);
     }
 }

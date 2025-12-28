@@ -3,7 +3,10 @@ guid: 282f4f47ee4b86f4d9dd929c0974bf4a
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - EntryPrefab: {fileID: 3181256618062573098, guid: cb16c64ba0d53974fa4d926690253a9c,
+      type: 3}
+  - atlas: {fileID: 100100200, guid: 422107d9f911e2f43885515903c84900, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
