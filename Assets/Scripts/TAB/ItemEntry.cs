@@ -22,7 +22,13 @@ public class ItemEntry : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-       panels = new();
+    
+    }
+  
+
+    private void ItemEntryEnable()
+    {
+         panels = new();
        RadialMenu parent;
        if(transform.parent.gameObject.TryGetComponent(out parent)){
          slice = parent.slice;
@@ -42,12 +48,26 @@ public class ItemEntry : MonoBehaviour
       if((items?.Count ?? 0) < 1)
         return;
 
-      // Create entries for each RadialItem
+      // If there is an ItemMenu in parent hierarchy, hand off initialization to it.
+      var menu = GetComponentInParent<ItemMenu>();
+      if (menu != null)
+      {
+        menu.Initialize(EntryPrefab, atlas, items);
+        return;
+      }
+
+      // Otherwise, create entries locally
       foreach(var it in items)
-        MakeEntry(it);
+      {
+        var p = CreateEntry(it);
+        if (p != null) panels.Add(p);
+      }
 
       Display();
     }
+     /// <summary>
+     /// 
+     /// 
 
     private System.Collections.IEnumerator SearchForEntryPrefabCoroutine()
     {
@@ -88,24 +108,25 @@ public class ItemEntry : MonoBehaviour
 
       Debug.LogWarning("[ItemEntry] No suitable EntryPrefab found in Resources/UI/RadialMenu");
     }
-    void MakeEntry(RadialItem item){
-      if (EntryPrefab == null) return;
+    FracturedStudios.UI.ItemPanel CreateEntry(RadialItem item)
+    {
+      if (EntryPrefab == null) return null;
       GameObject entry = Instantiate(EntryPrefab, transform);
       // Try to find ItemPanel on the instantiated prefab (root or children)
       FracturedStudios.UI.ItemPanel panel = entry.GetComponentInChildren<FracturedStudios.UI.ItemPanel>(true);
-      if(panel == null)
+      if (panel == null)
       {
         Debug.LogWarning($"[ItemEntry] Instantiated entry prefab '{EntryPrefab.name}' has no ItemPanel component.");
-        return;
+        return null;
       }
 
       // Populate panel from RadialItem
-      if(item != null)
+      if (item != null)
       {
         panel.Populate(item, atlas);
       }
 
-      panels.Add(panel);
+      return panel;
     }
     void Display(){
       int max = items.Count;

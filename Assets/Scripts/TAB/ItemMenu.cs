@@ -26,30 +26,55 @@ public class ItemMenu : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
-       panels = new(items?.Count??0); 
+    
+    }
+    private void ItemMenuEnable()
+    {
+         panels = new(items?.Count??0);
        RadialMenu parent;
        if(!transform.parent.gameObject.TryGetComponent(out parent))
          return;
        slice = parent.slice;
        if(test)
          items = parent.items;
-       
-       if((items?.Count??0 )< 1)
-         return;
-       foreach(RadialItem item in items){
-         MakeEntry(item);
+
+       // If EntryPrefab was already assigned in inspector, initialize immediately.
+       if (EntryPrefab != null && (items?.Count ?? 0) > 0)
+       {
+         Initialize(EntryPrefab, atlas, items);
        }
-       Rearrange();
     }
-    void MakeEntry(RadialItem item){
+    FracturedStudios.UI.ItemPanel CreateEntry(RadialItem item)
+    {
+      if (EntryPrefab == null) return null;
       GameObject entry = Instantiate(EntryPrefab, transform);
       FracturedStudios.UI.ItemPanel pane;
       if(!entry.TryGetComponent( out pane)){
-        return;
+        return null;
       }
       pane.Populate(item, atlas);
-      panels.Add(pane);
+      return pane;
+    }
+
+    /// <summary>
+    /// Initialize the menu with an entry prefab, atlas and item list.
+    /// Safe to call at runtime after discovery/validation.
+    /// </summary>
+    public void Initialize(GameObject entryPrefab, SpriteAtlas spriteAtlas, List<RadialItem> itemList)
+    {
+      if (entryPrefab == null || itemList == null) return;
+      EntryPrefab = entryPrefab;
+      atlas = spriteAtlas;
+      items = itemList;
+
+      panels = new(items.Count);
+      foreach(RadialItem item in items)
+      {
+        var p = CreateEntry(item);
+        if (p != null) panels.Add(p);
+      }
+
+      Rearrange();
     }
     void Rearrange(){
       //Call Rearrange when slice changes?
