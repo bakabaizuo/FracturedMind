@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using UnityEngine.U2D;
 using UnityEngine.UI;
+using FracturedStudios.UI;
 
 //TODO: Rename to ItemMenu
 public class ItemMenu : MonoBehaviour
@@ -16,7 +17,7 @@ public class ItemMenu : MonoBehaviour
   SpriteAtlas atlas;
   //Make panels an ObjectPool
   [SerializeField]
-  List<ItemPanel> panels;
+  List<FracturedStudios.UI.ItemPanel> panels;
   [SerializeField]
   bool test;
   public List<RadialItem> items;
@@ -42,7 +43,7 @@ public class ItemMenu : MonoBehaviour
     }
     void MakeEntry(RadialItem item){
       GameObject entry = Instantiate(EntryPrefab, transform);
-      ItemPanel pane;
+      FracturedStudios.UI.ItemPanel pane;
       if(!entry.TryGetComponent( out pane)){
         return;
       }

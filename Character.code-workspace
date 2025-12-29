@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "Assets/Character"
+		},
+		{
+			"path": "Assets/Environment"
+		},
+		{
+			"path": "Assets/InputSystem"
+		},
+		{
+			"path": "Assets/Prefabs"
+		},
+		{
+			"path": "Assets/Resources"
+		},
+		{
+			"path": "Assets/Scenes"
+		},
+		{
+			"path": "Assets/Scripts"
+		},
+		{
+			"path": "Assets/Scripts/TAB"
+		}
+	]
+}
