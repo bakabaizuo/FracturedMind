@@ -5,6 +5,7 @@ using System;
 using UnityEngine.U2D;
 using UnityEngine.UI;
 using FracturedStudios.UI;
+using FracturedStudios.TAB;
 
 //TODO: Rename to ItemMenu
 public class ItemMenu : MonoBehaviour
@@ -47,8 +48,7 @@ public class ItemMenu : MonoBehaviour
       if(!entry.TryGetComponent( out pane)){
         return;
       }
-      pane.SetLabel(item.Pseudonym);
-      pane.SetSprite(atlas.GetSprite(item.SpriteName));
+      pane.Populate(item, atlas);
       panels.Add(pane);
     }
     void Rearrange(){

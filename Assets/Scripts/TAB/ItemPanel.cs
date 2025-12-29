@@ -26,6 +26,34 @@ public class ItemPanel : MonoBehaviour
   public Sprite CurrentSprite => spriteHolder != null ? spriteHolder.sprite : null;
 
   public Image SpriteHolder => spriteHolder;
+  
+  /// <summary>
+  /// Populate the panel from a RadialItem and an optional SpriteAtlas.
+  /// Uses ResourceLoader to resolve sprites with fallbacks.
+  /// </summary>
+  public void Populate(RadialItem item, SpriteAtlas atlas = null)
+  {
+    if (item == null)
+    {
+      LabelText = string.Empty;
+      return;
+    }
+
+    LabelText = item.Pseudonym ?? string.Empty;
+
+    Sprite sprite = null;
+    if (atlas != null && !string.IsNullOrEmpty(item.SpriteName))
+      sprite = FracturedStudios.TAB.ResourceLoader.LoadSpriteFromAtlas(item.SpriteName, atlas);
+
+    if (sprite == null && !string.IsNullOrEmpty(item.SpriteName))
+    {
+      // Try a Resources fallback path (e.g. Resources/UI/Sprites/{name})
+      sprite = FracturedStudios.TAB.ResourceLoader.Fi<Sprite>($"UI/Sprites/{item.SpriteName}");
+    }
+
+    if (sprite != null)
+      SetSprite(sprite);
+  }
   public void SetLabel(string text){
     label.text = text;
   }

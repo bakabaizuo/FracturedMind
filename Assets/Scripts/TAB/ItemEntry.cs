@@ -102,13 +102,7 @@ public class ItemEntry : MonoBehaviour
       // Populate panel from RadialItem
       if(item != null)
       {
-        panel.SetLabel(item.Pseudonym ?? string.Empty);
-        if(atlas != null && !string.IsNullOrEmpty(item.SpriteName))
-        {
-          var spr = atlas.GetSprite(item.SpriteName);
-          if(spr != null)
-            panel.SetSprite(spr);
-        }
+        panel.Populate(item, atlas);
       }
 
       panels.Add(panel);
