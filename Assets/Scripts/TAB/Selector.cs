@@ -17,7 +17,7 @@ public class Selector : MonoBehaviour
   
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
   public void Select(float theta){
-    this.transform.GetChild(0).rotation = Quaternion.Euler(0, 0, theta * Mathf.Rad2Deg);
+    this.transform.rotation = Quaternion.Euler(0, 0, theta * Mathf.Rad2Deg);
    //  if(theta < 0){
    //    theta += MathF.PI*2f;
    //  }
@@ -34,7 +34,7 @@ public class Selector : MonoBehaviour
 
   void Start(){
     parent = transform.parent.gameObject;
-    if(parent.TryGetComponent(out menu));
+    if(parent.TryGetComponent(out menu))
     {
       items = menu.items;
       slice = menu.slice;

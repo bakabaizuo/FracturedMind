@@ -33,7 +33,7 @@ void Start(){
   Vector2 old;
 void Update(){
 
-  bool active =Input.GetButton("Radial Menu");
+  bool active =Input.GetButton("RadialMenu");
 
   if(show != active)
   {
