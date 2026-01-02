@@ -10,6 +10,9 @@ using FracturedStudios.TAB;
 //TODO: Rename to ItemMenu
 public class ItemMenu : MonoBehaviour
 {
+  public List<RadialItem> items{get; private set;}
+  public float slice{ get; private set;}
+  static float fullCircle = MathF.PI *2f;
   [SerializeField]
   float radius;
   [SerializeField]
@@ -21,22 +24,24 @@ public class ItemMenu : MonoBehaviour
   List<FracturedStudios.UI.ItemPanel> panels;
   [SerializeField]
   bool test;
-  public List<RadialItem> items;
-  public float slice{get; set;}
+  // public List<RadialItem> items;
+  // public float slice{get; set;}
     // Start is called before the first frame update
     void Start()
     {
+      RadialMenu.GetItem+= GetItem;
+      ItemMenuEnable();
     
     }
     private void ItemMenuEnable()
     {
          panels = new(items?.Count??0);
-       RadialMenu parent;
-       if(!transform.parent.gameObject.TryGetComponent(out parent))
-         return;
-       slice = parent.slice;
-       if(test)
-         items = parent.items;
+       // RadialMenu parent;
+       // if(!transform.parent.gameObject.TryGetComponent(out parent))
+       //   return;
+       // slice = parent.slice;
+       // if(test)
+       //   items = parent.items;
 
        // If EntryPrefab was already assigned in inspector, initialize immediately.
        if (EntryPrefab != null && (items?.Count ?? 0) > 0)
@@ -93,4 +98,11 @@ public class ItemMenu : MonoBehaviour
       }
 
     }
+       void GetItem(float theta){
+         // Debug.Log(index);
+    if(theta < 0)
+      theta += fullCircle;
+    int index = (int)MathF.Floor(theta/slice);
+        // panels[index].transform.localScale *= 5;
+      }
 }

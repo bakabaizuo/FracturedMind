@@ -19,21 +19,11 @@ public class ItemEntry : MonoBehaviour
   List<RadialItem> items;
   float slice;
   public Dictionary<string, Transform> EntryRadialLookup = new Dictionary<string, Transform>(StringComparer.Ordinal);
-    // Start is called before the first frame update
-    void Start()
-    {
-    
-    }
   
 
     private void ItemEntryEnable()
     {
          panels = new();
-       RadialMenu parent;
-       if(transform.parent.gameObject.TryGetComponent(out parent)){
-         slice = parent.slice;
-         items = parent.items;
-       }
       // Validate EntryPrefab if provided
       if (EntryPrefab != null)
       {
@@ -45,25 +35,24 @@ public class ItemEntry : MonoBehaviour
         StartCoroutine(SearchForEntryPrefabCoroutine());
       }
 
-      if((items?.Count ?? 0) < 1)
-        return;
 
       // If there is an ItemMenu in parent hierarchy, hand off initialization to it.
       var menu = GetComponentInParent<ItemMenu>();
       if (menu != null)
       {
+        slice = menu.slice;
+        items=menu.items;
         menu.Initialize(EntryPrefab, atlas, items);
-        return;
-      }
-
+      }else if((items?.Count ?? 0) >0)
       // Otherwise, create entries locally
-      foreach(var it in items)
       {
-        var p = CreateEntry(it);
-        if (p != null) panels.Add(p);
+        foreach(var it in items)
+        {
+          var p = CreateEntry(it);
+          if (p != null) panels.Add(p);
+        }
+        Display();
       }
-
-      Display();
     }
      /// <summary>
      /// 
@@ -143,11 +132,6 @@ public class ItemEntry : MonoBehaviour
     }
     
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     // Placeholder mapping method for future extension.
     // Attempts to find a cached radial Transform by matching the source.name
