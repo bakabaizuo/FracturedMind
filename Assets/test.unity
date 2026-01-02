@@ -122,6 +122,18 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!224 &550162949 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 4400725699121116721, guid: d82b3d96ab30ff9449923817afc8a69a,
+    type: 3}
+  m_PrefabInstance: {fileID: 910872096}
+  m_PrefabAsset: {fileID: 0}
+--- !u!223 &909140272 stripped
+Canvas:
+  m_CorrespondingSourceObject: {fileID: 5468753611541043505, guid: d82b3d96ab30ff9449923817afc8a69a,
+    type: 3}
+  m_PrefabInstance: {fileID: 910872096}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &910872096
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -260,6 +272,11 @@ PrefabInstance:
       propertyPath: m_LocalRotation.z
       value: 0.014868398
       objectReference: {fileID: 0}
+    - target: {fileID: 5468753611541043505, guid: d82b3d96ab30ff9449923817afc8a69a,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6126212282470615006, guid: d82b3d96ab30ff9449923817afc8a69a,
         type: 3}
       propertyPath: m_LocalRotation.x
@@ -270,6 +287,16 @@ PrefabInstance:
       propertyPath: m_LocalRotation.y
       value: -0.18625164
       objectReference: {fileID: 0}
+    - target: {fileID: 8361725406801978011, guid: d82b3d96ab30ff9449923817afc8a69a,
+        type: 3}
+      propertyPath: menu
+      value: 
+      objectReference: {fileID: 909140272}
+    - target: {fileID: 8361725406801978011, guid: d82b3d96ab30ff9449923817afc8a69a,
+        type: 3}
+      propertyPath: pointer
+      value: 
+      objectReference: {fileID: 550162949}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
