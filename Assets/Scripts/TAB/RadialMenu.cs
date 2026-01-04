@@ -9,23 +9,24 @@ public class RadialMenu:MonoBehaviour
   Transform pointer;
   [SerializeField]
   Canvas menu;
-  static float halfWidth = Screen.width*0.5f;
-  static float halfHeight = Screen.height*0.5f;
+  readonly float halfWidth = Screen.width*0.5f;
+  readonly float halfHeight = Screen.height*0.5f;
 
+  readonly float  menuSensitivity = 0.01f;
 
   void Update(){
 
     if(menu.enabled ^ Input.GetButton("RadialMenu")){
       menu.enabled = !menu.enabled;
       Cursor.visible = menu.enabled;
-      Cursor.lockState = (menu.enabled) ? CursorLockMode.Confined:  CursorLockMode.Locked;
+      Cursor.lockState = menu.enabled ? CursorLockMode.Confined:  CursorLockMode.Locked;
     }
     if(!menu.enabled)
       return;
-    Vector2 direction = new (halfWidth - Input.mousePosition.x, Input.mousePosition.y - halfHeight);
-    if( direction.sqrMagnitude <= 0.01)
+    Vector2 direction = new ( Input.mousePosition.x - halfWidth,  halfHeight - Input.mousePosition.y );
+    if( direction.sqrMagnitude <= menuSensitivity)
       return;
-    float theta = MathF.Atan2(direction.x,direction.y) ;
+    float theta = MathF.Atan2(direction.x,direction.y)+ MathF.PI;
     pointer.rotation = Quaternion.Euler(0f, 0f, theta * Mathf.Rad2Deg);
     GetItem?.Invoke(theta);
   }

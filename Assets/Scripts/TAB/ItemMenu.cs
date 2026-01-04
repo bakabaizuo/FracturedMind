@@ -10,11 +10,11 @@ using FracturedStudios.TAB;
 //TODO: Rename to ItemMenu
 public class ItemMenu : MonoBehaviour
 {
-  public List<RadialItem> items{get; private set;}
-  public float slice{ get; private set;}
-  static float fullCircle = MathF.PI *2f;
   [SerializeField]
-  float radius;
+  public List<RadialItem> items;
+  public float slice{ get; private set;}
+  [SerializeField]
+  readonly float radius;
   [SerializeField]
   GameObject EntryPrefab;
   [SerializeField]
@@ -23,47 +23,58 @@ public class ItemMenu : MonoBehaviour
   [SerializeField]
   List<FracturedStudios.UI.ItemPanel> panels;
   [SerializeField]
-  bool test;
+  readonly bool test;
   // public List<RadialItem> items;
   // public float slice{get; set;}
     // Start is called before the first frame update
     void Start()
     {
       RadialMenu.GetItem+= GetItem;
+      int len = items.Count;
+if (EntryPrefab == null)
+  //load it in
+  ;
+      if(len> 0)
+        slice = MathF.PI* (2/len);
       ItemMenuEnable();
     
     }
     private void ItemMenuEnable()
     {
-         panels = new(items?.Count??0);
-       // RadialMenu parent;
-       // if(!transform.parent.gameObject.TryGetComponent(out parent))
-       //   return;
-       // slice = parent.slice;
-       // if(test)
-       //   items = parent.items;
-
        // If EntryPrefab was already assigned in inspector, initialize immediately.
-       if (EntryPrefab != null && (items?.Count ?? 0) > 0)
-       {
-         Initialize(EntryPrefab, atlas, items);
-       }
+       if (EntryPrefab == null || (items?.Count ?? 0) < 1)
+         // Initialize();
+         ;
+       Populate();
+       
     }
     FracturedStudios.UI.ItemPanel CreateEntry(RadialItem item)
     {
       if (EntryPrefab == null) return null;
       GameObject entry = Instantiate(EntryPrefab, transform);
-      FracturedStudios.UI.ItemPanel pane;
-      if(!entry.TryGetComponent( out pane)){
-        return null;
+      if(entry.TryGetComponent( out FracturedStudios.UI.ItemPanel pane)){
+        pane.Populate(item, atlas);
+        return pane;
       }
-      pane.Populate(item, atlas);
-      return pane;
+        return null;
+    }
+    void Populate(){
+      int max = items.Count;
+      if(max < 1)
+        return;
+      panels = new(items.Count);
+      for(int i = 0; i < max; max++)
+      {
+        var p = CreateEntry(items[i]);
+        if (p != null) panels?.Add(p);
+      }
+      Rearrange();
     }
 
     /// <summary>
     /// Initialize the menu with an entry prefab, atlas and item list.
-    /// Safe to call at runtime after discovery/validation.
+    /// Safe to call at runtime af
+    /// er discovery/validation.
     /// </summary>
     public void Initialize(GameObject entryPrefab, SpriteAtlas spriteAtlas, List<RadialItem> itemList)
     {
@@ -72,36 +83,23 @@ public class ItemMenu : MonoBehaviour
       atlas = spriteAtlas;
       items = itemList;
 
-      panels = new(items.Count);
-      foreach(RadialItem item in items)
-      {
-        var p = CreateEntry(item);
-        if (p != null) panels.Add(p);
-      }
-
-      Rearrange();
     }
     void Rearrange(){
       //Call Rearrange when slice changes?
       int max = panels.Count;
-      Debug.Log(max);
       if(max < 1)
         return;
-      RectTransform m_RectTransform;
       for(int i =0; i < max; i++){
-        if(!panels[i].TryGetComponent(out m_RectTransform))
-          continue;
-        m_RectTransform.anchoredPosition = 
-          // Vector2.zero;
-          (new(MathF.Sin(slice * i),MathF.Cos(slice*i)));
-        m_RectTransform.anchoredPosition *= radius;
+        if(panels[i]?.TryGetComponent(out RectTransform m_RectTransform)??false)
+          m_RectTransform.anchoredPosition = new Vector2(MathF.Sin(slice * i),MathF.Cos(slice*i)) * radius;
+        // m_RectTransform.anchoredPosition *= radius;
       }
 
     }
        void GetItem(float theta){
-         // Debug.Log(index);
-    if(theta < 0)
-      theta += fullCircle;
+         Debug.Log(slice);
+         if(items.Count < 1)
+           return;
     int index = (int)MathF.Floor(theta/slice);
         // panels[index].transform.localScale *= 5;
       }

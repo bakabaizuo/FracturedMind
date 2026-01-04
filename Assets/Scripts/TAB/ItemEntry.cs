@@ -10,11 +10,11 @@ using FracturedStudios.TAB;
 public class ItemEntry : MonoBehaviour
 {
   [SerializeField]
-  float radius;
+  readonly float radius;
   [SerializeField]
   GameObject EntryPrefab;
   [SerializeField]
-  SpriteAtlas atlas;
+  readonly SpriteAtlas atlas;
   List<FracturedStudios.UI.ItemPanel> panels;
   List<RadialItem> items;
   float slice;
