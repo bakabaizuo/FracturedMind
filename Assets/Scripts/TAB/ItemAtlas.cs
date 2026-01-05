@@ -26,7 +26,7 @@ public sealed class ItemAtlas:MonoBehaviour
     foreach(RadialItem entry in itemList)
       itemAtlas.TryAdd(entry.name,entry);
   }
-  RadialItem? GetItem(string name)
+  RadialItem GetItem(string name)
     => itemAtlas.TryGetValue(name, out RadialItem item) ? item : null;
 
 

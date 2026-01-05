@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class RadialMenu:MonoBehaviour
 {
   public delegate void GetItemCaller(float theta);
-  public static event GetItemCaller? GetItem; 
+  public static event GetItemCaller GetItem; 
   [SerializeField]
   Transform pointer;
   [SerializeField]
