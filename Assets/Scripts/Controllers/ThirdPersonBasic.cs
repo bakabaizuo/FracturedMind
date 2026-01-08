@@ -12,6 +12,11 @@ public class ThirdPersonBasic : MonoBehaviour
     public float gravity = -40f;   // Stronger gravity for snappier feel
     public float slopeLimit = 45f; // Max walkable slope angle
 
+    [Header("Crouch Settings")]
+    [SerializeField] private float crouchSpeedMultiplier = 0.5f;
+    [SerializeField] private StringscriptAnimatior animController;
+    [SerializeField] private IsCrouchingControl inputDriver;
+
     [Header("Ground Detection")]
     public Transform groundCheck;
     public float groundDistance = 0.2f;
@@ -26,23 +31,29 @@ public class ThirdPersonBasic : MonoBehaviour
     private float jumpCooldown = 0.1f;  // short buffer
     private float lastJumpTime = -1f;
     public bool isCrouching;
+
+    //IsCrouchingControl; is a movement driver for PlayerControlls
     private void Start()
     {
         controller = GetComponent<CharacterController>();
+
+        if (animController == null)
+            animController = GetComponent<StringscriptAnimatior>();
+
+        if (inputDriver == null)
+            inputDriver = GetComponent<IsCrouchingControl>();
     }
 
     private void Update()
     {
         HandleGroundCheck();
+        HandleJumpAndGravity();
+
+        // Movement lock while crouch is entering (so Crouching_Absolute can actually play)
+        if (animController != null && !animController.CanMove)
+            return;
+
         HandleMovement();
-        HandleJumpAndGravity();   
-        
-         
-    
-        // Example: toggle crouch with Ctrl key
-        if (Input.GetKeyDown(KeyCode.LeftControl))
-            isCrouching = !isCrouching;
-    
     }
 
 
@@ -54,10 +65,10 @@ private void HandleGroundCheck()
         // ✅ Debugging info
         if (debugGroundCheck)
         {
-            Debug.Log($"[GroundCheck] Grounded: {isGrounded}");
+//            Debug.Log($"[GroundCheck] Grounded: {isGrounded}");
         }
     if (debugGroundCheck)
-        Debug.Log($"Grounded: {isGrounded}");
+ //       Debug.Log($"Grounded: {isGrounded}");
 
     if (isGrounded && velocity.y < 0)
         velocity.y = -2f;
@@ -72,6 +83,19 @@ private void HandleGroundCheck()
 
         Vector3 inputDirection = new Vector3(horizontal, 0f, vertical).normalized;
 
+        bool crouchActive = animController != null ? animController.IsCrouched : isCrouching;
+        bool crouchSettling = animController != null && animController.IsCrouchSettling;
+        bool dodging = animController != null && animController.IsDodging;
+
+        // Block movement while entering crouch so the enter anim can finish
+        if (crouchSettling)
+            return;
+
+        // During dodge, don't slow by crouch multiplier
+        float effectiveSpeed = dodging
+            ? moveSpeed
+            : (crouchActive ? moveSpeed * crouchSpeedMultiplier : moveSpeed);
+
         if (inputDirection.magnitude >= 0.1f)
         {
             // Rotate toward movement direction relative to camera
@@ -84,7 +108,7 @@ private void HandleGroundCheck()
 
             if (CanWalkOnSlope(moveDirection))
             {
-                controller.Move(moveDirection.normalized * moveSpeed * Time.deltaTime);
+                controller.Move(moveDirection.normalized * effectiveSpeed * Time.deltaTime);
             }
         }
     }
