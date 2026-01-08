@@ -16,21 +16,13 @@ namespace FracturedStudios.TAB
     public static class ResourceLoader
     {
         // Load a resource by id/name from Resources folder.
-        public static T Fi<T>(string id) where T : UnityEngine.Object
-        {
-            if (string.IsNullOrEmpty(id)) return null;
-            try
-            {
-                return Resources.Load<T>(id);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+        public static T GetResourceByID<T>(string id) where T : UnityEngine.Object
+        
+        =>  string.IsNullOrEmpty(id) ? null: Resources.Load<T>(id);
+        
 
         // Load a resource by path (Resources.Load with path).
-        public static T Pi<T>(string path) where T : UnityEngine.Object
+        public static T GetResourceInPath<T>(string path) where T : UnityEngine.Object
         {
             if (string.IsNullOrEmpty(path)) return null;
             try

@@ -19,11 +19,15 @@ public class ItemPanel : MonoBehaviour
   // Expose label text and sprite for external consumers
   public string LabelText
   {
-    get => label != null ? label.text : string.Empty;
+    get =>  label?.text ?? string.Empty;
     set { if (label != null) label.text = value; }
   }
 
-  public Sprite CurrentSprite => spriteHolder != null ? spriteHolder.sprite : null;
+  public Sprite CurrentSprite 
+  {
+    get => spriteHolder?.sprite; 
+    set{ if(spriteHolder != null) spriteHolder.sprite ??= value; } 
+  }
 
   public Image SpriteHolder => spriteHolder;
   
@@ -35,45 +39,36 @@ public class ItemPanel : MonoBehaviour
   {
     if (item == null)
     {
-      LabelText = string.Empty;
+      LabelText = "FUCK";
       return;
     }
 
-    LabelText = item.Pseudonym ?? string.Empty;
+    LabelText = item.Pseudonym ?? "NULL";
 
+    if(string.IsNullOrEmpty(item.SpriteName))
+      return;
+    
     Sprite sprite = null;
-    if (atlas != null && !string.IsNullOrEmpty(item.SpriteName))
+    if (atlas != null )
       sprite = FracturedStudios.TAB.ResourceLoader.LoadSpriteFromAtlas(item.SpriteName, atlas);
 
-    if (sprite == null && !string.IsNullOrEmpty(item.SpriteName))
-    {
       // Try a Resources fallback path (e.g. Resources/UI/Sprites/{name})
-      sprite = FracturedStudios.TAB.ResourceLoader.Fi<Sprite>($"UI/Sprites/{item.SpriteName}");
-    }
+    sprite ??= FracturedStudios.TAB.ResourceLoader.GetResourceInPath<Sprite>($"UI/Sprites/{item.SpriteName}");
 
     if (sprite != null)
-      SetSprite(sprite);
-  }
-  public void SetLabel(string text){
-    label.text = text;
+      CurrentSprite = sprite;
   }
   // public void SetSprite(Texture sprite){
   //   spriteHolder.image ??= sprite;
   // }
-  public void SetSprite(string name, SpriteAtlas atlas){
-    SetSprite(atlas.GetSprite(name));
-  }
-  public void SetSprite(Sprite sprite){
-    if(spriteHolder == null){
-      return;
-    }
-    spriteHolder.sprite ??= sprite;
-  }
+  // public void SetSprite(string name, SpriteAtlas atlas){
+  //   SetSprite(atlas.GetSprite(name));
+  // }
     // Start is called before the first frame update
-    void Start()
-    {
-      SetLabel("Lorem Ipsum Dolor");
-    }
+    // void Start()
+    // {
+    //   SetLabel("Lorem Ipsum Dolor");
+    // }
     void OnEnable(){
       Debug.Log(transform.position);
     }
