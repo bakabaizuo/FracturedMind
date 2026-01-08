@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
+
+using UnityEngine;
 
 /// <summary>
 /// Player torso/head IK aiming toward camera center, with limited yaw range and animation checks.
@@ -12,6 +15,7 @@ public class PlayerIKLookLimited : MonoBehaviour
     [Header("References")]
     public Transform mainCamera;      // Assign Cinemachine FreeLook MainCamera
     public Transform lookTarget;      // Empty GameObject as LookAt target
+    public string enemyTag = "Enemy"; // Tag to auto-find targets (returns null-safe when not found)
     public StringscriptAnimatior animStateMachine; // Reference to your state machine script
 
     [Header("IK Settings")]
@@ -34,10 +38,26 @@ public class PlayerIKLookLimited : MonoBehaviour
 
     void Update()
     {
-        // Always move target to camera center
-        Vector3 camForward = mainCamera.forward;
-        camForward.Normalize();
-        lookTarget.position = mainCamera.position + camForward * aimDistance;
+        // Try to find an enemy by tag; if found, point at the enemy, otherwise use camera center
+        GameObject enemyObj = null;
+        if (!string.IsNullOrEmpty(enemyTag))
+        {
+            enemyObj = GameObject.FindWithTag(enemyTag);
+        }
+
+        if (enemyObj != null && lookTarget != null)
+        {
+            lookTarget.position = enemyObj.transform.position;
+        }
+        else
+        {
+            if (mainCamera != null && lookTarget != null)
+            {
+                Vector3 camForward = mainCamera.forward;
+                camForward.Normalize();
+                lookTarget.position = mainCamera.position + camForward * aimDistance;
+            }
+        }
 
         // Check if we should IK aim
         bool shouldAim = Input.GetMouseButton(1);

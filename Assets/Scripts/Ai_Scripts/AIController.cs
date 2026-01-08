@@ -1,19 +1,22 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public enum AIState { Idle, Chase, Investigate }
 public class AIController : MonoBehaviour
 {
     [Header("References")]
     public NavMeshAgent agent;
     public AIVision vision;
     public EnemyAnimatorController enemyAnimator;
-    Transform player;
+
+    private enum AIState { Idle, Chase, Investigate }
+    private AIState currentState = AIState.Idle;
 
     private void Start()
     {
-      player = GameObject.FindWithTag("PlayerCollider").transform;
-      //Singleton the player
+        if (vision != null)
+            vision.OnPlayerDetected += OnPlayerDetected;
 
         // Ensure agent moves automatically
         if (agent != null)
@@ -23,10 +26,18 @@ public class AIController : MonoBehaviour
         }
     }
 
-
-    private void FixedUpdate()
+    private void OnPlayerDetected(Transform player, bool isCrouching)
     {
-        switch (vision.state)
+        currentState = AIState.Chase;
+        agent.SetDestination(player.position);
+
+        // Set animation: walk if crouching, run otherwise
+        enemyAnimator.PlayAnimation(isCrouching ? "Walk_N_Absolute" : "Run_N_Absolute");
+    }
+
+    private void Update()
+    {
+        switch (currentState)
         {
             case AIState.Idle:
                 Idle();
@@ -42,12 +53,12 @@ public class AIController : MonoBehaviour
         }
 
         // Update movement animation every frame
-        // enemyAnimator.SetMovementAnimation(agent.velocity, currentState == AIState.Chase);
+        enemyAnimator.SetMovementAnimation(agent.velocity, currentState == AIState.Chase);
     }
 
     private void Idle()
     {
-        if (agent.pathPending)
+        if (!agent.pathPending && agent.remainingDistance < 0.1f)
             agent.ResetPath();
 
         enemyAnimator.PlayAnimation("Idle_Absolute");
@@ -55,25 +66,42 @@ public class AIController : MonoBehaviour
 
     private void Chase()
     {
+        if (!vision.HasLastSeenPosition())
+        {
+            currentState = AIState.Idle;
+            return;
+        }
 
-        Vector3 target = player.position;
-        if (/*vision.aggro &&*/ Vector3.Distance(agent.nextPosition,target) > 1.0f){
-          agent.destination = target;
-          // Debug.DrawLine(transform.position, target, Color.red);
-        }          
-          // transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 5f * Time.deltaTime);
-        // transform.LookAt(player);
+        Vector3 target = vision.GetLastSeenPosition();
+        agent.SetDestination(target);
+          Vector3 move = agent.nextPosition - transform.position;
+        move.y = 0; // prevent lifting
+        GetComponent<CharacterController>().Move(move);
+           // Update rotation
+        if (move != Vector3.zero)
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(move), 5f * Time.deltaTime);
+
+        // Debug line to see target
+        Debug.DrawLine(transform.position, target, Color.red);
+        Debug.Log($"[AI] Moving toward player at {target}");
 
         // Switch to investigate if reached last seen
-        // if (Vector3.Distance(transform.position, target) < 0.5f)
-        //     vision.state = AIState.Investigate;
+        if (Vector3.Distance(transform.position, target) < 0.5f)
+            currentState = AIState.Investigate;
     }
 
     private void Investigate()
     {
-        // transform.LookAt(player.transform);
-        Debug.DrawLine(transform.position,agent.destination);
-        // if (Vector3.Distance(transform.position, agent.destination) > 0.5f)
-        //   transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 5f * Time.deltaTime);
+        if (!vision.HasLastSeenPosition())
+        {
+            currentState = AIState.Idle;
+            return;
+        }
+
+        Vector3 target = vision.GetLastSeenPosition();
+        agent.SetDestination(target);
+
+        if (Vector3.Distance(transform.position, target) < 0.5f)
+            currentState = AIState.Idle;
     }
 }
