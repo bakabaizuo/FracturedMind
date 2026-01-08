@@ -2611,9 +2611,11 @@ GameObject:
   - component: {fileID: 8298084201065120104}
   - component: {fileID: 8500919119869538005}
   - component: {fileID: 7062963163235335546}
+  - component: {fileID: 4145026201109591232}
   - component: {fileID: 6426226761915766279}
   - component: {fileID: 8765797494926444611}
   - component: {fileID: 5711655258747076339}
+  - component: {fileID: 4024104579931938141}
   m_Layer: 3
   m_Name: _Player_v0.1
   m_TagString: Player
@@ -2629,7 +2631,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4889672208279801286}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -8.906187, y: 0.00000023841858, z: -4.3442287}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2746,12 +2748,15 @@ MonoBehaviour:
   jumpHeight: 0.68
   gravity: -30.88
   slopeLimit: 25.1
+  crouchSpeedMultiplier: 0.5
+  animController: {fileID: 0}
+  inputDriver: {fileID: 0}
   groundCheck: {fileID: 2355251221303851968}
   groundDistance: 0.2
   groundMask:
     serializedVersion: 2
     m_Bits: 512
-  debugGroundCheck: 1
+  debugGroundCheck: 0
   isCrouching: 0
 --- !u!114 &8500919119869538005
 MonoBehaviour:
@@ -2765,9 +2770,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3440ed7c3319e4e41bb27d3471c96b37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animator: {fileID: 8673786793480272338}
   footstepSource: {fileID: 0}
   footstepClips: []
   footstepVolume: 1
+  dodgeDuration: 0.5
+  crouchEnterDuration: 0.85
+  crouchEnterCrossfade: 0.08
+  crouchStillCrossfade: 0.1
+  dodgeCrossfade: 0.05
+  useDodgeClipLength: 1
+  dodgeClipName: Dodge
+  dodgeClipOverride: {fileID: 7400000, guid: 07da8e0dc1795e449a380851af8f12a8, type: 2}
+  postDodgeCrouchStillLock: 0.15
+  useEndDodgeAnimationEvent: 1
+  dodgeExitEpsilonSeconds: 0.03
+  debugDodge: 1
+  debugDodgeStackTrace: 1
+  animIdle: Idle_Absolute
+  animCrouchEnter: Crouching_Absolute
+  crouchEnterClipName: IsToCrouch
+  animCrouchStill: CrouchingStill_Absolute
+  animCrouchWalk: CrouchWalk_Absolute
+  animDodge: Dodge_Absolute
+  useCrouchEnterClipLength: 1
+  crouchEnterClipOverride: {fileID: 7400000, guid: 8241dddb4b5a8974eb875a0dae852ca9,
+    type: 2}
 --- !u!114 &7062963163235335546
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2789,6 +2817,22 @@ MonoBehaviour:
   rotationSpeed: 5
   enableHeadLook: 1
   cancelIfMovementDetected: 1
+--- !u!114 &4145026201109591232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4889672208279801286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa0238f7bdc150741abac3208e33ce8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animController: {fileID: 8500919119869538005}
+  isCrouching: 1
+  isDodging: 1
+  isSprinting: 1
 --- !u!114 &6426226761915766279
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2856,6 +2900,20 @@ MonoBehaviour:
   analogMovement: 1
   cursorLocked: 1
   cursorInputForLook: 1
+--- !u!114 &4024104579931938141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4889672208279801286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a3cd5bd9cf6eaa44bfd30065a561edd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  verboseLog: 1
+  logFilePath: Resources/Debug/DebugLog.txt
 --- !u!1 &5300496159603080467
 GameObject:
   m_ObjectHideFlags: 0
