@@ -189,3 +189,30 @@
 [23:24:38] [VerboseLogger] [Dodge:4] End. state=Ready crouch=Crouched mode=Dodge frame=1649 [VerboseLogger v1.1]
 [23:24:38] [VerboseLogger] [Dodge:4] Forced CrouchStill for 0.150s (until 12.387). frame=1649 [VerboseLogger v1.1]
 === VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[23:36:25] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[23:36:31] [Error] '_Player_v0.1' AnimationEvent 'OnCrouchAnimationComplete()' on animation 'IsToCrouching' has no receiver! Are you missing a component? [VerboseLogger v1.1]
+
+[23:36:48] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[23:36:48] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[23:36:49] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[23:36:49] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[23:36:54] [Error] '_Player_v0.1' AnimationEvent 'OnCrouchAnimationComplete()' on animation 'IsToCrouching' has no receiver! Are you missing a component? [VerboseLogger v1.1]
+
+[23:36:59] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[23:36:59] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[23:37:01] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[23:37:01] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[23:37:05] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[23:37:05] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[23:37:08] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[23:37:09] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[23:37:09] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[23:37:09] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[23:37:10] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[23:37:10] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[23:37:11] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[23:37:11] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[23:37:12] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[23:37:12] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
