@@ -1,136 +1,123 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using Unity.Mathematics;
-
-
 
 public class AIVision : MonoBehaviour
 {
-  //TODO: make this a config probably using the above structs
     [Header("Vision Settings")]
-      public  NPCConfiguration config;
-    // public float viewDistance = 2f;
-    // public float eyeOrigin = 1.6f;
-    // public float crouchDetectionModifier = 0.5f;
-    // the cosine of planned viewangle
-    // public float fovCosTheta = 0.5f;
+    public float viewDistance = 20f;
+    [Range(0, 360)] public float viewAngle = 180f;
+    public float eyeHeight = 1.6f;
+    public Transform eyePoint;
 
-    [Header("Memory")]
-    [SerializeField]
-    int gracePeriod = 10;
-    
-    LayerMask rayTargeting;
-    [Header("Memory Tracking")]
-    public bool aggro = false; 
-    public int ticks = 0;
+    [Header("Crouch Detection Settings")]
+    public float crouchDetectionModifier = 0.5f;
 
-    [HideInInspector] public Vector3 rayOrigin;
-    // [HideInInspector] public Vector3 rayDirection;
-    [HideInInspector] public float currentViewDistance;
-      public AIState state = AIState.Idle;
+    [Header("Memory Settings")]
+    public float memoryDuration = 120f; // seconds AI remembers last seen
+    private float memoryTimer = 0f;
 
+    // Event callback: (playerTransform, isCrouching)
+    public event Action<Transform, bool> OnPlayerDetected;
 
-    void OnPlayerLost(){
-      if(ticks<=0){
-        state = AIState.Idle;
-        return;
-      }
-      switch(state){
-        case AIState.Idle: 
-          break;
-        case AIState.Chase: 
-          ticks = gracePeriod;
-          state = AIState.Investigate;
-          break;
-        case AIState.Investigate:
-          //TODO Do not use magic number
-          ticks -= 1;
-          break;
-       default: throw new  InvalidOperationException("Reached Impossible State");
-      }
-    }
+    // Last seen player info
+    private Vector3? lastSeenPosition;
+    private Transform lastPlayerTransform;
 
-      SphereCollider ESPTrigger;
-    void Start(){
-      var rand = new System.Random();
-      bool hasTrigger = this.TryGetComponent(out ESPTrigger);
-      if(!hasTrigger)
-        ESPTrigger = gameObject.AddComponent(typeof(SphereCollider)) as SphereCollider;
-      ESPTrigger.radius = config.visionSettings.viewDistance;
-    }
-    void OnPlayerSeen(){
-      if(gracePeriod<=ticks){
-
-        state = AIState.Chase;
-        return;
-      }
-      switch(state){
-        case AIState.Chase:break;
-        case AIState.Investigate:
-          
-          //TODO Do not use magic number
-          ticks+=1;
-          break;
-        case AIState.Idle:
-          ticks = 0;
-          state = AIState.Investigate;
-          break;
-        default: throw new  InvalidOperationException("Reached Impossible State");
-      }
-    }
-
-
-
-    void FixedUpdate() {
-      if(!aggro && AIState.Idle != state)
-        OnPlayerLost();
-    }
-    void OnTriggerExit(Collider other){
-      if(other.CompareTag("PlayerCollider"))
-        aggro = false;
-    }
-    float getViewDistance(bool isCrouching)=> isCrouching ? config.visionSettings.viewDistance * config.visionSettings.crouchDetectionModifier : config.visionSettings.viewDistance;
-
-    void OnTriggerStay(Collider other)
+    private void Update()
     {
-      if (!other.CompareTag("PlayerCollider")) return;
-      var player = ThirdPersonBasic.Instance;
-      aggro = player !=null;
-      if (!aggro) return;
-      
-      float3 pos= transform.position;
-      float3 posOther= other.transform.position;
-
-      bool isCrouching = player.isCrouching ;
-      isCrouching=false;
-      currentViewDistance = AIVisionUtils.getViewDistance(isCrouching,config.visionSettings.viewDistance, config.visionSettings.crouchDetectionModifier);
-      ESPTrigger.radius = currentViewDistance;
-
-      float3 targetDir;
-      AIVisionUtils.getTargetDirection(isCrouching, config.visionSettings.crouchDetectionModifier,config.visionSettings.eyeOrigin, posOther - pos,out targetDir);
-      float3 front = transform.forward;
-      aggro = 
-        AIVisionUtils.fovCheck(config.visionSettings.fovCosTheta,front,targetDir) &&
-        AIVisionUtils.rayCast(
-            other.GetInstanceID(),
-            pos + config.visionSettings.eyeOrigin,
-            targetDir,
-            currentViewDistance,
-            config.visionSettings.targetList
-            );
-      if(aggro && state != AIState.Chase)  
-        OnPlayerSeen();
+        // Memory timer: forget after duration
+        if (lastSeenPosition.HasValue)
+        {
+            memoryTimer += Time.deltaTime;
+            if (memoryTimer > memoryDuration)
+            {
+                Debug.Log("[AIVision] Forgot last seen position");
+                lastSeenPosition = null;
+                lastPlayerTransform = null;
+                memoryTimer = 0f;
+            }
+        }
     }
 
-    void OnDrawGizmosSelected()
+    private void OnTriggerStay(Collider other)
     {
-      float viewAngle =Mathf.Acos(config.visionSettings.fovCosTheta) * Mathf.Rad2Deg;
+        if (!other.CompareTag("Player")) return;
+
+        ThirdPersonBasic player = other.GetComponent<ThirdPersonBasic>();
+        if (player == null) return;
+
+        bool isCrouching = player.isCrouching;
+        float detectRange = isCrouching ? viewDistance * crouchDetectionModifier : viewDistance;
+
+        Vector3 origin = (eyePoint != null) ? eyePoint.position : transform.position + Vector3.up * eyeHeight;
+        Vector3 targetPos = other.transform.position + Vector3.up * (isCrouching ? 0.5f : 1.2f);
+        Vector3 dir = (targetPos - origin).normalized;
+
+        float angleToPlayer = Vector3.Angle(transform.forward, dir);
+        Debug.Log($"[AIVision] AngleToPlayer={angleToPlayer:0.0}°, MaxAllowed={viewAngle * 0.5f}°");
+
+        if (angleToPlayer < viewAngle * 0.5f)
+        {
+            if (Physics.Raycast(origin, dir, out RaycastHit hit, detectRange))
+            {
+                if (hit.collider.CompareTag("Player"))
+                {
+                    Debug.Log($"[AIVision] Player detected! (Crouching={isCrouching}) Distance={hit.distance:0.0}");
+                    OnPlayerDetected?.Invoke(other.transform, isCrouching);
+
+                    // Update last seen info
+                    lastSeenPosition = hit.collider.transform.position;
+                    lastPlayerTransform = hit.collider.transform;
+                    memoryTimer = 0f; // reset memory timer
+                }
+                else
+                {
+                    Debug.Log($"[AIVision] Line of sight blocked by {hit.collider.name}");
+                }
+            }
+        }
+        else
+        {
+            Debug.Log("[AIVision] Player outside vision cone");
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            Debug.Log("[AIVision] Player left awareness zone");
+            // Keep last seen position, don’t clear immediately
+        }
+    }
+
+    // Public methods for AI to access last seen
+    public bool HasLastSeenPosition() => lastSeenPosition.HasValue;
+    public Vector3 GetLastSeenPosition() => lastSeenPosition ?? transform.position;
+    public Transform GetLastSeenPlayerTransform() => lastPlayerTransform;
+
+    private void OnDrawGizmosSelected()
+    {
         Gizmos.color = Color.yellow;
-        //Gizmos.DrawRay(rayOrigin, rayDirection * config.visionSettings.viewDistance);
+        Vector3 origin = (eyePoint != null) ? eyePoint.position : transform.position + Vector3.up * eyeHeight;
 
-        Vector3 left = Quaternion.Euler(0, -viewAngle , 0) * transform.forward;
-        Vector3 right = Quaternion.Euler(0, viewAngle, 0) * transform.forward;
-        Gizmos.DrawRay(rayOrigin, left * config.visionSettings.viewDistance);
-        Gizmos.DrawRay(rayOrigin, right * config.visionSettings.viewDistance);
+        // Forward direction
+        Gizmos.DrawRay(origin, transform.forward * viewDistance);
+
+        // Vision cone boundaries
+        Vector3 leftBoundary = Quaternion.Euler(0, -viewAngle / 2, 0) * transform.forward;
+        Vector3 rightBoundary = Quaternion.Euler(0, viewAngle / 2, 0) * transform.forward;
+        Gizmos.DrawRay(origin, leftBoundary * viewDistance);
+        Gizmos.DrawRay(origin, rightBoundary * viewDistance);
+
+        // Last seen position
+        if (lastSeenPosition.HasValue)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(lastSeenPosition.Value, 0.3f);
+            Gizmos.DrawLine(origin, lastSeenPosition.Value);
+        }
     }
 }

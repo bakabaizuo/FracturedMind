@@ -15,6 +15,15 @@ public class StringscriptAnimatior : MonoBehaviour
     /// <summary>Animator component reference.</summary>
     private Animator animator;
 
+    /// <summary>Audio source used for footsteps (optional).</summary>
+    [SerializeField] private AudioSource footstepSource;
+
+    /// <summary>Footstep clips to randomly choose from.</summary>
+    [SerializeField] private AudioClip[] footstepClips;
+
+    /// <summary>Footstep playback volume.</summary>
+    [Range(0f, 1f)] [SerializeField] private float footstepVolume = 1f;
+
     /// <summary>Current high-level animation state name.</summary>
     private string currentState;
 
@@ -238,7 +247,7 @@ private void CheckAnimation()
     {
         if (currentState == newState)
         {
-    //        Debug.Log($"State '{newState}' is already active. No transition needed.");
+            Debug.Log($"State '{newState}' is already active. No transition needed.");
             return;
         }
 
@@ -261,12 +270,38 @@ private void CheckAnimation()
     {
         if (delay > 0f)
         {
-            //Debug.Log($"Delaying transition to '{newState}' for {delay} seconds...");
+            Debug.Log($"Delaying transition to '{newState}' for {delay} seconds...");
             yield return new WaitForSeconds(delay);
         }
 
-        //Debug.Log($"Transitioning to state: {newState} with duration {transitionDuration} seconds.");
+        Debug.Log($"Transitioning to state: {newState} with duration {transitionDuration} seconds.");
         animator.CrossFade(newState, transitionDuration);
         currentState = newState;
+    }
+
+    /// <summary>
+    /// AnimationEvent receiver for footstep sounds. Attach this name
+    /// to the `OnFootstep` AnimationEvent on walk/run animations.
+    /// Plays a random clip from `footstepClips` using `footstepSource` if available,
+    /// otherwise falls back to `AudioSource.PlayClipAtPoint`.
+    /// </summary>
+    public void OnFootstep()
+    {
+        if (footstepClips == null || footstepClips.Length == 0)
+            return; // nothing to play AnimationEvent receiver for footstep sounds. Attach this name to the `OnFootstep` AnimationEvent on walk/run animations.
+
+        AudioClip clip = footstepClips[Random.Range(0, footstepClips.Length)];
+
+        if (clip == null)
+            return;
+
+        if (footstepSource != null)
+        {
+            footstepSource.PlayOneShot(clip, footstepVolume);
+        }
+        else
+        {
+            AudioSource.PlayClipAtPoint(clip, transform.position, footstepVolume);
+        }
     }
 }
