@@ -16,13 +16,14 @@ public class RadialMenu:MonoBehaviour
 
   void Update(){
 
-    if(menu.enabled ^ Input.GetButton("RadialMenu")){
-      menu.enabled = !menu.enabled;
-      Cursor.visible = menu.enabled;
-      Cursor.lockState = menu.enabled ? CursorLockMode.Confined:  CursorLockMode.Locked;
-    }
+
+    menu.enabled = Input.GetButton("RadialMenu");
     if(!menu.enabled)
       return;
+    if(Input.GetAxis("Mouse X") == 0f && Input.GetAxis("Mouse Y") == 0f){
+      GetItem?.Invoke(-1f);
+      return;
+    }
     Vector2 direction = new ( Input.mousePosition.x - halfWidth,  halfHeight - Input.mousePosition.y );
     if( direction.sqrMagnitude <= menuSensitivity)
       return;

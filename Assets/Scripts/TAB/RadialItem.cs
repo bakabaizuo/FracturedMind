@@ -6,5 +6,6 @@ public sealed class RadialItem:ScriptableObject
   public string SpriteName;
   public string Key;
   public string FlavorText;
+  public bool owned;
 
 }

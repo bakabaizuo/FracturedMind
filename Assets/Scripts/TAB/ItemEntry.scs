@@ -16,7 +16,8 @@ public class ItemEntry : MonoBehaviour
   [SerializeField]
   readonly SpriteAtlas atlas;
   List<FracturedStudios.UI.ItemPanel> panels;
-  List<RadialItem> items;
+  // List<RadialItem> items;
+  ItemAtlas items;
   float slice;
   public Dictionary<string, Transform> EntryRadialLookup = new Dictionary<string, Transform>(StringComparer.Ordinal);
   
@@ -41,7 +42,7 @@ public class ItemEntry : MonoBehaviour
       if (menu != null)
       {
         slice = menu.slice;
-        // items=menu.items;
+        items=menu.items;
         menu.Initialize(EntryPrefab, atlas, items);
       }else if((items?.Count ?? 0) >0)
       // Otherwise, create entries locally

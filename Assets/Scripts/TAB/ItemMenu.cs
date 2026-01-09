@@ -6,12 +6,14 @@ using UnityEngine.U2D;
 using UnityEngine.UI;
 using FracturedStudios.UI;
 using FracturedStudios.TAB;
+using System.Collections.Specialized;
 
 //TODO: Rename to ItemMenu
 public class ItemMenu : MonoBehaviour
 {
   [SerializeField]
-  public List<RadialItem> items;
+  // public List<RadialItem> items;
+  public ItemAtlas items;
   public float slice{ get; private set;}
   [SerializeField]
    float radius;
@@ -19,6 +21,16 @@ public class ItemMenu : MonoBehaviour
   GameObject EntryPrefab;
   [SerializeField]
   SpriteAtlas atlas;
+  [SerializeField]
+  bool test;
+  [SerializeField]
+  int owned;
+  BitVector32 inventory;
+
+  [Flags]
+  public enum Inventory:short{
+
+  }
   //Make panels an ObjectPool
   [SerializeField]
   List<FracturedStudios.UI.ItemPanel> panels;
@@ -27,20 +39,24 @@ public class ItemMenu : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+      if(test){
+        inventory = new BitVector32(3);
+      }
+      Debug.Log($"data {inventory.Data}");
       if (EntryPrefab == null)
         //load it in
         ;
-      int len = items.Count;
-      if(len> 0)
-        slice = MathF.PI* (2/len);
       ItemMenuEnable();
+      int len = panels.Count;
+      if(len> 0)
+        slice = MathF.PI*2f/len;
       RadialMenu.GetItem+= GetItem;
     
     }
     private void ItemMenuEnable()
     {
        // If EntryPrefab was already assigned in inspector, initialize immediately.
-       if (EntryPrefab == null || (items?.Count ?? 0) < 1)
+       if (EntryPrefab == null || (items?.Length ?? 0) < 1)
          // Initialize();
          ;
        MakePanels();
@@ -55,13 +71,20 @@ public class ItemMenu : MonoBehaviour
       return pane;
     }
     void MakePanels(){
-      int max = items.Count;
+      int max = items.Length;
       if(max < 1)
         return;
-      panels = new(items.Count);
-      for(int i = 0; i < max; i++){
+      panels = new(max);
+      Debug.Log(max);
+      Debug.Log($"data {inventory.Data}");
+      for(int i = 0; i < max; i++)
+      { int mask = 1 << (31-i);
+        Debug.Log($"{i}{inventory[mask]}");
+        if(!inventory[mask])
+          continue;
         var p = CreateEntry(items[i]);
         if (p != null) panels?.Add(p);
+          
       }
       Rearrange();
     }
@@ -73,10 +96,10 @@ public class ItemMenu : MonoBehaviour
     /// </summary>
     public void Initialize(GameObject entryPrefab, SpriteAtlas spriteAtlas, List<RadialItem> itemList)
     {
-      if (entryPrefab == null || itemList == null) return;
-      EntryPrefab ??= entryPrefab;
-      atlas ??= spriteAtlas;
-      items ??= itemList;
+      if (items == null || entryPrefab == null || itemList == null) return;
+      EntryPrefab = entryPrefab;
+      atlas = spriteAtlas;
+      // items = itemList;
 
     }
     void Rearrange(){
@@ -86,23 +109,29 @@ public class ItemMenu : MonoBehaviour
         return;
       for(int i =0; i < max; i++){
 
-          Vector2 placement = new Vector2(MathF.Cos(slice * i),MathF.Sin(slice*i)) * radius;
-          Debug.Log(placement);
-          panels[i]?.SetPosition(placement);
+          Vector3 placement = new Vector3(MathF.Cos(slice * i),MathF.Sin(slice*i), 0f) * (radius);
+          Debug.Log($"{this} {placement}");
+          panels[i]?.SetPosition(placement, true);
 
 
       }
 
     }
    void GetItem(float theta){
-    if((items?.Count ?? 0) < 1)
+    if((items?.Length ?? 0) < 1)
       return;
-    int index = (int) MathF.Floor(theta/slice);
-    if (index >= items.Count)
-      index %= items.Count;
-    if(panels[index] != null)
-      panels[index].transform.position= Vector3.zero;
-    else
-      Debug.Log("FICK");
+    int index = -1;
+    if(theta >= 0f){
+      index = (int) MathF.Floor(theta/slice);
+      if (index >= items.Length)
+        index %= items.Length;
+    }
+    for(int i = 0; i < (panels?.Count ?? -1); i++){
+      if(i == index){
+        panels[i]?.SetPosition(Vector3.up * 10);
+      }else{
+        panels[i]?.SetToRest();
+      }
+    }
   }
 }

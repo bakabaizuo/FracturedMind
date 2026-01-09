@@ -21,26 +21,31 @@ namespace FracturedStudios.UI
       rect ??= GetComponent<RectTransform>();
 
     }
-    
+    Vector3 resting;
     // Expose label text and sprite for external consumers
     public string LabelText
     {
-      get =>  label?.text ?? string.Empty;
+      get =>  label?.text ?? "UUUUUUUGGGGGGGGGGHHHHHHHHHH";
       set { if (label != null) label.text ??= value; }
     }
 
     public Sprite CurrentSprite 
     {
       get => spriteHolder?.sprite; 
-      set{ if(spriteHolder != null) spriteHolder!.sprite ??= value; } 
+      set{ if(spriteHolder != null) spriteHolder.sprite = value; } 
     }
-    public void SetPosition(float x, float y, float z, float radius){
-      SetPosition(new Vector3(x,y,z) * radius);
+    public void SetPosition(float x, float y, float z, float radius, bool reset = false){
+      SetPosition(new Vector3(x,y,z) * radius,reset);
     }
-    public void SetPosition(Vector3 position){
-      Debug.Log(position);
-      rect.anchoredPosition= position;
-
+    public void SetPosition(Vector3 position, bool reset = false){
+      if(reset)
+        resting = position;
+      if(rect != null)
+        rect.anchoredPosition = position;
+    }
+    public void SetToRest(){
+      if(rect != null)
+        rect.anchoredPosition = resting;
     }
 
     public Image SpriteHolder => spriteHolder;
@@ -61,11 +66,9 @@ namespace FracturedStudios.UI
 
       if(string.IsNullOrEmpty(item.SpriteName))
         return;
-      return;
-      
-      Sprite sprite = null;
-      if (atlas != null )
-        sprite = FracturedStudios.TAB.ResourceLoader.LoadSpriteFromAtlas(item.SpriteName, atlas);
+      // return;
+      Sprite sprite = atlas is null?null : FracturedStudios.TAB.ResourceLoader.LoadSpriteFromAtlas(item.SpriteName, atlas);
+      // Debug.Log(sprite);
 
         // Try a Resources fallback path (e.g. Resources/UI/Sprites/{name})
       sprite ??= FracturedStudios.TAB.ResourceLoader.GetResourceInPath<Sprite>($"UI/Sprites/{item.SpriteName}");
