@@ -18,6 +18,7 @@ namespace FracturedStudios
         [Header("Events")]
         [SerializeField] private UnityEvent onPickedUp;
         [SerializeField] private UnityEvent onPlaced;
+        [SerializeField] private bool destroyOnVentEnter = true; // vent transition cleanup
 
         private Transform carrier;
         private Renderer[] renderers;
@@ -70,6 +71,18 @@ namespace FracturedStudios
 
             Drop(snapPoint.position, snapPoint.rotation);
             onPlaced?.Invoke();
+        }
+
+        /// <summary>
+        /// Call when the player enters the vent and this ladder is no longer needed.
+        /// A separate trigger should invoke this; destruction is optional via flag.
+        /// </summary>
+        public void HandleVentEntered()
+        {
+            if (!destroyOnVentEnter)
+                return;
+
+            Destroy(gameObject);
         }
 
         private void SetRenderersEnabled(bool enabled)

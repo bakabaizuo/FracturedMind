@@ -17,6 +17,7 @@
 ## Minimal Implementation Plan
 1) Ladder beat
    - Create LadderItem (pickup) and LadderPlacementZone (under vent). When carrying, interact to place and enable climb/vent entry trigger.
+   Ladder beat: "Currently In Progress"
    - No animator layer changes yet; optional bool `isCarryingLadder` later for pose swap.
    - Attach point: optional hand/hip socket; otherwise hide ladder mesh when carried (current default) and show placed prefab when dropped.
 2) Vent entry
