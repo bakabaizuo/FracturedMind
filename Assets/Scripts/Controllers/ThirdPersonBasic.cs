@@ -17,6 +17,9 @@ public class ThirdPersonBasic : MonoBehaviour
     [SerializeField] private StringscriptAnimatior animController;
     [SerializeField] private IsCrouchingControl inputDriver;
 
+    [Header("Interaction")]
+    [SerializeField] private LampVisionSensor lampVisionSensor;
+
     [Header("Ground Detection")]
     public Transform groundCheck;
     public float groundDistance = 0.2f;
@@ -33,6 +36,17 @@ public class ThirdPersonBasic : MonoBehaviour
     public bool isCrouching;
 
     //IsCrouchingControl; is a movement driver for PlayerControlls
+    private void EnsureLampVisionSensor()
+    {
+        if (lampVisionSensor == null)
+            lampVisionSensor = GetComponent<LampVisionSensor>();
+
+        if (lampVisionSensor == null)
+            lampVisionSensor = gameObject.AddComponent<LampVisionSensor>();
+
+        lampVisionSensor.EnsureSocket();
+    }
+
     private void Start()
     {
         controller = GetComponent<CharacterController>();
@@ -42,6 +56,8 @@ public class ThirdPersonBasic : MonoBehaviour
 
         if (inputDriver == null)
             inputDriver = GetComponent<IsCrouchingControl>();
+
+        EnsureLampVisionSensor();
     }
 
     private void Update()
