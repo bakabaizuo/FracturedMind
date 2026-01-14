@@ -216,3 +216,355 @@
 [23:37:12] [Log] [Jump] Jumped! [VerboseLogger v1.1]
 [23:37:12] [Log] [Jump] Jumped! [VerboseLogger v1.1]
 === VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[01:53:59] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[01:54:03] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[01:54:03] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[01:54:04] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[01:54:04] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[01:54:04] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[01:54:04] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[01:54:05] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[01:54:05] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[01:54:12] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:12] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:12] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:12] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:13] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:13] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:13] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:13] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:14] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:14] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:14] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:14] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:15] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:15] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:15] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:15] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:16] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:16] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:16] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:16] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:17] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:17] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:17] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+[01:54:17] [Exception] UnassignedReferenceException: The variable lookTarget of PlayerIKLookLimited has not been assigned.
+You probably need to assign the lookTarget variable of the PlayerIKLookLimited script in the inspector. [VerboseLogger v1.1]
+UnityEngine.Transform.get_position () (at <6ff3bcb667574bf9a8630184172fcfbf>:0)
+PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Controllers/TorsoAimController.cs:95)
+
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[01:55:24] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:02:37] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:02:43] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:02:43] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:02:50] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:02:50] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:02:52] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:02:52] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:05:33] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:05:49] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:13:17] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:13:31] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:13:31] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:13:32] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:13:32] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:13:33] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:13:33] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:13:34] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:13:34] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:13:36] [VerboseLogger] [Dodge] Request accepted. crouch=Standing mode=Walk frame=2174
+  at System.Environment.get_StackTrace () [0x00000] in <1fd52158108c4fe3a6817b50854eb75e>:0 
+  at StringscriptAnimatior.RequestDodge () [0x000de] in G:\UnityProjects\repos\FracturedMindMain\FracturedMind\Assets\Scripts\Controllers\StringscriptAnimator.cs:166 
+  at IsCrouchingControl.RequestDodge () [0x0000f] in G:\UnityProjects\repos\FracturedMindMain\FracturedMind\Assets\Scripts\Controllers\isCrouching.cs:66 
+  at IsCrouchingControl.<Awake>b__11_1 (UnityEngine.InputSystem.InputAction+CallbackContext _) [0x00000] in G:\UnityProjects\repos\FracturedMindMain\FracturedMind\Assets\Scripts\Controllers\isCrouching.cs:29 
+  at UnityEngine.InputSystem.Utilities.DelegateHelpers.InvokeCallbacksSafe[TValue] (UnityEngine.InputSystem.Utilities.CallbackArray`1[System.Action`1[TValue]]& callbacks, TValue argument, System.String callbackName, System.Object context) [0x0001a] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Utilities\DelegateHelpers.cs:46 
+  at UnityEngine.InputSystem.InputActionState.CallActionListeners (System.Int32 actionIndex, UnityEngine.InputSystem.InputActionMap actionMap, UnityEngine.InputSystem.InputActionPhase phase, UnityEngine.InputSystem.Utilities.CallbackArray`1[System.Action`1[UnityEngine.InputSystem.InputAction+CallbackContext]]& listeners, System.String callbackName) [0x000bb] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:2564 
+  at UnityEngine.InputSystem.InputActionState.ChangePhaseOfActionInternal (System.Int32 actionIndex, UnityEngine.InputSystem.InputActionState+TriggerState* actionState, UnityEngine.InputSystem.InputActionPhase newPhase, UnityEngine.InputSystem.InputActionState+TriggerState& trigger, System.Boolean isDisablingAction) [0x001de] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:2504 
+  at UnityEngine.InputSystem.InputActionState.ChangePhaseOfAction (UnityEngine.InputSystem.InputActionPhase newPhase, UnityEngine.InputSystem.InputActionState+TriggerState& trigger, UnityEngine.InputSystem.InputActionPhase phaseAfterPerformedOrCanceled) [0x00168] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:2410 
+  at UnityEngine.InputSystem.InputActionState.ProcessDefaultInteraction (UnityEngine.InputSystem.InputActionState+TriggerState& trigger, System.Int32 actionIndex) [0x00075] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:1948 
+  at UnityEngine.InputSystem.InputActionState.ProcessControlStateChange (System.Int32 mapIndex, System.Int32 controlIndex, System.Int32 bindingIndex, System.Double time, UnityEngine.InputSystem.LowLevel.InputEventPtr eventPtr) [0x002bd] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:1550 
+  at UnityEngine.InputSystem.InputActionState.UnityEngine.InputSystem.LowLevel.IInputStateChangeMonitor.NotifyControlStateChanged (UnityEngine.InputSystem.InputControl control, System.Double time, UnityEngine.InputSystem.LowLevel.InputEventPtr eventPtr, System.Int64 mapControlAndBindingIndex) [0x00017] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:1343 
+  at UnityEngine.InputSystem.InputManager.FireStateChangeNotifications (System.Int32 deviceIndex, System.Double internalTime, UnityEngine.InputSystem.LowLevel.InputEvent* eventPtr) [0x000ee] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManagerStateMonitors.cs:394 
+  at UnityEngine.InputSystem.InputManager.UpdateState (UnityEngine.InputSystem.InputDevice device, UnityEngine.InputSystem.LowLevel.InputUpdateType updateType, System.Void* statePtr, System.UInt32 stateOffsetInDevice, System.UInt32 stateSize, System.Double internalTime, UnityEngine.InputSystem.LowLevel.InputEventPtr eventPtr) [0x001b3] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManager.cs:3910 
+  at UnityEngine.InputSystem.InputManager.UpdateState (UnityEngine.InputSystem.InputDevice device, UnityEngine.InputSystem.LowLevel.InputEvent* eventPtr, UnityEngine.InputSystem.LowLevel.InputUpdateType updateType) [0x000d1] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManager.cs:3785 
+  at UnityEngine.InputSystem.InputManager.OnUpdate (UnityEngine.InputSystem.LowLevel.InputUpdateType updateType, UnityEngine.InputSystem.LowLevel.InputEventBuffer& eventBuffer) [0x0081a] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManager.cs:3529 
+  at UnityEngine.InputSystem.LowLevel.NativeInputRuntime+<>c__DisplayClass7_0.<set_onUpdate>b__0 (UnityEngineInternal.Input.NativeInputUpdateType updateType, UnityEngineInternal.Input.NativeInputEventBuffer* eventBufferPtr) [0x0001f] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\NativeInputRuntime.cs:65 
+  at UnityEngineInternal.Input.NativeInputSystem.NotifyUpdate (UnityEngineInternal.Input.NativeInputUpdateType updateType, System.IntPtr eventBuffer) [0x00000] in <ccd196c668ea4f4c8176599240ce3bb8>:0  [VerboseLogger v1.1]
+[02:13:39] [VerboseLogger] [Dodge:1] Start. hold=1.603s fromClipLen=True dodgedFromCrouch=False crouch=Standing mode=Dodge frame=2174 [VerboseLogger v1.1]
+[02:13:39] [VerboseLogger] [Dodge] AnimationEvent EndDodge received. instance=-1954 state=Dodging token=1 mode=Dodge frame=2212 [VerboseLogger v1.1]
+[02:13:39] [VerboseLogger] [Dodge:1] End condition met. endEvent=True timeRemaining=0.928s frame=2213 [VerboseLogger v1.1]
+[02:13:39] [VerboseLogger] [Dodge:1] Hold complete. Transitioning to Recovering. frame=2213 [VerboseLogger v1.1]
+[02:13:39] [VerboseLogger] [Dodge:1] End. state=Ready crouch=Standing mode=Dodge frame=2214 [VerboseLogger v1.1]
+[02:13:40] [VerboseLogger] [Dodge] Request accepted. crouch=Standing mode=Walk frame=2279
+  at System.Environment.get_StackTrace () [0x00000] in <1fd52158108c4fe3a6817b50854eb75e>:0 
+  at StringscriptAnimatior.RequestDodge () [0x000de] in G:\UnityProjects\repos\FracturedMindMain\FracturedMind\Assets\Scripts\Controllers\StringscriptAnimator.cs:166 
+  at IsCrouchingControl.RequestDodge () [0x0000f] in G:\UnityProjects\repos\FracturedMindMain\FracturedMind\Assets\Scripts\Controllers\isCrouching.cs:66 
+  at IsCrouchingControl.<Awake>b__11_1 (UnityEngine.InputSystem.InputAction+CallbackContext _) [0x00000] in G:\UnityProjects\repos\FracturedMindMain\FracturedMind\Assets\Scripts\Controllers\isCrouching.cs:29 
+  at UnityEngine.InputSystem.Utilities.DelegateHelpers.InvokeCallbacksSafe[TValue] (UnityEngine.InputSystem.Utilities.CallbackArray`1[System.Action`1[TValue]]& callbacks, TValue argument, System.String callbackName, System.Object context) [0x0001a] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Utilities\DelegateHelpers.cs:46 
+  at UnityEngine.InputSystem.InputActionState.CallActionListeners (System.Int32 actionIndex, UnityEngine.InputSystem.InputActionMap actionMap, UnityEngine.InputSystem.InputActionPhase phase, UnityEngine.InputSystem.Utilities.CallbackArray`1[System.Action`1[UnityEngine.InputSystem.InputAction+CallbackContext]]& listeners, System.String callbackName) [0x000bb] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:2564 
+  at UnityEngine.InputSystem.InputActionState.ChangePhaseOfActionInternal (System.Int32 actionIndex, UnityEngine.InputSystem.InputActionState+TriggerState* actionState, UnityEngine.InputSystem.InputActionPhase newPhase, UnityEngine.InputSystem.InputActionState+TriggerState& trigger, System.Boolean isDisablingAction) [0x001de] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:2504 
+  at UnityEngine.InputSystem.InputActionState.ChangePhaseOfAction (UnityEngine.InputSystem.InputActionPhase newPhase, UnityEngine.InputSystem.InputActionState+TriggerState& trigger, UnityEngine.InputSystem.InputActionPhase phaseAfterPerformedOrCanceled) [0x00168] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:2410 
+  at UnityEngine.InputSystem.InputActionState.ProcessDefaultInteraction (UnityEngine.InputSystem.InputActionState+TriggerState& trigger, System.Int32 actionIndex) [0x00075] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:1948 
+  at UnityEngine.InputSystem.InputActionState.ProcessControlStateChange (System.Int32 mapIndex, System.Int32 controlIndex, System.Int32 bindingIndex, System.Double time, UnityEngine.InputSystem.LowLevel.InputEventPtr eventPtr) [0x002bd] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:1550 
+  at UnityEngine.InputSystem.InputActionState.UnityEngine.InputSystem.LowLevel.IInputStateChangeMonitor.NotifyControlStateChanged (UnityEngine.InputSystem.InputControl control, System.Double time, UnityEngine.InputSystem.LowLevel.InputEventPtr eventPtr, System.Int64 mapControlAndBindingIndex) [0x00017] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:1343 
+  at UnityEngine.InputSystem.InputManager.FireStateChangeNotifications (System.Int32 deviceIndex, System.Double internalTime, UnityEngine.InputSystem.LowLevel.InputEvent* eventPtr) [0x000ee] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManagerStateMonitors.cs:394 
+  at UnityEngine.InputSystem.InputManager.UpdateState (UnityEngine.InputSystem.InputDevice device, UnityEngine.InputSystem.LowLevel.InputUpdateType updateType, System.Void* statePtr, System.UInt32 stateOffsetInDevice, System.UInt32 stateSize, System.Double internalTime, UnityEngine.InputSystem.LowLevel.InputEventPtr eventPtr) [0x001b3] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManager.cs:3910 
+  at UnityEngine.InputSystem.InputManager.UpdateState (UnityEngine.InputSystem.InputDevice device, UnityEngine.InputSystem.LowLevel.InputEvent* eventPtr, UnityEngine.InputSystem.LowLevel.InputUpdateType updateType) [0x000d1] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManager.cs:3785 
+  at UnityEngine.InputSystem.InputManager.OnUpdate (UnityEngine.InputSystem.LowLevel.InputUpdateType updateType, UnityEngine.InputSystem.LowLevel.InputEventBuffer& eventBuffer) [0x0081a] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManager.cs:3529 
+  at UnityEngine.InputSystem.LowLevel.NativeInputRuntime+<>c__DisplayClass7_0.<set_onUpdate>b__0 (UnityEngineInternal.Input.NativeInputUpdateType updateType, UnityEngineInternal.Input.NativeInputEventBuffer* eventBufferPtr) [0x0001f] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\NativeInputRuntime.cs:65 
+  at UnityEngineInternal.Input.NativeInputSystem.NotifyUpdate (UnityEngineInternal.Input.NativeInputUpdateType updateType, System.IntPtr eventBuffer) [0x00000] in <ccd196c668ea4f4c8176599240ce3bb8>:0  [VerboseLogger v1.1]
+[02:13:40] [VerboseLogger] [Dodge:2] Start. hold=1.603s fromClipLen=True dodgedFromCrouch=False crouch=Standing mode=Dodge frame=2279 [VerboseLogger v1.1]
+[02:13:40] [VerboseLogger] [Dodge] AnimationEvent EndDodge received. instance=-1954 state=Dodging token=2 mode=Dodge frame=2348 [VerboseLogger v1.1]
+[02:13:40] [VerboseLogger] [Dodge:2] End condition met. endEvent=True timeRemaining=0.933s frame=2349 [VerboseLogger v1.1]
+[02:13:40] [VerboseLogger] [Dodge:2] Hold complete. Transitioning to Recovering. frame=2349 [VerboseLogger v1.1]
+[02:13:40] [VerboseLogger] [Dodge:2] End. state=Ready crouch=Standing mode=Dodge frame=2350 [VerboseLogger v1.1]
+[02:13:45] [Error] '_Player_v0.1' AnimationEvent 'OnCrouchAnimationComplete()' on animation 'IsToCrouching' has no receiver! Are you missing a component? [VerboseLogger v1.1]
+
+[02:13:48] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:13:48] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:13:48] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:13:48] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:14:51] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:14:57] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:14:57] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:15:03] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:15:03] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:15:41] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:15:53] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:15:53] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:23:05] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:23:18] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:23:18] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:23:19] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:23:19] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:23:44] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:23:57] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:23:57] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:23:58] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:23:58] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:27:55] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:28:08] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:28:08] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:29:04] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:29:17] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:29:17] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:29:38] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:29:50] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:29:50] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:30:15] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:30:23] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:30:23] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:30:28] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:30:28] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:30:28] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:30:28] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:30:29] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:30:29] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:30:58] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:31:08] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:31:08] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:31:10] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:31:10] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:31:30] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:31:32] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:31:32] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:31:32] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:31:32] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:33:50] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:34:45] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:34:49] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:34:49] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:34:51] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:34:51] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:34:55] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:34:55] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:34:56] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:34:56] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:34:57] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:34:57] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:34:58] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:34:58] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:35:00] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:35:00] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:35:01] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:35:01] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:35:03] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:35:03] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:37:03] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:37:06] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:37:06] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:37:16] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:37:16] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:37:17] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:37:17] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:37:53] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:37:56] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:37:56] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[02:38:09] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+[02:38:16] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[02:38:17] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[02:38:19] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[02:38:21] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[02:38:21] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:38:21] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:38:22] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[02:38:23] [Log] [Jump] Jumped! [VerboseLogger v1.1]
+[02:38:24] [Warning] Animator.GotoState: State could not be found [VerboseLogger v1.1]
+[02:38:24] [Warning] Invalid Layer Index '-1' [VerboseLogger v1.1]
+[02:38:25] [VerboseLogger] [Dodge] Request accepted. crouch=Standing mode=Walk frame=1835
+  at System.Environment.get_StackTrace () [0x00000] in <1fd52158108c4fe3a6817b50854eb75e>:0 
+  at StringscriptAnimatior.RequestDodge () [0x000de] in G:\UnityProjects\repos\FracturedMindMain\FracturedMind\Assets\Scripts\Controllers\StringscriptAnimator.cs:166 
+  at IsCrouchingControl.RequestDodge () [0x0000f] in G:\UnityProjects\repos\FracturedMindMain\FracturedMind\Assets\Scripts\Controllers\isCrouching.cs:66 
+  at IsCrouchingControl.<Awake>b__11_1 (UnityEngine.InputSystem.InputAction+CallbackContext _) [0x00000] in G:\UnityProjects\repos\FracturedMindMain\FracturedMind\Assets\Scripts\Controllers\isCrouching.cs:29 
+  at UnityEngine.InputSystem.Utilities.DelegateHelpers.InvokeCallbacksSafe[TValue] (UnityEngine.InputSystem.Utilities.CallbackArray`1[System.Action`1[TValue]]& callbacks, TValue argument, System.String callbackName, System.Object context) [0x0001a] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Utilities\DelegateHelpers.cs:46 
+  at UnityEngine.InputSystem.InputActionState.CallActionListeners (System.Int32 actionIndex, UnityEngine.InputSystem.InputActionMap actionMap, UnityEngine.InputSystem.InputActionPhase phase, UnityEngine.InputSystem.Utilities.CallbackArray`1[System.Action`1[UnityEngine.InputSystem.InputAction+CallbackContext]]& listeners, System.String callbackName) [0x000bb] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:2564 
+  at UnityEngine.InputSystem.InputActionState.ChangePhaseOfActionInternal (System.Int32 actionIndex, UnityEngine.InputSystem.InputActionState+TriggerState* actionState, UnityEngine.InputSystem.InputActionPhase newPhase, UnityEngine.InputSystem.InputActionState+TriggerState& trigger, System.Boolean isDisablingAction) [0x001de] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:2504 
+  at UnityEngine.InputSystem.InputActionState.ChangePhaseOfAction (UnityEngine.InputSystem.InputActionPhase newPhase, UnityEngine.InputSystem.InputActionState+TriggerState& trigger, UnityEngine.InputSystem.InputActionPhase phaseAfterPerformedOrCanceled) [0x00168] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:2410 
+  at UnityEngine.InputSystem.InputActionState.ProcessDefaultInteraction (UnityEngine.InputSystem.InputActionState+TriggerState& trigger, System.Int32 actionIndex) [0x00075] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:1948 
+  at UnityEngine.InputSystem.InputActionState.ProcessControlStateChange (System.Int32 mapIndex, System.Int32 controlIndex, System.Int32 bindingIndex, System.Double time, UnityEngine.InputSystem.LowLevel.InputEventPtr eventPtr) [0x002bd] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:1550 
+  at UnityEngine.InputSystem.InputActionState.UnityEngine.InputSystem.LowLevel.IInputStateChangeMonitor.NotifyControlStateChanged (UnityEngine.InputSystem.InputControl control, System.Double time, UnityEngine.InputSystem.LowLevel.InputEventPtr eventPtr, System.Int64 mapControlAndBindingIndex) [0x00017] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\Actions\InputActionState.cs:1343 
+  at UnityEngine.InputSystem.InputManager.FireStateChangeNotifications (System.Int32 deviceIndex, System.Double internalTime, UnityEngine.InputSystem.LowLevel.InputEvent* eventPtr) [0x000ee] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManagerStateMonitors.cs:394 
+  at UnityEngine.InputSystem.InputManager.UpdateState (UnityEngine.InputSystem.InputDevice device, UnityEngine.InputSystem.LowLevel.InputUpdateType updateType, System.Void* statePtr, System.UInt32 stateOffsetInDevice, System.UInt32 stateSize, System.Double internalTime, UnityEngine.InputSystem.LowLevel.InputEventPtr eventPtr) [0x001b3] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManager.cs:3910 
+  at UnityEngine.InputSystem.InputManager.UpdateState (UnityEngine.InputSystem.InputDevice device, UnityEngine.InputSystem.LowLevel.InputEvent* eventPtr, UnityEngine.InputSystem.LowLevel.InputUpdateType updateType) [0x000d1] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManager.cs:3785 
+  at UnityEngine.InputSystem.InputManager.OnUpdate (UnityEngine.InputSystem.LowLevel.InputUpdateType updateType, UnityEngine.InputSystem.LowLevel.InputEventBuffer& eventBuffer) [0x0081a] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\InputManager.cs:3529 
+  at UnityEngine.InputSystem.LowLevel.NativeInputRuntime+<>c__DisplayClass7_0.<set_onUpdate>b__0 (UnityEngineInternal.Input.NativeInputUpdateType updateType, UnityEngineInternal.Input.NativeInputEventBuffer* eventBufferPtr) [0x0001f] in .\Library\PackageCache\com.unity.inputsystem@1.11.2\InputSystem\NativeInputRuntime.cs:65 
+  at UnityEngineInternal.Input.NativeInputSystem.NotifyUpdate (UnityEngineInternal.Input.NativeInputUpdateType updateType, System.IntPtr eventBuffer) [0x00000] in <ccd196c668ea4f4c8176599240ce3bb8>:0  [VerboseLogger v1.1]
+[02:38:25] [VerboseLogger] [Dodge:1] Start. hold=1.603s fromClipLen=True dodgedFromCrouch=False crouch=Standing mode=Dodge frame=1835 [VerboseLogger v1.1]
+[02:38:25] [VerboseLogger] [Dodge] AnimationEvent EndDodge received. instance=-1954 state=Dodging token=1 mode=Dodge frame=1910 [VerboseLogger v1.1]
+[02:38:25] [VerboseLogger] [Dodge:1] End condition met. endEvent=True timeRemaining=0.929s frame=1911 [VerboseLogger v1.1]
+[02:38:25] [VerboseLogger] [Dodge:1] Hold complete. Transitioning to Recovering. frame=1911 [VerboseLogger v1.1]
+[02:38:25] [VerboseLogger] [Dodge:1] End. state=Ready crouch=Standing mode=Dodge frame=1912 [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
