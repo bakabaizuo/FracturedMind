@@ -57,6 +57,8 @@ public class ItemMenu : MonoBehaviour
     {
        // If EntryPrefab was already assigned in inspector, initialize immediately.
        if (EntryPrefab == null || (items?.Length ?? 0) < 1)
+
+         return;
          // Initialize();
          ;
        MakePanels();
