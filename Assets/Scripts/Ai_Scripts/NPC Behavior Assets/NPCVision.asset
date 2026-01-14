@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54039bfa77d08e349ac796f9e4e0073b, type: 3}
   m_Name: NPCVision
   m_EditorClassIdentifier: 
-  <viewDistance>k__BackingField: 10
-  <fovCosTheta>k__BackingField: 0.5
   <eyeOrigin>k__BackingField:
     x: 0
     y: 0
     z: 0
+  <viewDistance>k__BackingField: 5
+  <fovCosTheta>k__BackingField: 0.5
   <crouchDetectionModifier>k__BackingField: 0.5
   <targetList>k__BackingField:
     serializedVersion: 2
