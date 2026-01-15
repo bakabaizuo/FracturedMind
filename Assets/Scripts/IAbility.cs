@@ -2,8 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
-using UnityEngine.UI;
+using System;
 //TODO: make into a namespace
+
+namespace FracturedStudios.Abilities{
 
 [Flags]
 public enum AbilityFlags:byte{
@@ -28,57 +30,50 @@ public enum AbilityFlags:byte{
   */
 }
 
-public readonly struct AbilityCaster{
-  // readonly AbilityManager manager = AbilityManager.GetInstance();
-  public void cast(AbilityFlags inventory, AbilityFlags skill){
-    cast(inventory & skill);
-  }
-  public void cast(AbilityFlags flags){
-    IAbility skill = AbilityManager.GetInstance()[flags];
-  }
-}
+
+//TODO: Remove IAbility or change it into a flatter structure. Use function composition to do that
 public abstract class IAbility
 {
   protected int delay;
-  protected bool ready = true;
-  protected abstract void skill();
+  protected bool waiting = true;
+  protected event Action Casting;
+  // protected abstract void skill();
+  public async void CoolDown(){
+      await Task.Delay(delay);
+      waiting = false;
+  }
   public void cast(){
-    if(ready){
-      skill();
-      ready = false;
-      Task.Delay(delay);
-      ready = true;
-    }
+    if(waiting)
+      return;
+    
+    Casting?.Invoke();
+    waiting = true;
+    Task.Run(CoolDown);
   }
 }
 public sealed class BadSkill:IAbility{
-  protected override void skill()=>Debug.Log("????");
+  public BadSkill()=>delay=300;
+  protected event Action Casting = ()=>Debug.Log("????");
 }
 public sealed class Flash:IAbility{
-  GameObject flashBang;
-  Image tint;
-  async void FlashScreen(){
-    flashBang.SetActive(true);
-    for(float alpha = 1f;alpha > 0.1f; alpha -= 0.1f ){
-      tint.color = new Color(1,1,1,alpha);
-      await Task.Yield();
-    }
-    flashBang.SetActive(false);
-  }
-  protected override void skill(){
-    Debug.Log("Flashing!");
-  }
+  //TODO:make a FlashBang GameObject and other objects that need the the flash
+  
+  // protected override void skill(){
+  //   Debug.Log("Flashing!");
+  //   Casting?.Invoke();
+  // }
   public Flash(){
     delay = 1000;
-    flashBang = GameObject.FindWithTag("Flash");
-    tint = flashBang.GetComponentInChildren<Image>(false);
+    GameObject flash = GameObject.FindWithTag("Flash");
+    if(flash.TryGetComponent(out FlashBang flashBang))
+      Casting += flashBang.Flash;
   }
 }
 public sealed class NoSkill:IAbility{
-  protected override void skill(){
-    Debug.Log("What am I thinking?");
-  }
+  protected event Action Casting = ()=>Debug.Log("What are you doing?");
+
    public NoSkill(){
     delay =300;
   }
+}
 }

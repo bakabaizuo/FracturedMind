@@ -2,28 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-[Flags]
-public enum AbilityFlags:byte{
-  None = 0,
-  Skill0 =1,
-  Skill1 = 2,
-  Skill2 = 4,
-  Skill3 = 8,
-  Skill4 = 16,
-  Skill5 = 32,
-  Skill6 =64,
-  Skill7 = 128,
-  /*
-  Skill8 = 256,
-  Skill9 = 512,
-  Skill10 = 1024,
-  Skill11 = 2048,
-  Skill12 =4096,
-  Skill13 = 8192,
-  Skill14 = 16384,
-  Skill15 = 32768,
-  */
-}
+namespace FracturedStudios.Abilities
+{
 
 public readonly struct AbilityCaster{
   // readonly AbilityManager manager = AbilityManager.GetInstance();
@@ -48,4 +28,6 @@ public class AbilityManager
     {
         get => AbilityAtlas.GetValueOrDefault(flags,fallBack);
     }
+}
+    
 }
