@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using FracturedStudios.Abilities;
 [RequireComponent(typeof(CharacterController))]
 public class ThirdPersonBasic : MonoBehaviour
 {
@@ -13,6 +13,7 @@ public class ThirdPersonBasic : MonoBehaviour
         Instance = this;
       }
     }
+    AbilityCaster Caster;
     [Header("Movement Settings")]
     public float moveSpeed = 6f;
     public float rotationSpeed = 10f;
@@ -78,6 +79,7 @@ public class ThirdPersonBasic : MonoBehaviour
             return;
 
         HandleMovement();
+        Caster.Cast(AbilityFlags.Skill0);
     }
 
 
@@ -157,6 +159,10 @@ private void HandleGroundCheck()
     }
  
 
+  // void OnDestroy(){
+  //   AbilityAtlas.Clear();
+  //
+  // }
 
 
 
