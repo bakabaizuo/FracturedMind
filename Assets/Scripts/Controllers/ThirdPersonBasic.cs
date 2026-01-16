@@ -59,7 +59,9 @@ public class ThirdPersonBasic : MonoBehaviour
     // NEW: Jump cooldown to prevent spamming
     private float jumpCooldown = 0.1f;  // short buffer
     private float lastJumpTime = -1f;
-    public bool isCrouching;
+
+    [SerializeField] private bool crouchFallback; // used only if animator is missing
+    public bool isCrouching => animController != null ? animController.IsCrouched : crouchFallback;
 
     //IsCrouchingControl; is a movement driver for PlayerControlls
     private void EnsureLampVisionSensor()
