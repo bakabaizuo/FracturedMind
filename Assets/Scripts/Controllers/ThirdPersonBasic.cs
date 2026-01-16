@@ -5,6 +5,14 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class ThirdPersonBasic : MonoBehaviour
 {
+    public static ThirdPersonBasic Instance;
+    void Awake(){
+      if (Instance != null){
+        Destroy(this);
+      }else{
+        Instance = this;
+      }
+    }
     [Header("Movement Settings")]
     public float moveSpeed = 6f;
     public float rotationSpeed = 10f;
