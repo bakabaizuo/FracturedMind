@@ -21,10 +21,28 @@ public class ThirdPersonBasic : MonoBehaviour
     public float gravity = -40f;   // Stronger gravity for snappier feel
     public float slopeLimit = 45f; // Max walkable slope angle
 
+    [Header("Mouse Look")]
+    [SerializeField] private bool enableMouseLook = true;
+    [SerializeField] private float mouseSensitivity = 120f;
+    [SerializeField] private float pitchClampMin = -60f;
+    [SerializeField] private float pitchClampMax = 75f;
+    [SerializeField] private Transform cameraPivotOverride; // optional pivot the mouse rotates instead of Camera.main
+    [SerializeField] private Transform cameraFollowSocket;  // optional position anchor (no rotation inheritance)
+    [SerializeField] private bool detachPivotFromPlayer = true; // unparent pivot so it does not inherit player rotation
+    [SerializeField] private bool alignBodyToCameraOnStart = true; // rotate character to camera yaw on spawn
+    private float orbitYaw;
+    private float orbitPitch;
+    private float currentPitch;
+
     [Header("Crouch Settings")]
     [SerializeField] private float crouchSpeedMultiplier = 0.5f;
     [SerializeField] private StringscriptAnimatior animController;
     [SerializeField] private IsCrouchingControl inputDriver;
+
+    [Header("Rotation Options")]
+    [SerializeField] private bool alignCharacterToMovement = false; // default off: no auto-facing or snap
+    [SerializeField] private bool cameraRelativeMovement = false;   // when false, A/D/W/S are world-space (ignore camera)
+    [SerializeField] private bool capRotationDelta180 = false;      // clamp single-step target to +/-180 deg for testing
 
     [Header("Interaction")]
     [SerializeField] private LampVisionSensor lampVisionSensor;
@@ -42,7 +60,9 @@ public class ThirdPersonBasic : MonoBehaviour
     // NEW: Jump cooldown to prevent spamming
     private float jumpCooldown = 0.1f;  // short buffer
     private float lastJumpTime = -1f;
-    public bool isCrouching;
+
+    [SerializeField] private bool crouchFallback; // used only if animator is missing
+    public bool isCrouching => animController != null ? animController.IsCrouched : crouchFallback;
 
     //IsCrouchingControl; is a movement driver for PlayerControlls
     private void EnsureLampVisionSensor()
@@ -67,12 +87,31 @@ public class ThirdPersonBasic : MonoBehaviour
             inputDriver = GetComponent<IsCrouchingControl>();
 
         EnsureLampVisionSensor();
+
+        // If pivot override is parented to the player, detach so it stops inheriting rotation
+        if (cameraPivotOverride != null && detachPivotFromPlayer && cameraPivotOverride.parent != null)
+            cameraPivotOverride.SetParent(null, true);
+
+        // Initialize orbit yaw from current camera or player yaw so mouse look starts aligned
+        if (Camera.main != null)
+            orbitYaw = Camera.main.transform.eulerAngles.y;
+        else
+            orbitYaw = transform.eulerAngles.y;
+
+        if (alignBodyToCameraOnStart)
+            transform.rotation = Quaternion.Euler(0f, orbitYaw, 0f);
     }
 
     private void Update()
     {
         HandleGroundCheck();
         HandleJumpAndGravity();
+
+        if (cameraPivotOverride != null)
+            SyncCameraPivotPosition();
+
+        if (enableMouseLook)
+            HandleMouseLook();
 
         // Movement lock while crouch is entering (so Crouching_Absolute can actually play)
         if (animController != null && !animController.CanMove)
@@ -124,10 +163,20 @@ private void HandleGroundCheck()
 
         if (inputDirection.magnitude >= 0.1f)
         {
-            // Rotate toward movement direction relative to camera
-            float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + Camera.main.transform.eulerAngles.y;
-            Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+            // Choose reference frame (camera-relative or world)
+            float referenceYaw = cameraRelativeMovement ? GetCameraYaw() : 0f;
+            float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + referenceYaw;
+
+            if (capRotationDelta180)
+            {
+                float delta = Mathf.DeltaAngle(transform.eulerAngles.y, targetAngle);
+                targetAngle = transform.eulerAngles.y + Mathf.Clamp(delta, -180f, 180f); // hard cap per-step
+            }
+            if (alignCharacterToMovement)
+            {
+                Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+            }
 
             // Move in rotated direction
             Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
@@ -192,5 +241,52 @@ private void OnDrawGizmosSelected()
         Gizmos.DrawWireSphere(groundCheck.position, groundDistance);
     }
 }
+
+    private void HandleMouseLook()
+    {
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+
+        orbitYaw = Mathf.Repeat(orbitYaw + mouseX, 360f);
+        orbitPitch = Mathf.Clamp(orbitPitch - mouseY, pitchClampMin, pitchClampMax);
+        currentPitch = orbitPitch;
+
+        // Rotate camera pivot (or main camera) without moving its position
+        if (cameraPivotOverride != null)
+        {
+            Vector3 camPos = cameraPivotOverride.position;
+            cameraPivotOverride.rotation = Quaternion.Euler(orbitPitch, orbitYaw, 0f);
+            cameraPivotOverride.position = camPos;
+        }
+        else if (Camera.main != null)
+        {
+            Vector3 camPos = Camera.main.transform.position;
+            Camera.main.transform.rotation = Quaternion.Euler(orbitPitch, orbitYaw, 0f);
+            Camera.main.transform.position = camPos;
+        }
+    }
+
+    private void SyncCameraPivotPosition()
+    {
+        if (cameraPivotOverride == null || cameraFollowSocket == null)
+            return;
+
+        // Follow position only; rotation handled in HandleMouseLook to avoid inheriting player transform
+        cameraPivotOverride.position = cameraFollowSocket.position;
+    }
+
+    private float GetCameraYaw()
+    {
+        if (enableMouseLook)
+            return orbitYaw;
+
+        if (cameraPivotOverride != null)
+            return cameraPivotOverride.eulerAngles.y;
+
+        if (Camera.main != null)
+            return Camera.main.transform.eulerAngles.y;
+
+        return transform.eulerAngles.y;
+    }
 
 }
