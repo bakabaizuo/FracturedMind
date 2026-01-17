@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using FracturedStudios.Abilities;
-
+using FracturedStudios.Invoker;
 //Description This class handles the flash effect. 
 //Fields
 //  Instance: the Singleton for this object
@@ -46,7 +46,7 @@ public class FlashBang : MonoBehaviour
     void Start()
     {
       AbilityAtlas.GetInstance()[AbilityFlags.Skill0].Subscribe(Flash);
-
+   
     }
     void OnDestroy(){
 

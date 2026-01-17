@@ -5,7 +5,8 @@ using FracturedStudios.Abilities;
 [RequireComponent(typeof(CharacterController))]
 public class ThirdPersonBasic : MonoBehaviour
 {
-    public static ThirdPersonBasic Instance;
+     #nullable enable
+    public static ThirdPersonBasic? Instance;
     void Awake(){
       if (Instance != null){
         Destroy(this);
@@ -57,6 +58,11 @@ public class ThirdPersonBasic : MonoBehaviour
     private Vector3 velocity;
     private bool isGrounded;
 
+    [Header("Abilities")]
+    [SerializeField] private float flashMoveMultiplier = 0.6f; // speed multiplier during flash effect
+    [SerializeField] private float flashMoveDuration = 1.0f;   // duration of movement mod
+    private float flashMoveTimer;
+
     // NEW: Jump cooldown to prevent spamming
     private float jumpCooldown = 0.1f;  // short buffer
     private float lastJumpTime = -1f;
@@ -107,6 +113,9 @@ public class ThirdPersonBasic : MonoBehaviour
         HandleGroundCheck();
         HandleJumpAndGravity();
 
+        if (flashMoveTimer > 0f)
+            flashMoveTimer -= Time.deltaTime;
+
         if (cameraPivotOverride != null)
             SyncCameraPivotPosition();
 
@@ -118,9 +127,11 @@ public class ThirdPersonBasic : MonoBehaviour
             return;
 
         HandleMovement();
-        Caster.Cast(AbilityFlags.Skill0);
+       
+       //moved to input driver in isCrouching.cs see PlayerControlls.input in InputSystem
+       // if (Input.GetKeyDown(KeyCode.1)) //or dpad up
+       // Caster.Cast(AbilityFlags.Skill0);
     }
-
 
 
 private void HandleGroundCheck()
@@ -157,9 +168,12 @@ private void HandleGroundCheck()
             return;
 
         // During dodge, don't slow by crouch multiplier
-        float effectiveSpeed = dodging
+        float baseEffective = dodging
             ? moveSpeed
             : (crouchActive ? moveSpeed * crouchSpeedMultiplier : moveSpeed);
+
+        float flashMultiplier = flashMoveTimer > 0f ? flashMoveMultiplier : 1f;
+        float effectiveSpeed = baseEffective * flashMultiplier;
 
         if (inputDirection.magnitude >= 0.1f)
         {
@@ -287,6 +301,12 @@ private void OnDrawGizmosSelected()
             return Camera.main.transform.eulerAngles.y;
 
         return transform.eulerAngles.y;
+    }
+
+    public void OnFlashAbilityTriggered()
+    {
+        // Movement debuff when flash ability is used; future effects can be added here.
+        flashMoveTimer = flashMoveDuration;
     }
 
 }

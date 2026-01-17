@@ -58,6 +58,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Ability_Flash",
+                    "type": "Button",
+                    "id": "df24a8db-3161-45c6-aec5-737b54697dca",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -278,6 +287,28 @@
                     "processors": "",
                     "groups": ";Gamepad;Xbox Controller",
                     "action": "Dodge",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "db7522c8-bdb7-4a4f-82ce-bab594e30f34",
+                    "path": "<Keyboard>/#(1)",
+                    "interactions": "Tap",
+                    "processors": "",
+                    "groups": ";KeyboardMouse",
+                    "action": "Ability_Flash",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5b01d452-53d5-45d4-b136-9b34fe98badb",
+                    "path": "<Gamepad>/dpad/up",
+                    "interactions": "Tap",
+                    "processors": "",
+                    "groups": ";Gamepad;Xbox Controller;PS4 Controller",
+                    "action": "Ability_Flash",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

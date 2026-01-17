@@ -60,6 +60,32 @@ namespace FracturedStudios
         {
             return (FlagMask & (ulong)bit) != 0UL;
         }
+
+        // Cutscene helpers (string IDs so we don't churn enums while story evolves).
+        public bool HasPlayedCutscene(string cutsceneId)
+        {
+            if (string.IsNullOrWhiteSpace(cutsceneId))
+                return false;
+            return Flags.Contains(cutsceneId);
+        }
+
+        public void MarkCutscenePlayed(string cutsceneId)
+        {
+            if (string.IsNullOrWhiteSpace(cutsceneId))
+                return;
+            Flags.Add(cutsceneId);
+        }
+    }
+
+    /// <summary>
+    /// String IDs for current intro cutscenes; extend as narrative grows.
+    /// </summary>
+    public static class CutsceneIds
+    {
+        public const string Intro_BullyHall = "Intro_BullyHall";           // School bell + bullying beat.
+        public const string Intro_VentEntry = "Intro_VentEntry ";       //  the vent cutscene.
+        public const string Library_LampExplode = "Library_LampExplode";   // Lamp flicker/explosion (cinematic only).
+        public const string Library_BookPortal = "Library_BookPortal";     // Book read -> portal pull.
     }
 
     public enum ChapterId

@@ -5,7 +5,7 @@
 - Single scene for now: school → vent → library in one cell to simplify iteration.
 - Ladder-to-vent beat: pick up ladder, place under vent, enter vent to exit school.
 - Core movement/interaction: keep ThirdPersonBasic + StringscriptAnimatior as-is; add minimal interaction scripts only.
-- Library lamp beat: player gaze triggers flicker, explodes after N looks, guard distraction nearby; eventual librarian boss.
+- Library lamp beat (cutscene): lamp flicker/explosion is cinematic only; no player-driven lamp gameplay. Use it to set up the guard distraction and portal beat.
 ## Current Systems
 - Player locomotion: Assets/Scripts/Controllers/ThirdPersonBasic.cs (auto-adds LampVisionSensor).
 - Look sensing: Assets/Scripts/Controllers/LampVisionSensor.cs (cone/raycast LOS to lamps).
@@ -22,10 +22,10 @@
    - Attach point: optional hand/hip socket; otherwise hide ladder mesh when carried (current default) and show placed prefab when dropped.
 2) Vent entry
    - Simple trigger that disables ladder carry, snaps player to entry point, and loads vent crawl segment (short corridor) or teleports to library scene/area.
-3) Library lamp slice
-   - Place lamps with LibraryLampBehavior; set `looksBeforeExplosion` and wire `onFlicker`/`onExplode` to VFX/SFX.
-   - Ensure guard/desk uses collider on an obstruction layer so LampVisionSensor occlusion works.
-   - Use LampVisionSensor socket aligned with camera forward; tweak `viewDistance`/`halfAngle` per layout.
+3) Library lamp slice (cutscene)
+   - Treat lamp flicker/explode as Timeline/cutscene. If using LibraryLampBehavior, drive via animation/timeline events (not player gaze).
+   - Keep guard/desk colliders for blocking shots as needed; occlusion masks optional for this cinematic.
+   - If LampVisionSensor stays on player, disable/ignore during this cutscene.
 4) Interaction input
    - Add a lightweight `PlayerInteract` (new) that raycasts from camera and invokes `IInteractable` on LadderItem/LadderPlacementZone/vent trigger.
 
@@ -56,4 +56,4 @@
 ## Next Actions
 - Implement LadderItem/LadderPlacementZone prefabs + simple PlayerInteract.
 - Place vent trigger and hook transition to library.
-- Wire lamp VFX/SFX and guard obstruction layers; tune sensor angles.
+- Wire lamp VFX/SFX for the cutscene and guard obstruction layers as needed for the shot; disable LampVisionSensor during the sequence.

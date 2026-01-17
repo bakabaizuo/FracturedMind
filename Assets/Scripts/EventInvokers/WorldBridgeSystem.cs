@@ -25,6 +25,7 @@ namespace FracturedStudios.Invoker
         private DynamicDictionaryInvoker _invoker;
         //Version 2.0 
         //Remove Logs in build
+     #nullable enable
         private void Awake()
         {
             if (Instance != null && Instance != this)
