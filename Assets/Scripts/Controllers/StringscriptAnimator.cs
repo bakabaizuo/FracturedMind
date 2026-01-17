@@ -54,7 +54,7 @@ public class StringscriptAnimatior : MonoBehaviour
     [Header("Crouch Enter Timing")]
     [SerializeField] private bool useCrouchEnterClipLength = true;
     [SerializeField] private AnimationClip crouchEnterClipOverride;
-
+    [SerializeField] private float crouchEnterAnimSpeed = 0.8f;
     private string currentState;
     private Coroutine transitionCoroutine;
     private string currentAnimation = "";
@@ -197,6 +197,8 @@ public class StringscriptAnimatior : MonoBehaviour
     {
         crouchState = CrouchState.Entering;
         ChangeAnimation(animCrouchEnter, crouchEnterCrossfade);
+        float oldSpeed = animator != null ? animator.speed : 1f;
+    if (animator != null) animator.speed = crouchEnterAnimSpeed;
 
         // Hard hold: do not allow still/walk until the enter animation is fully done
         float holdSeconds = crouchEnterDuration;
@@ -214,9 +216,13 @@ public class StringscriptAnimatior : MonoBehaviour
 
         // If we got cancelled mid-enter
         if (crouchState != CrouchState.Entering)
-            yield break;
+        {
+        if (animator != null) animator.speed = oldSpeed;
+        yield break;
+    }
 
         crouchState = CrouchState.Crouched;
+        if (animator != null) animator.speed = oldSpeed;
     }
 
     private float GetCrouchEnterClipLengthSeconds()
@@ -250,6 +256,7 @@ public class StringscriptAnimatior : MonoBehaviour
         }
 
         crouchState = CrouchState.Standing;
+         if (animator != null) animator.speed = 1f;
         ChangeAnimation(animIdle, 0.1f);
     }
 

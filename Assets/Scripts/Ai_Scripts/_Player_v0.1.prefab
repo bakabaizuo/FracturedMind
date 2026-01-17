@@ -2648,7 +2648,7 @@ GameObject:
   - component: {fileID: 8765797494926444611}
   - component: {fileID: 5711655258747076339}
   - component: {fileID: 4024104579931938141}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: _Player_v0.1
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -2680,7 +2680,6 @@ Transform:
   - {fileID: 8844015492046939080}
   - {fileID: 2355251221303851968}
   - {fileID: 6495902941254156131}
-  - {fileID: 73864833597391311}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &8673786793480272338
@@ -2717,9 +2716,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 8794215741188295041}
-  lookTarget: {fileID: 73864833597391311}
-  enemyTag: Enemy
+  lookTarget: {fileID: 0}
+  enemyTag: LookTarget
   animStateMachine: {fileID: 8500919119869538005}
+  lookTargetLerper: {fileID: 0}
   aimDistance: 4.5
   bodyWeight: 1
   headWeight: 1
@@ -2802,7 +2802,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   debugGroundCheck: 0
-  isCrouching: 0
+  flashMoveMultiplier: 0.6
+  flashMoveDuration: 1
+  crouchFallback: 0
 --- !u!114 &8500919119869538005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2841,6 +2843,7 @@ MonoBehaviour:
   useCrouchEnterClipLength: 1
   crouchEnterClipOverride: {fileID: 7400000, guid: 8241dddb4b5a8974eb875a0dae852ca9,
     type: 2}
+  crouchEnterAnimSpeed: 1.3
 --- !u!114 &7062963163235335546
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2875,6 +2878,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animController: {fileID: 8500919119869538005}
+  locomotion: {fileID: 0}
   isCrouching: 1
   isDodging: 1
   isSprinting: 1
@@ -4946,37 +4950,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3769886781451316814}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &8751678797900417920
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 73864833597391311}
-  m_Layer: 0
-  m_Name: PlaceHolder_LookTarget_Socket
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &73864833597391311
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8751678797900417920}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.20334816, y: 2.1126022, z: -0.55416155}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1906117338941114638}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8841406832802475971
 GameObject:

@@ -59,7 +59,7 @@ public class ThirdPersonBasic : MonoBehaviour
     private bool isGrounded;
 
     [Header("Abilities")]
-    [SerializeField] private float flashMoveMultiplier = 0.6f; // speed multiplier during flash effect
+    [SerializeField] private float flashMoveMultiplier = 3.6f; // speed multiplier during flash effect
     [SerializeField] private float flashMoveDuration = 1.0f;   // duration of movement mod
     private float flashMoveTimer;
 

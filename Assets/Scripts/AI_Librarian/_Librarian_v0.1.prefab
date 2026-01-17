@@ -1592,13 +1592,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3355100720145786911}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 1.99, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 494989225013884609}
-  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
 --- !u!1 &3375792657090813822
 GameObject:
   m_ObjectHideFlags: 0
@@ -1655,7 +1655,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3488855738266695892}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.5, y: -0.49999997, z: -0.5, w: 0.5}
+  m_LocalRotation: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
   m_LocalPosition: {x: 0.060967535, y: 1.0638576, z: 0.005066633}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
@@ -1670,7 +1670,7 @@ Transform:
   - {fileID: 3252416541563085271}
   - {fileID: 7757184900743769195}
   m_Father: {fileID: 494989225013884609}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 90, z: -90}
 --- !u!1 &3576470246032415199
 GameObject:
   m_ObjectHideFlags: 0
@@ -2354,14 +2354,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5099982068911856914}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.0078019644, y: 0.9992464, z: -0.038022272, w: -0.00020345254}
+  m_LocalRotation: {x: 0.038020387, y: -0.00029762049, z: 0.007822019, w: 0.9992463}
   m_LocalPosition: {x: 0.026447661, y: 1.336, z: -0.004892111}
   m_LocalScale: {x: 1, y: 1, z: 0.99999994}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6550954457434251491}
   m_Father: {fileID: 494989225013884609}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 4.358, y: 0, z: 0.897}
 --- !u!137 &4247040122394705148
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 0
@@ -3171,7 +3171,7 @@ GameObject:
   - component: {fileID: 532419164535807338}
   m_Layer: 8
   m_Name: _Librarian_v0.1
-  m_TagString: AI
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3341,11 +3341,11 @@ MonoBehaviour:
   pursueSpeedMultiplier: 1.5
   scaleSpeedWithAlert: 1
   respectPlayerCrouchInGuard: 1
-  perception: {fileID: 0}
+  perception: {fileID: 8195331028599132366}
   animator: {fileID: 5808568571407196779}
   alertParam: Alert
   driveAnimator: 1
-  _agent: {fileID: 0}
+  _agent: {fileID: 4784472526294078938}
 --- !u!1 &7157704643645166795
 GameObject:
   m_ObjectHideFlags: 0

@@ -15,8 +15,10 @@ public class PlayerIKLookLimited : MonoBehaviour
     [Header("References")]
     public Transform mainCamera;      // Assign Cinemachine FreeLook MainCamera
     public Transform lookTarget;      // Empty GameObject as LookAt target
-    public string enemyTag = "Enemy"; // Tag to auto-find targets (returns null-safe when not found)
+    public string enemyTag = "LookTarget"; // Tag to auto-find targets (returns null-safe when not found)
     public StringscriptAnimatior animStateMachine; // Reference to your state machine script
+    [Header("Auto-find")]
+    public LookTargetLerper lookTargetLerper; // component on the placeholder socket that lerps the look target
 
     [Header("IK Settings")]
     public float aimDistance = 10f;    // How far from camera to place the target
@@ -34,28 +36,62 @@ public class PlayerIKLookLimited : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
+
+        // Auto-find the look target by tag first (tag name: LookTarget).
+        if (lookTarget == null)
+        {
+            try
+            {
+                var tagged = GameObject.FindWithTag("LookTarget");
+                if (tagged != null) lookTarget = tagged.transform;
+            }
+            catch { /* tag may not exist; fall through */ }
+        }
+
+        // If not found by the explicit tag search above, try again using the configured enemyTag.
+        if (lookTarget == null)
+        {
+            try
+            {
+                var tagged = GameObject.FindWithTag(enemyTag);
+                if (tagged != null) lookTarget = tagged.transform;
+            }
+            catch { /* tag may not exist; ignore */ }
+        }
     }
 
     void Update()
     {
-        // Try to find an enemy by tag; if found, point at the enemy, otherwise use camera center
+        // If a lerper is present, ensure our `lookTarget` reference points to it.
+        if (lookTargetLerper != null)
+        {
+            lookTarget = lookTargetLerper.transform;
+        }
         GameObject enemyObj = null;
-        if (!string.IsNullOrEmpty(enemyTag))
+        try
         {
-            enemyObj = GameObject.FindWithTag(enemyTag);
+            if (!string.IsNullOrEmpty(enemyTag))
+                enemyObj = GameObject.FindWithTag(enemyTag);
         }
+        catch { enemyObj = null; }
 
-        if (enemyObj != null && lookTarget != null)
+       
+
+        // If a LookTargetLerper is present, it drives the socket position; do not overwrite it here.
+        if (lookTargetLerper == null)
         {
-            lookTarget.position = enemyObj.transform.position;
-        }
-        else
-        {
-            if (mainCamera != null && lookTarget != null)
+            if (enemyObj != null && lookTarget != null)
             {
-                Vector3 camForward = mainCamera.forward;
-                camForward.Normalize();
-                lookTarget.position = mainCamera.position + camForward * aimDistance;
+                lookTarget.position = enemyObj.transform.position;
+            }
+            else
+            {
+                if (mainCamera != null && lookTarget != null)
+                {
+                    Vector3 camForward = mainCamera.forward;
+                    camForward.Normalize();
+                    lookTarget.position = mainCamera.position + camForward * aimDistance;
+                }
             }
         }
 
@@ -82,7 +118,7 @@ public class PlayerIKLookLimited : MonoBehaviour
         {
             // Check yaw difference to limit torso rotation
             Vector3 charForward = transform.forward;
-            Vector3 camForward = mainCamera.forward; 
+            Vector3 camForward = mainCamera != null ? mainCamera.forward : transform.forward;
             camForward.y = 0f; // ignore pitch
             camForward.Normalize();
 
@@ -92,7 +128,9 @@ public class PlayerIKLookLimited : MonoBehaviour
             {
                 // Within allowed range → apply IK LookAt
                 animator.SetLookAtWeight(currentIKWeight, bodyWeight, headWeight, eyesWeight, 0.5f);
-                animator.SetLookAtPosition(lookTarget.position);
+                var targetTransform = lookTargetLerper != null ? lookTargetLerper.transform : null;
+                if (targetTransform != null)
+                    animator.SetLookAtPosition(targetTransform.position);
             }
             else
             {
@@ -107,3 +145,5 @@ public class PlayerIKLookLimited : MonoBehaviour
         }
     }
 }
+
+// Utility helpers removed — using `enemyTag` lookup only.
