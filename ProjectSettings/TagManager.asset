@@ -8,6 +8,7 @@ TagManager:
   - AI
   - Enemy
   - PlayerCollider
+  - LookTarget
   layers:
   - Default
   - TransparentFX
