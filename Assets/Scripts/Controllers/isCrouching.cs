@@ -41,6 +41,8 @@ public class IsCrouchingControl : MonoBehaviour
         abilityAction0 = playerMap.FindAction("Ability_Flash", throwIfNotFound: false);
         if (abilityAction0 != null)
             abilityAction0.started += _ => CastAbility();
+        // initialize local caster (value type)
+        abilityCaster = new AbilityCaster();
                     
     }
 
@@ -108,11 +110,21 @@ public class IsCrouchingControl : MonoBehaviour
 
     private void CastAbility()
     {
-        // Guard: only proceed if the ability exists and is not cooling down.
+        // Require FlashBang to be present
+       
+        // Now check ability availability; if cooling down, do not run movement mods.
         var data = AbilityAtlas.GetInstance()[AbilityFlags.Skill0];
         if (data == null || data.Waiting)
             return;
 
+            //this can be moved to UI but guarded with a check property
+        if (FlashBang.Instance == null)
+                    return;
+
+       
+                FlashBang.Instance.Flash();
+
+        // Perform the cast and then apply movement changes.
         abilityCaster.Cast(AbilityFlags.Skill0);
         locomotion?.OnFlashAbilityTriggered();
     }
