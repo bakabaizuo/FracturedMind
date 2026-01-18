@@ -31,6 +31,9 @@ public class ThirdPersonBasic : MonoBehaviour
     [SerializeField] private Transform cameraFollowSocket;  // optional position anchor (no rotation inheritance)
     [SerializeField] private bool detachPivotFromPlayer = true; // unparent pivot so it does not inherit player rotation
     [SerializeField] private bool alignBodyToCameraOnStart = true; // rotate character to camera yaw on spawn
+    [Header("Camera Control")]
+    [Tooltip("If enabled the controller will override camera transforms at runtime. Disable to edit camera in the Inspector/prefab.")]
+    [SerializeField] private bool controlCamera = true;
     private float orbitYaw;
     private float orbitPitch;
     private float currentPitch;
@@ -62,6 +65,9 @@ public class ThirdPersonBasic : MonoBehaviour
     [SerializeField] private float flashMoveMultiplier = 3.6f; // speed multiplier during flash effect
     [SerializeField] private float flashMoveDuration = 1.0f;   // duration of movement mod
     private float flashMoveTimer;
+    // Sprint boost (temporary speed modifier triggered by tap-sprint)
+    private float sprintBoostTimer = 0f;
+    private float sprintBoostMultiplier = 1f;
 
     // NEW: Jump cooldown to prevent spamming
     private float jumpCooldown = 0.1f;  // short buffer
@@ -95,7 +101,7 @@ public class ThirdPersonBasic : MonoBehaviour
         EnsureLampVisionSensor();
 
         // If pivot override is parented to the player, detach so it stops inheriting rotation
-        if (cameraPivotOverride != null && detachPivotFromPlayer && cameraPivotOverride.parent != null)
+        if (controlCamera && cameraPivotOverride != null && detachPivotFromPlayer && cameraPivotOverride.parent != null)
             cameraPivotOverride.SetParent(null, true);
 
         // Initialize orbit yaw from current camera or player yaw so mouse look starts aligned
@@ -116,10 +122,10 @@ public class ThirdPersonBasic : MonoBehaviour
         if (flashMoveTimer > 0f)
             flashMoveTimer -= Time.deltaTime;
 
-        if (cameraPivotOverride != null)
+        if (cameraPivotOverride != null && controlCamera)
             SyncCameraPivotPosition();
 
-        if (enableMouseLook)
+        if (enableMouseLook && controlCamera)
             HandleMouseLook();
 
         // Movement lock while crouch is entering (so Crouching_Absolute can actually play)
@@ -173,7 +179,7 @@ private void HandleGroundCheck()
             : (crouchActive ? moveSpeed * crouchSpeedMultiplier : moveSpeed);
 
         float flashMultiplier = flashMoveTimer > 0f ? flashMoveMultiplier : 1f;
-        float effectiveSpeed = baseEffective * flashMultiplier;
+        float effectiveSpeed = baseEffective * flashMultiplier * sprintBoostMultiplier;
 
         if (inputDirection.magnitude >= 0.1f)
         {
@@ -307,6 +313,29 @@ private void OnDrawGizmosSelected()
     {
         // Movement debuff when flash ability is used; future effects can be added here.
         flashMoveTimer = flashMoveDuration;
+    }
+
+    /// <summary>
+    /// Apply a temporary sprint boost multiplier to player movement.
+    /// </summary>
+    public void StartSprintBoost(float multiplier, float duration)
+    {
+        if (multiplier <= 1f || duration <= 0f)
+            return;
+        sprintBoostMultiplier = multiplier;
+        sprintBoostTimer = duration;
+        // Ensure any existing flash timer is unaffected.
+    }
+
+    private void LateUpdate()
+    {
+        // Decrease sprint boost timer
+        if (sprintBoostTimer > 0f)
+        {
+            sprintBoostTimer -= Time.deltaTime;
+            if (sprintBoostTimer <= 0f)
+                sprintBoostMultiplier = 1f;
+        }
     }
 
 }

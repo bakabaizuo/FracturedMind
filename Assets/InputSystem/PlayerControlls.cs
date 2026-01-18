@@ -89,6 +89,15 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""5f9c2a28-c0a1-489f-8291-3199eb2f5749"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -333,6 +342,28 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
                     ""action"": ""Ability_Flash"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c4b30034-0d12-4c95-a330-84896172be2a"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Xbox Controller;PS4 Controller;Gamepad"",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7dcc4539-7057-4394-b945-781d67cdd133"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";KeyboardMouse"",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -396,6 +427,7 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
         m_Player_Crouch = m_Player.FindAction("Crouch", throwIfNotFound: true);
         m_Player_Dodge = m_Player.FindAction("Dodge", throwIfNotFound: true);
         m_Player_Ability_Flash = m_Player.FindAction("Ability_Flash", throwIfNotFound: true);
+        m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
     }
 
     ~@PlayerControlls()
@@ -469,6 +501,7 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Crouch;
     private readonly InputAction m_Player_Dodge;
     private readonly InputAction m_Player_Ability_Flash;
+    private readonly InputAction m_Player_Interact;
     public struct PlayerActions
     {
         private @PlayerControlls m_Wrapper;
@@ -480,6 +513,7 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
         public InputAction @Crouch => m_Wrapper.m_Player_Crouch;
         public InputAction @Dodge => m_Wrapper.m_Player_Dodge;
         public InputAction @Ability_Flash => m_Wrapper.m_Player_Ability_Flash;
+        public InputAction @Interact => m_Wrapper.m_Player_Interact;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -510,6 +544,9 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
             @Ability_Flash.started += instance.OnAbility_Flash;
             @Ability_Flash.performed += instance.OnAbility_Flash;
             @Ability_Flash.canceled += instance.OnAbility_Flash;
+            @Interact.started += instance.OnInteract;
+            @Interact.performed += instance.OnInteract;
+            @Interact.canceled += instance.OnInteract;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -535,6 +572,9 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
             @Ability_Flash.started -= instance.OnAbility_Flash;
             @Ability_Flash.performed -= instance.OnAbility_Flash;
             @Ability_Flash.canceled -= instance.OnAbility_Flash;
+            @Interact.started -= instance.OnInteract;
+            @Interact.performed -= instance.OnInteract;
+            @Interact.canceled -= instance.OnInteract;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -597,5 +637,6 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
         void OnCrouch(InputAction.CallbackContext context);
         void OnDodge(InputAction.CallbackContext context);
         void OnAbility_Flash(InputAction.CallbackContext context);
+        void OnInteract(InputAction.CallbackContext context);
     }
 }
