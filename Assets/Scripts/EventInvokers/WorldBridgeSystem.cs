@@ -3,19 +3,19 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using System.Linq.Expressions;
 using FracturedStudios.Data;
 
-using FracturedStudios.Invoker;
 namespace FracturedStudios.Invoker
 {
     [DefaultExecutionOrder(-139)]
+    // Merged WorldBridgeSystem: includes expression-based invoker helpers and routing utilities.
     public class WorldBridgeSystem : MonoBehaviour
     {
-        public static WorldBridgeSystem Instance { get; private set; }
+        public static WorldBridgeSystem? Instance { get; private set; }
 
         // Maps stable IDs -> UnityEngine.Object (GameObject, Component, etc.)
         private readonly ConcurrentDictionary<string, UnityEngine.Object> _idRegistry = new();
-
 
         public PlayerData data;
         // Cache for reflection results to improve performance
@@ -23,14 +23,11 @@ namespace FracturedStudios.Invoker
         private readonly Dictionary<(string id, string method), MethodInfo> _methodCache = new();
 
         private DynamicDictionaryInvoker _invoker;
-        //Version 2.0 
-        //Remove Logs in build
-     #nullable enable
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
             {
-            
                 Destroy(gameObject);
                 return;
             }
@@ -45,26 +42,57 @@ namespace FracturedStudios.Invoker
                 _invoker = go.AddComponent<DynamicDictionaryInvoker>();
                 Debug.Log($"[{nameof(WorldBridgeSystem)}] Created {nameof(DynamicDictionaryInvoker)}");
             }
-         
-        
         }
 
         private void OnDestroy()
         {
             if (Instance == this)
             {
-               
-            
                 _idRegistry.Clear();
                 _memberCache.Clear();
                 _methodCache.Clear();
                 Instance = null;
-
-
-
-
-
             }
+        }
+
+        // Expression-based invoker builder (returns object or null for void)
+        public static Func<object, object[], object> BuildInvokerReturn(MethodInfo mi)
+        {
+            return CreateInvoker(mi);
+        }
+
+        public static Func<object, object[], object> CreateInvoker(MethodInfo mi)
+        {
+            var instance = Expression.Parameter(typeof(object), "instance");
+            var args = Expression.Parameter(typeof(object[]), "args");
+
+            var parameters = mi.GetParameters();
+            var paramExprs = new Expression[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var idx = Expression.Constant(i);
+                var accessor = Expression.ArrayIndex(args, idx);
+                var convert = Expression.Convert(accessor, parameters[i].ParameterType);
+                paramExprs[i] = convert;
+            }
+
+            var instanceCast = Expression.Convert(instance, mi.DeclaringType);
+            var call = Expression.Call(instanceCast, mi, paramExprs);
+            Expression body = mi.ReturnType == typeof(void) ?
+                (Expression)Expression.Block(call, Expression.Constant(null)) :
+                Expression.Convert(call, typeof(object));
+
+            var lambda = Expression.Lambda<Func<object, object[], object>>(body, instance, args);
+            return lambda.Compile();
+        }
+
+        public interface IWorldBridgeRegistrable
+        {
+            string BridgeId { get; }
+            string BridgeGroup { get; } // optional grouping (e.g., "ui","npc","world")
+            object BridgeMetadata { get; } // small DTO for discovery
+            void OnRegistered(WorldBridgeSystem bridge);
+            void OnUnregistered(WorldBridgeSystem bridge);
         }
 
         #region Registry
@@ -72,12 +100,10 @@ namespace FracturedStudios.Invoker
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-               
                 return;
             }
             if (target == null)
             {
-               
                 return;
             }
 
@@ -90,7 +116,6 @@ namespace FracturedStudios.Invoker
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-               
                 return;
             }
             if (_idRegistry.TryRemove(id, out _))
@@ -101,16 +126,13 @@ namespace FracturedStudios.Invoker
         {
             if (string.IsNullOrEmpty(id))
             {
-              
                 return null;
             }
             if (_idRegistry.TryGetValue(id, out var obj))
             {
                 if (obj is T typedObj) return typedObj;
-                
                 return null;
             }
-            
             return null;
         }
         #endregion
@@ -120,12 +142,10 @@ namespace FracturedStudios.Invoker
         {
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(methodName))
             {
-                
                 return;
             }
             if (!_idRegistry.TryGetValue(id, out var target))
             {
-                
                 return;
             }
 
@@ -136,7 +156,6 @@ namespace FracturedStudios.Invoker
                 method = type.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 if (method == null)
                 {
-                   
                     return;
                 }
                 _methodCache[cacheKey] = method;
@@ -147,8 +166,9 @@ namespace FracturedStudios.Invoker
                 method.Invoke(target, args);
                 Debug.Log($"[{nameof(WorldBridgeSystem)}] Called {methodName} on {id}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.LogWarning($"[{nameof(WorldBridgeSystem)}] Exception calling {methodName} on {id}: {ex.Message}");
             }
         }
 
@@ -156,12 +176,10 @@ namespace FracturedStudios.Invoker
         {
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(memberName))
             {
-                
                 return false;
             }
             if (!_idRegistry.TryGetValue(id, out var target))
             {
-               
                 return false;
             }
 
@@ -182,7 +200,6 @@ namespace FracturedStudios.Invoker
                 }
                 if (member == null)
                 {
-                   
                     return false;
                 }
                 _memberCache[cacheKey] = member;
@@ -197,9 +214,9 @@ namespace FracturedStudios.Invoker
                 Debug.Log($"[{nameof(WorldBridgeSystem)}] Set {memberName} on {id} to {value}");
                 return true;
             }
-            catch 
+            catch (Exception ex)
             {
-                
+                Debug.LogWarning($"[{nameof(WorldBridgeSystem)}] Failed to set {memberName} on {id}: {ex.Message}");
                 return false;
             }
         }
@@ -208,12 +225,10 @@ namespace FracturedStudios.Invoker
         {
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(memberName))
             {
-                
                 return null;
             }
             if (!_idRegistry.TryGetValue(id, out var target))
             {
-               
                 return null;
             }
 
@@ -234,7 +249,6 @@ namespace FracturedStudios.Invoker
                 }
                 if (member == null)
                 {
-                   
                     return null;
                 }
                 _memberCache[cacheKey] = member;
@@ -248,8 +262,9 @@ namespace FracturedStudios.Invoker
                     return prop.GetValue(target);
                 return null;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.LogWarning($"[{nameof(WorldBridgeSystem)}] Failed to get {memberName} on {id}: {ex.Message}");
                 return null;
             }
         }
@@ -260,7 +275,6 @@ namespace FracturedStudios.Invoker
         {
             if (_invoker == null)
             {
-              
                 return null;
             }
             return _invoker.Register(key, method, layer, id, metadata);
@@ -270,7 +284,6 @@ namespace FracturedStudios.Invoker
         {
             if (_invoker == null)
             {
-                
                 return false;
             }
             return _invoker.Pay(key, token, args);
@@ -287,7 +300,6 @@ namespace FracturedStudios.Invoker
         {
             if (_invoker == null)
             {
-               
                 return;
             }
             _invoker.Invoke(key, args);
@@ -297,7 +309,6 @@ namespace FracturedStudios.Invoker
         {
             if (_invoker == null)
             {
-                
                 return;
             }
             _invoker.InvokeSafe(key, args);
@@ -312,5 +323,273 @@ namespace FracturedStudios.Invoker
                 Debug.Log($"{kv.Key} -> {kv.Value?.name} ({kv.Value?.GetType().Name ?? "null"})");
         }
         #endregion
+    }
+
+    /// <summary>
+    /// WorldBridgeRouter — small MonoBehaviour that routes WorldBridge invoker events
+    /// to a registered target method by ID. This reduces boilerplate when you need
+    /// to keep systems decoupled but still forward events to concrete MonoBehaviours.
+    ///
+    /// Example: add a `WorldBridgeRouter` to a scene, create a route for "player_aim_target_changed"
+    /// and set TargetID to the UniqueId/registered id of a component. The router will call `TargetMethod`
+    /// on the registered target with the event payload.
+    ///
+    /// Notes:
+    /// - This uses `WorldBridgeSystem.Instance.RegisterInvoker` and `WorldBridgeSystem.CallMethodByID`
+    /// - `CallMethodByID` uses reflection, so keep payloads simple (string, Vector3) or call typed wrappers.
+    /// </summary>
+    public class WorldBridgeRouter : MonoBehaviour
+    {
+        [Serializable]
+        public class RouteEntry
+        {
+            public string EventKey;
+            public string TargetId;
+            public string TargetMethod;
+            public DynamicDictionaryInvoker.Layer Layer = DynamicDictionaryInvoker.Layer.Func;
+            public string DebugId;
+            public string Metadata;
+
+            // Allow enabling/disabling routes individually
+            public bool Enabled = true;
+        }
+
+        [Tooltip("Configure event -> target routing." + " Example: 'player_aim_target_changed' -> 'aim_responder_01'.")]
+        public List<RouteEntry> routes = new List<RouteEntry>();
+
+        // Keep registration tokens to unsubscribe
+        private readonly Dictionary<RouteEntry, IDisposable> _routeTokens = new Dictionary<RouteEntry, IDisposable>();
+
+        private void OnEnable()
+        {
+            RegisterAll();
+        }
+
+        private void OnDisable()
+        {
+            UnregisterAll();
+        }
+
+        // Register all routes (called on start or when routes change)
+        public void RegisterAll()
+        {
+            UnregisterAll();
+
+            if (WorldBridgeSystem.Instance == null) return;
+
+            foreach (var r in routes)
+            {
+                if (!r.Enabled) continue;
+
+                // Capture local variable for closure
+                var entry = r;
+
+                var token = WorldBridgeSystem.Instance.RegisterInvoker(
+                    entry.EventKey,
+                    (object[] args) => {
+                        TryCallRoute(entry, args);
+                    },
+                    entry.Layer,
+                    id: entry.DebugId,
+                    metadata: entry.Metadata
+                );
+
+                if (token != null) _routeTokens[entry] = token;
+            }
+        }
+
+        public void UnregisterAll()
+        {
+            foreach (var kv in _routeTokens)
+            {
+                kv.Value?.Dispose();
+            }
+            _routeTokens.Clear();
+        }
+
+        // Call method on the target id; wraps Try/Catch and logs
+        private void TryCallRoute(RouteEntry entry, object[] args)
+        {
+            try
+            {
+                // Route to target id via WorldBridge reflection helper
+                WorldBridgeSystem.Instance.CallMethodByID(entry.TargetId, entry.TargetMethod, args);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[WorldBridgeRouter] Error calling method '{entry.TargetMethod}' on '{entry.TargetId}': {ex.Message}");
+            }
+        }
+
+        // Allow adding a route at runtime (returns the token so caller can store or ignore)
+        public IDisposable AddRoute(string eventKey, string targetId, string targetMethod, DynamicDictionaryInvoker.Layer layer = DynamicDictionaryInvoker.Layer.Func, string debugId = null, object metadata = null)
+        {
+            var entry = new RouteEntry
+            {
+                EventKey = eventKey,
+                TargetId = targetId,
+                TargetMethod = targetMethod,
+                DebugId = debugId,
+                Metadata = metadata?.ToString(),
+                Layer = layer,
+                Enabled = true
+            };
+
+            routes.Add(entry);
+
+            if (WorldBridgeSystem.Instance != null)
+            {
+                var token = WorldBridgeSystem.Instance.RegisterInvoker(entry.EventKey, args => TryCallRoute(entry, args), entry.Layer, id: entry.DebugId, metadata: entry.Metadata);
+                if (token != null) _routeTokens[entry] = token;
+            }
+
+            return _routeTokens.ContainsKey(entry) ? _routeTokens[entry] : null;
+        }
+
+        // Remove a route and dispose
+        public void RemoveRoute(RouteEntry route)
+        {
+            if (route == null) return;
+            if (_routeTokens.TryGetValue(route, out var token)) token?.Dispose();
+            _routeTokens.Remove(route);
+            routes.Remove(route);
+        }
+    }
+
+    public readonly struct BridgeResult
+    {
+        public readonly object Value;
+        public readonly string Type;
+        public readonly bool Success;
+
+        public BridgeResult(object value, string type, bool success)
+        {
+            Value = value;
+            Type = type;
+            Success = success;
+        }
+    }
+
+    public static class MethodWrapper
+    {
+        public static Action<object[]> Wrap<T1>(Action<T1> method)
+            => args => method((T1)args[0]);
+
+        public static Action<object[]> Wrap<T1, TResult>(Func<T1, TResult> method)
+            => args => _ = method((T1)args[0]);
+
+        public static Action<object[]> Wrap<T1, T2>(Action<T1, T2> method)
+            => args => method((T1)args[0], (T2)args[1]);
+
+        public static Action<object[]> Wrap<T1, T2, T3>(Action<T1, T2, T3> method)
+            => args => method((T1)args[0], (T2)args[1], (T3)args[2]);
+
+        //returnables and snapshots
+        public static Func<object[], object> WrapReturn<T1, TResult>(Func<T1, TResult> method)
+            => args => method((T1)args[0]);
+
+        public static Func<object[], object> WrapReturn<TResult>(Func<TResult> method)
+            => args => method();
+    }
+
+    public abstract class LogicNode
+    {
+        public bool Value { get; protected set; }
+        public abstract bool Evaluate();
+
+        public IDisposable Bind(Func<bool> getter)
+        {
+            var token = new NodeToken(() => _getter = null);
+            _getter = getter;
+            return token;
+        }
+
+        protected Func<bool> _getter;
+    }
+
+    public sealed class NodeToken : IDisposable
+    {
+        private Action _dispose;
+        private bool _done;
+
+        public NodeToken(Action dispose) => _dispose = dispose;
+
+        public void Dispose()
+        {
+            if (_done) return;
+            _done = true;
+            _dispose?.Invoke();
+            _dispose = null;
+        }
+    }
+
+    public sealed class AndNode : LogicNode
+    {
+        private readonly List<Func<bool>> _inputs = new();
+
+        public IDisposable AddInput(Func<bool> getter)
+        {
+            _inputs.Add(getter);
+            return new NodeToken(() => _inputs.Remove(getter));
+        }
+
+        public override bool Evaluate()
+        {
+            Value = true;
+            foreach (var input in _inputs)
+            {
+                if (!input()) { Value = false; break; }
+            }
+            return Value;
+        }
+    }
+
+    public sealed class OrNode : LogicNode
+    {
+        private readonly List<Func<bool>> _inputs = new();
+
+        public IDisposable AddInput(Func<bool> getter)
+        {
+            _inputs.Add(getter);
+            return new NodeToken(() => _inputs.Remove(getter));
+        }
+
+        public override bool Evaluate()
+        {
+            Value = false;
+            foreach (var input in _inputs)
+            {
+                if (input()) { Value = true; break; }
+            }
+            return Value;
+        }
+    }
+
+    public sealed class NotNode : LogicNode
+    {
+        public IDisposable SetInput(Func<bool> getter)
+        {
+            _getter = getter;
+            return new NodeToken(() => _getter = null);
+        }
+
+        public override bool Evaluate()
+        {
+            Value = !(_getter?.Invoke() ?? false);
+            return Value;
+        }
+    }
+
+    public sealed class BoolEventNode : LogicNode
+    {
+        private bool _bool;
+
+        public void Raise(bool value)
+        {
+            _bool = value;
+            Value = value;
+        }
+
+        public override bool Evaluate() => Value;
     }
 }

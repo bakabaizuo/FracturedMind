@@ -75,6 +75,10 @@ private PlayerCase debugActiveCase;
     // Optional timed auto-pop
     private readonly Dictionary<PlayerCase, float> caseTimers = new Dictionary<PlayerCase, float>();
 
+    [Header("LoopBuffer")]
+    [Tooltip("Enable/disable LoopBuffer execution at runtime.")]
+    [SerializeField] private bool enableLoopBuffer = true;
+
     //public event Action<PlayerCase> OnCasePushed;
     //public event Action<PlayerCase> OnCasePopped;
     private void Awake()
@@ -212,20 +216,20 @@ private PlayerCase debugActiveCase;
 private static readonly List<PlayerCase> _loopCaseBuffer = new List<PlayerCase>(16);
 private static readonly List<Action> _loopActionBuffer = new List<Action>(16);
 
-private void LoopBuffer()
+private bool LoopBuffer()
 {
-    ///need short hand for looping active case stack
-    ///method loop for 16 actions max
-    /// special case use. 
-    /// no recursion no gc allocations
-
+    // Short-hand for looping active case stack without allocations.
+    if (!enableLoopBuffer)
+        return false;
 
     if (caseStack.Count == 0)
-        return;
+        return false;
 
     // Copy current stack snapshot (avoid modifying while iterating)
     _loopCaseBuffer.Clear();
     _loopCaseBuffer.AddRange(caseStack);
+
+    bool poppedAny = false;
 
     foreach (var currentCase in _loopCaseBuffer)
     {
@@ -245,20 +249,24 @@ private void LoopBuffer()
                 catch (Exception ex)
                 {
                     Debug.LogError($"[PlayerCaseController] Exception in {currentCase} action: {ex}");
-                         // optional: remove failing action to avoid spamming
-                UnregisterCaseAction(activeCase, action);
+                    // remove failing action to avoid spamming
+                    UnregisterCaseAction(currentCase, action);
+                }
             }
         }
 
         // safety cleanup: if all actions for this case got removed mid-run
-        if (!caseActions.TryGetValue(activeCase, out var list) || list.Count == 0)
+        if (!caseActions.TryGetValue(currentCase, out var list) || list.Count == 0)
         {
-            PopCase(activeCase);
+            PopCase(currentCase);
+            poppedAny = true;
         }
     }
+
+    return poppedAny;
 }
     // Buffers are reused every frame — no GC allocation, no recursion
-}
+
 
     // Ticks all timers and pops expired cases (safe: operates on a snapshot)
     private void TickCaseTimers()

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using FracturedStudios.Invoker;
 
 /// <summary>
 /// Canonical string-driven animator controller.
@@ -60,6 +61,17 @@ public class StringscriptAnimatior : MonoBehaviour
     private string currentAnimation = "";
     private int currentIdle;
     private Vector2 movement;
+    
+    // Added runtime references
+    private PlayerCaseController CaseLambdas;
+    private AudioSource audioSource;
+    private CharacterController controller;
+    private Transform RigRoot;
+
+    // Per-layer tracking (initialized at runtime)
+    private string[] currentLayerAnimation;
+    private float[] currentLayerWeight;
+    private float[] targetLayerWeight;
 
     private CrouchState crouchState = CrouchState.Standing;
     private DodgeState dodgeState = DodgeState.Ready;
@@ -93,6 +105,7 @@ public class StringscriptAnimatior : MonoBehaviour
     {
         if (animator == null)
             animator = GetComponent<Animator>();
+        InitializeReferences();
     }
 
     void Start()
@@ -183,6 +196,35 @@ public class StringscriptAnimatior : MonoBehaviour
         int token = ++dodgeToken;
         dodgeEndEventReceived = false;
         dodgeCoroutine = StartCoroutine(DodgeRoutine(token));
+    }
+
+    // Gather common runtime references and initialize per-layer arrays.
+    private void InitializeReferences()
+    {
+        // Prefer the global singleton when available, otherwise fall back to local component.
+        CaseLambdas = PlayerCaseController.Instance ?? GetComponent<PlayerCaseController>();
+        if (CaseLambdas == null)
+            Debug.LogWarning("[PlayerAnimator] No CaseLambdas found on player or children! ");
+
+        audioSource = GetComponent<AudioSource>();
+        controller = GetComponent<CharacterController>();
+
+        RigRoot = FracturedStudios.Components.ComponentExtensions.FindDeep<Transform>(this, "_Player_v0.1")
+                  ?? (transform.root != null ? transform.root : transform);
+
+        if (animator != null)
+        {
+            int layers = Mathf.Max(1, animator.layerCount);
+            currentLayerAnimation = new string[layers];
+            currentLayerWeight = new float[layers];
+            targetLayerWeight = new float[layers];
+            for (int i = 0; i < layers; i++)
+            {
+                currentLayerAnimation[i] = string.Empty;
+                currentLayerWeight[i] = animator.GetLayerWeight(i);
+                targetLayerWeight[i] = currentLayerWeight[i];
+            }
+        }
     }
 
     private void BeginCrouchEnter()
