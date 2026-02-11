@@ -70,9 +70,8 @@ public class Dialogue : MonoBehaviour
         }
     }
 
-
-  
 ///Dialogue Tracking Area   
+
 enum IntroDialogueComplete
     {
           None = 0,
@@ -118,12 +117,13 @@ enum IntroDialogueComplete
 }
 
 
-    
+
     void IntroBullyHallDialogueFlags()
     {
         chapterState.CurrentChapter = ChapterId.Intro;
         chapterState.ChapterStage = (int)IntroStage.BulliedInHall;
         chapterState.SetFlag("Intro_BullyHall");
+
     }
 
 
