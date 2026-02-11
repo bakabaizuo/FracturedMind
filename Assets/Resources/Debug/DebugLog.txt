@@ -568,3 +568,7 @@ PlayerIKLookLimited.OnAnimatorIK (System.Int32 layerIndex) (at Assets/Scripts/Co
 [02:38:25] [VerboseLogger] [Dodge:1] Hold complete. Transitioning to Recovering. frame=1911 [VerboseLogger v1.1]
 [02:38:25] [VerboseLogger] [Dodge:1] End. state=Ready crouch=Standing mode=Dodge frame=1912 [VerboseLogger v1.1]
 === VerboseLogger Disabled (VerboseLogger v1.1) ===
+=== VerboseLogger Enabled (VerboseLogger v1.1) ===
+[11:15:48] [Warning] [PlayerAnimator] No CaseLambdas found on player or children!  [VerboseLogger v1.1]
+[11:15:49] [Log] State 'Idle_Absolute' is already active. No transition needed. [VerboseLogger v1.1]
+=== VerboseLogger Disabled (VerboseLogger v1.1) ===
