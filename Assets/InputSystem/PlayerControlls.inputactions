@@ -76,6 +76,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "OrbLight",
+                    "type": "Button",
+                    "id": "95a1d522-9956-4614-893d-d4801f022aee",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -340,6 +349,39 @@
                     "processors": "",
                     "groups": ";KeyboardMouse",
                     "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "be5b9971-cc19-4b60-a9e9-118190dd43ed",
+                    "path": "<Keyboard>/2",
+                    "interactions": "Tap",
+                    "processors": "",
+                    "groups": ";KeyboardMouse;Gamepad",
+                    "action": "OrbLight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1ce96b65-bbed-476d-9926-4a97a05c18a0",
+                    "path": "<Gamepad>/dpad/left",
+                    "interactions": "Tap",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "OrbLight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "74a44017-b81e-4bce-b1f7-f888d7756404",
+                    "path": "<Gamepad>/dpad/left",
+                    "interactions": "Tap",
+                    "processors": "",
+                    "groups": ";Xbox Controller;PS4 Controller",
+                    "action": "OrbLight",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

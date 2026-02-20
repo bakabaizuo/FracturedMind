@@ -98,6 +98,15 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""OrbLight"",
+                    ""type"": ""Button"",
+                    ""id"": ""95a1d522-9956-4614-893d-d4801f022aee"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -364,6 +373,39 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
                     ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""be5b9971-cc19-4b60-a9e9-118190dd43ed"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": ""Tap"",
+                    ""processors"": """",
+                    ""groups"": "";KeyboardMouse;Gamepad"",
+                    ""action"": ""OrbLight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1ce96b65-bbed-476d-9926-4a97a05c18a0"",
+                    ""path"": ""<Gamepad>/dpad/left"",
+                    ""interactions"": ""Tap"",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""OrbLight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""74a44017-b81e-4bce-b1f7-f888d7756404"",
+                    ""path"": ""<Gamepad>/dpad/left"",
+                    ""interactions"": ""Tap"",
+                    ""processors"": """",
+                    ""groups"": "";Xbox Controller;PS4 Controller"",
+                    ""action"": ""OrbLight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -428,6 +470,7 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
         m_Player_Dodge = m_Player.FindAction("Dodge", throwIfNotFound: true);
         m_Player_Ability_Flash = m_Player.FindAction("Ability_Flash", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
+        m_Player_OrbLight = m_Player.FindAction("OrbLight", throwIfNotFound: true);
     }
 
     ~@PlayerControlls()
@@ -502,6 +545,7 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Dodge;
     private readonly InputAction m_Player_Ability_Flash;
     private readonly InputAction m_Player_Interact;
+    private readonly InputAction m_Player_OrbLight;
     public struct PlayerActions
     {
         private @PlayerControlls m_Wrapper;
@@ -514,6 +558,7 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
         public InputAction @Dodge => m_Wrapper.m_Player_Dodge;
         public InputAction @Ability_Flash => m_Wrapper.m_Player_Ability_Flash;
         public InputAction @Interact => m_Wrapper.m_Player_Interact;
+        public InputAction @OrbLight => m_Wrapper.m_Player_OrbLight;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -547,6 +592,9 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
             @Interact.started += instance.OnInteract;
             @Interact.performed += instance.OnInteract;
             @Interact.canceled += instance.OnInteract;
+            @OrbLight.started += instance.OnOrbLight;
+            @OrbLight.performed += instance.OnOrbLight;
+            @OrbLight.canceled += instance.OnOrbLight;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -575,6 +623,9 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
             @Interact.started -= instance.OnInteract;
             @Interact.performed -= instance.OnInteract;
             @Interact.canceled -= instance.OnInteract;
+            @OrbLight.started -= instance.OnOrbLight;
+            @OrbLight.performed -= instance.OnOrbLight;
+            @OrbLight.canceled -= instance.OnOrbLight;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -638,5 +689,6 @@ public partial class @PlayerControlls: IInputActionCollection2, IDisposable
         void OnDodge(InputAction.CallbackContext context);
         void OnAbility_Flash(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
+        void OnOrbLight(InputAction.CallbackContext context);
     }
 }
