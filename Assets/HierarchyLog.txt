@@ -1,0 +1,207 @@
+- _Player_v0.1 (Parent: None)
+  [Component] Transform
+  [Component] Animator
+  [Component] PlayerIKLookLimited
+  [Component] CursorLockerAndUnlocker
+  [Component] CharacterController
+  [Component] ThirdPersonBasic
+  [Component] StringscriptAnimatior
+  [Component] DoorInteractor
+  [Component] IsCrouchingControl
+  [Component] PlayerInput
+  [Component] BasicRigidBodyPush
+  [Component] StarterAssetsInputs
+  [Component] VerboseLogger
+  [Component] OrbHandRigLayer
+  [Component] RigBuilder
+  [Component] LampVisionSensor
+  - OrbSocket (Parent: _Player_v0.1)
+    [Component] Transform
+  - PlayerCamThirdPersonPivot (Parent: _Player_v0.1)
+    [Component] Transform
+  - Cylinder (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+    - Plane.006 (Parent: Cylinder)
+      [Component] Transform
+      [Component] MeshFilter
+      [Component] MeshRenderer
+  - GEO-head_animation_realistic.002 (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - metarig.002 (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] BoneRenderer
+    - elbowIK.L (Parent: metarig.002)
+      [Component] Transform
+    - elbowIK.R (Parent: metarig.002)
+      [Component] Transform
+    - heelIK.L (Parent: metarig.002)
+      [Component] Transform
+    - heelIK.R (Parent: metarig.002)
+      [Component] Transform
+    - kneeIK.L (Parent: metarig.002)
+      [Component] Transform
+    - kneeIK.R (Parent: metarig.002)
+      [Component] Transform
+    - spine (Parent: metarig.002)
+      [Component] Transform
+      - pelvis.L (Parent: spine)
+        [Component] Transform
+      - pelvis.R (Parent: spine)
+        [Component] Transform
+      - spine.001 (Parent: spine)
+        [Component] Transform
+        - spine.002 (Parent: spine.001)
+          [Component] Transform
+          - spine.003 (Parent: spine.002)
+            [Component] Transform
+            - shoulder.L (Parent: spine.003)
+              [Component] Transform
+              - upper_arm.L (Parent: shoulder.L)
+                [Component] Transform
+                - forearm.L (Parent: upper_arm.L)
+                  [Component] Transform
+                  - hand.L (Parent: forearm.L)
+                    [Component] Transform
+                    - palm.01.L (Parent: hand.L)
+                      [Component] Transform
+                      - f_index.01.L (Parent: palm.01.L)
+                        [Component] Transform
+                        - f_index.02.L (Parent: f_index.01.L)
+                          [Component] Transform
+                          - f_index.03.L (Parent: f_index.02.L)
+                            [Component] Transform
+                      - thumb.01.L (Parent: palm.01.L)
+                        [Component] Transform
+                        - thumb.02.L (Parent: thumb.01.L)
+                          [Component] Transform
+                          - thumb.03.L (Parent: thumb.02.L)
+                            [Component] Transform
+                    - palm.02.L (Parent: hand.L)
+                      [Component] Transform
+                      - f_middle.01.L (Parent: palm.02.L)
+                        [Component] Transform
+                        - f_middle.02.L (Parent: f_middle.01.L)
+                          [Component] Transform
+                          - f_middle.03.L (Parent: f_middle.02.L)
+                            [Component] Transform
+                    - palm.03.L (Parent: hand.L)
+                      [Component] Transform
+                      - f_ring.01.L (Parent: palm.03.L)
+                        [Component] Transform
+                        - f_ring.02.L (Parent: f_ring.01.L)
+                          [Component] Transform
+                          - f_ring.03.L (Parent: f_ring.02.L)
+                            [Component] Transform
+                    - palm.04.L (Parent: hand.L)
+                      [Component] Transform
+                      - f_pinky.01.L (Parent: palm.04.L)
+                        [Component] Transform
+                        - f_pinky.02.L (Parent: f_pinky.01.L)
+                          [Component] Transform
+                          - f_pinky.03.L (Parent: f_pinky.02.L)
+                            [Component] Transform
+                    - handIK.L (Parent: hand.L)
+                      [Component] Transform
+                      - LeftHandSocket (Parent: handIK.L)
+                        [Component] Transform
+            - shoulder.R (Parent: spine.003)
+              [Component] Transform
+              - upper_arm.R (Parent: shoulder.R)
+                [Component] Transform
+                - forearm.R (Parent: upper_arm.R)
+                  [Component] Transform
+                  - hand.R (Parent: forearm.R)
+                    [Component] Transform
+                    - palm.01.R (Parent: hand.R)
+                      [Component] Transform
+                      - f_index.01.R (Parent: palm.01.R)
+                        [Component] Transform
+                        - f_index.02.R (Parent: f_index.01.R)
+                          [Component] Transform
+                          - f_index.03.R (Parent: f_index.02.R)
+                            [Component] Transform
+                      - thumb.01.R (Parent: palm.01.R)
+                        [Component] Transform
+                        - thumb.02.R (Parent: thumb.01.R)
+                          [Component] Transform
+                          - thumb.03.R (Parent: thumb.02.R)
+                            [Component] Transform
+                    - palm.02.R (Parent: hand.R)
+                      [Component] Transform
+                      - f_middle.01.R (Parent: palm.02.R)
+                        [Component] Transform
+                        - f_middle.02.R (Parent: f_middle.01.R)
+                          [Component] Transform
+                          - f_middle.03.R (Parent: f_middle.02.R)
+                            [Component] Transform
+                    - palm.03.R (Parent: hand.R)
+                      [Component] Transform
+                      - f_ring.01.R (Parent: palm.03.R)
+                        [Component] Transform
+                        - f_ring.02.R (Parent: f_ring.01.R)
+                          [Component] Transform
+                          - f_ring.03.R (Parent: f_ring.02.R)
+                            [Component] Transform
+                    - palm.04.R (Parent: hand.R)
+                      [Component] Transform
+                      - f_pinky.01.R (Parent: palm.04.R)
+                        [Component] Transform
+                        - f_pinky.02.R (Parent: f_pinky.01.R)
+                          [Component] Transform
+                          - f_pinky.03.R (Parent: f_pinky.02.R)
+                            [Component] Transform
+                    - handIK.R (Parent: hand.R)
+                      [Component] Transform
+                      - RightHandSocket (Parent: handIK.R)
+                        [Component] Transform
+            - spine.004 (Parent: spine.003)
+              [Component] Transform
+              - spine.005 (Parent: spine.004)
+                [Component] Transform
+                - Head (Parent: spine.005)
+                  [Component] Transform
+      - thigh.L (Parent: spine)
+        [Component] Transform
+        - shin.L (Parent: thigh.L)
+          [Component] Transform
+          - foot.L (Parent: shin.L)
+            [Component] Transform
+            - toe.L (Parent: foot.L)
+              [Component] Transform
+      - thigh.R (Parent: spine)
+        [Component] Transform
+        - shin.R (Parent: thigh.R)
+          [Component] Transform
+          - foot.R (Parent: shin.R)
+            [Component] Transform
+            - toe.R (Parent: foot.R)
+              [Component] Transform
+  - NurbsPath.004 (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Plane (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Plane.004 (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Plane.005 (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Stylized Female.007 (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Xiona dress (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - GroundCheck (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] MeshFilter
+    [Component] SphereCollider
+  - Rig 1 (Parent: _Player_v0.1)
+    [Component] Transform
+    [Component] Rig
+  - VisionSocket (Parent: _Player_v0.1)
+    [Component] Transform

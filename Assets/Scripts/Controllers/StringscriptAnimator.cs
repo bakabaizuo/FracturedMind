@@ -13,7 +13,7 @@ public class StringscriptAnimatior : MonoBehaviour
     public enum CrouchState { Standing, Entering, Crouched }
     public enum DodgeState { Ready, Dodging, Recovering }
     public enum SprintState { NotSprinting, Sprinting }
-    public enum MovementMode { Idle, Walk, Run, CrouchEnter, CrouchStill, CrouchWalk, Dodge }
+    public enum MovementMode { Idle, Walk, Run, CrouchEnter, CrouchStill, CrouchWalk, Dodge, FlashRun }
 
     [Header("References")]
     [SerializeField] private Animator animator;
@@ -51,11 +51,16 @@ public class StringscriptAnimatior : MonoBehaviour
     [SerializeField] private string animCrouchStill = "CrouchingStill_Absolute";
     [SerializeField] private string animCrouchWalk = "CrouchWalk_Absolute";
     [SerializeField] private string animDodge = "Dodge_Absolute";
+    [SerializeField] private string animFlashRun = "SuperRun"; // clip to play during flash ability
 
     [Header("Crouch Enter Timing")]
     [SerializeField] private bool useCrouchEnterClipLength = true;
     [SerializeField] private AnimationClip crouchEnterClipOverride;
     [SerializeField] private float crouchEnterAnimSpeed = 0.8f;
+
+    [Header("Flash Ability")]
+    // duration the flash-run animation/mode remains active; bumped so player can see it clearly
+    [SerializeField] private float flashRunDuration = 1.5f;
     private string currentState;
     private Coroutine transitionCoroutine;
     private string currentAnimation = "";
@@ -85,9 +90,11 @@ public class StringscriptAnimatior : MonoBehaviour
 
     private int dodgeToken;
     private bool dodgeEndEventReceived;
+    private float flashRunUntil;
 
     public MovementMode Mode { get; private set; } = MovementMode.Idle;
     public float DodgeDuration => dodgeDuration;
+    public bool IsFlashRunActive => Time.time < flashRunUntil;
 
     // State flags for movement + other systems
     public bool IsCrouched => crouchState == CrouchState.Crouched;
@@ -115,6 +122,9 @@ public class StringscriptAnimatior : MonoBehaviour
         ChangeAnimation(animIdle);
         StartCoroutine(ChangeIdle());
 
+        // report configured flash duration at startup
+        VerboseLogger.SafeLog($"[Animator] flashRunDuration field={flashRunDuration}");
+
         // Help diagnose "no dodge logs" confusion: this prints once per play session.
         if (!debugDodge)
             VerboseLogger.SafeLog("[Dodge] debugDodge is OFF. Enable 'Debug Dodge' on StringscriptAnimatior to capture dodge traces.");
@@ -132,6 +142,16 @@ public class StringscriptAnimatior : MonoBehaviour
 
     // Input driver API
     public void SetSprint(bool on) => sprintState = on ? SprintState.Sprinting : SprintState.NotSprinting;
+
+    public void OnFlashAbilityTriggered(float durationOverride = -1f)
+    {
+        float duration = durationOverride > 0f ? durationOverride : flashRunDuration;
+        if (duration <= 0f)
+            return;
+
+        VerboseLogger.SafeLog($"[Animator] flash ability triggered (override={durationOverride}), field={flashRunDuration}, final={duration:0.000}");
+        flashRunUntil = Mathf.Max(flashRunUntil, Time.time + duration);
+    }
 
     public void RequestCrouchToggle()
     {
@@ -408,6 +428,13 @@ public class StringscriptAnimatior : MonoBehaviour
             return;
         }
 
+        // flash run gets priority regardless of movement
+        if (IsFlashRunActive)
+        {
+            Mode = MovementMode.FlashRun;
+            return;
+        }
+
         if (!isMoving)
         {
             Mode = MovementMode.Idle;
@@ -417,27 +444,70 @@ public class StringscriptAnimatior : MonoBehaviour
         Mode = IsSprinting ? MovementMode.Run : MovementMode.Walk;
     }
 
+    private MovementMode lastMode = MovementMode.Idle; // remember previous mode for transitions
+
     private void TickAnimationByMode()
     {
+        // if we just came out of flash, play the next animation with a longer crossfade
+        if (lastMode == MovementMode.FlashRun && Mode != MovementMode.FlashRun)
+        {
+            VerboseLogger.SafeLog($"[Animator] exiting flash -> new mode {Mode}");
+            switch (Mode)
+            {
+                case MovementMode.CrouchStill:
+                    ChangeAnimation(animCrouchStill, 0.2f);
+                    break;
+                case MovementMode.CrouchWalk:
+                    ChangeAnimationFast(animCrouchWalk); // still snappy for walk
+                    break;
+                case MovementMode.Idle:
+                    ChangeAnimation(animIdle, 0.2f);
+                    break;
+                case MovementMode.Walk:
+                    ChangeAnimationFast("Walk_N_Absolute");
+                    break;
+                case MovementMode.Run:
+                    ChangeAnimationFast("Run_N_Absolute");
+                    break;
+                default:
+                    // fallback to normal logic below
+                    goto normal;
+            }
+            lastMode = Mode;
+            return;
+        }
+
+    normal:
         switch (Mode)
         {
             case MovementMode.Dodge:
             case MovementMode.CrouchEnter:
+                lastMode = Mode;
                 return; // routines play/hold these
 
             case MovementMode.CrouchStill:
                 ChangeAnimation(animCrouchStill, crouchStillCrossfade);
+                lastMode = Mode;
                 return;
 
             case MovementMode.CrouchWalk:
                 ChangeAnimationFast(animCrouchWalk);
+                lastMode = Mode;
                 return;
 
             case MovementMode.Idle:
             case MovementMode.Walk:
             case MovementMode.Run:
+                CheckAnimation(); // preserves N/S/E/W logic
+                lastMode = Mode;
+                return;
+            case MovementMode.FlashRun:
+                ChangeAnimation(animFlashRun, 0.1f);
+                lastMode = Mode;
+                return;
             default:
                 CheckAnimation(); // preserves N/S/E/W logic
+                lastMode = Mode;
                 return;
         }
     }
@@ -501,7 +571,7 @@ private void CheckAnimation()
     // Standing/walking/running branch DO NOT EDIT OR CHANGE THIS FUNCTION unless HAVE ANIMATIONS
     if (isMoving)
     {
-        bool isRunning = IsSprinting;
+        bool isRunning = IsSprinting || Mode == MovementMode.FlashRun;
         if(Mathf.Abs(movement.y) > Mathf.Abs(movement.x))
         {
             ChangeAnimationFast(isRunning ? 
@@ -573,6 +643,24 @@ private void CheckAnimation()
     {
         if (currentAnimation != animation)
         {
+            VerboseLogger.SafeLog($"[Animator] ChangeAnimation requested '{animation}' crossfade={crossfade}");
+            if (animator != null)
+            {
+                int layer = 0; // always using base layer
+                int hash = Animator.StringToHash(animation);
+                if (!animator.HasState(layer, hash))
+                {
+                    VerboseLogger.SafeLog($"[Animator] WARNING: state '{animation}' not found on layer {layer}");
+                    // dump available states once for debugging
+                    var clips = animator.runtimeAnimatorController != null ? animator.runtimeAnimatorController.animationClips : null;
+                    if (clips != null)
+                    {
+                        string names = string.Join(", ", System.Array.ConvertAll(clips, c => c != null ? c.name : "<null>"));
+                        VerboseLogger.SafeLog($"[Animator] controller clips: {names}");
+                    }
+                }
+            }
+
             currentAnimation = animation;
             animator.CrossFade(animation, crossfade);
         }
@@ -587,6 +675,14 @@ private void CheckAnimation()
     {
         if (currentAnimation != animation)
         {
+            VerboseLogger.SafeLog($"[Animator] ChangeAnimationFast requested '{animation}'");
+            if (animator != null)
+            {
+                int layer = 0;
+                int hash = Animator.StringToHash(animation);
+                if (!animator.HasState(layer, hash))
+                    VerboseLogger.SafeLog($"[Animator] WARNING: state '{animation}' not found (fast)");
+            }
             currentAnimation = animation;
             animator.CrossFade(animation, 0.05f); // Snappier blend for movement
         }

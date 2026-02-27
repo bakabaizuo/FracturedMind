@@ -67,16 +67,23 @@ namespace FracturedStudios.Abilities{
     public void Cast(AbilityFlags flags){
       //Get data of skill to cast
       var skill = atlas[flags];
+      if(skill == null){
+          Debug.LogWarning($"[AbilityCaster] no data for flags {flags}");
+          return;
+      }
+      VerboseLogger.SafeLog($"[AbilityCaster] request cast {flags} waiting={skill.Waiting} delay={skill.Delay}ms");
       //Trigger the skill especially if not in cooldown
       if(skill.Waiting)
         return;
       skill?.Casting();
+      VerboseLogger.SafeLog($"[AbilityCaster] {flags} invoked subscribers");
       skill.Waiting = true;
       //TODO: have a way to cancel if a component is destroyed/if game is closed
       //Asynchronously run the cooldown timer
       Task.Run(async ()=> {
         await Task.Delay(skill.Delay);
         skill.Waiting = false;
+        VerboseLogger.SafeLog($"[AbilityCaster] {flags} cooldown expired");
       });
     }
   }

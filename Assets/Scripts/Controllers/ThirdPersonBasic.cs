@@ -63,7 +63,7 @@ public class ThirdPersonBasic : MonoBehaviour
 
     [Header("Abilities")]
     [SerializeField] private float flashMoveMultiplier = 3.6f; // speed multiplier during flash effect
-    [SerializeField] private float flashMoveDuration = 1.0f;   // duration of movement mod
+    [SerializeField] private float flashMoveDuration = 1.5f;   // duration of movement mod (match animator)
     private float flashMoveTimer;
     // Sprint boost (temporary speed modifier triggered by tap-sprint)
     private float sprintBoostTimer = 0f;
@@ -309,10 +309,17 @@ private void OnDrawGizmosSelected()
         return transform.eulerAngles.y;
     }
 
-    public void OnFlashAbilityTriggered()
+    public void OnFlashAbilityTriggered(float overrideMultiplier = -1f, float overrideDuration = -1f)
     {
-        // Movement debuff when flash ability is used; future effects can be added here.
-        flashMoveTimer = flashMoveDuration;
+        float moveMultiplier = overrideMultiplier > 1f ? overrideMultiplier : flashMoveMultiplier;
+        float moveDuration = overrideDuration > 0f ? overrideDuration : flashMoveDuration;
+
+        if (moveMultiplier <= 1f || moveDuration <= 0f)
+            return;
+
+        VerboseLogger.SafeLog($"[Movement] flash triggered mult={moveMultiplier} dur={moveDuration}");
+        flashMoveMultiplier = moveMultiplier;
+        flashMoveTimer = moveDuration;
     }
 
     /// <summary>

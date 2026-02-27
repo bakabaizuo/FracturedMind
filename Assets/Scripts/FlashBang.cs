@@ -37,6 +37,7 @@ public class FlashBang : MonoBehaviour
       // BlindScreen.SetActive(false);
     }
     public void Flash(){
+      VerboseLogger.SafeLog("[FlashBang] Flash() called");
       if(BlindScreen == null)
         BlindScreen = GameObject.FindWithTag("Flash");
       BlindScreen.SetActive(true);

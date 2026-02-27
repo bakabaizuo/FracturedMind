@@ -1,278 +1,231 @@
-using System;
 using UnityEngine;
-using FracturedStudios.Components;
 using UnityEngine.InputSystem;
 
 
 namespace FracturedStudios.RigLayers
 {
-    /// <summary>
-    /// Simple IK-like rig layer for driving hand targets for held items (eg. an Orb).
-    /// - Supports two modes: Avatar offsets (local-space offsets from a hand transform) or explicit socket Transforms.
-    /// - Smoothly blends weight and target position/rotation.
-    /// - Intended to be attached to the character (or rig root) and driven by an Item when equipped.
-    /// </summary>
     [DisallowMultipleComponent]
     public class OrbHandRigLayer : MonoBehaviour
     {
-        public enum TargetMode { AvatarOffset, Socket }
+        public enum DrivenHand { Left, Right }
 
-        [Header("General")]
-        public TargetMode mode = TargetMode.AvatarOffset;
-        [Tooltip("If true the layer updates in LateUpdate to better align with animations.")]
-        public bool updateInLateUpdate = true;
+        private const string OrbSocketName = "OrbSocket";
 
-        [Header("Weight")]
-        [Range(0f,1f)] public float weight = 1f;
-        [Tooltip("Blend speed for weight changes")]
-        public float weightBlendSpeed = 6f;
+        [SerializeField] private DrivenHand drivenHand = DrivenHand.Left;
+        [SerializeField] private bool updateInLateUpdate = true;
+        [SerializeField] private Animator avatarAnimator;
+        [SerializeField] private GameObject OrbSocket;
+        [SerializeField] [Range(0f, 1f)] private float weight = 1f;
+        [SerializeField] private float weightBlendSpeed = 12f;
+        [SerializeField] private float positionSmooth = 16f;
+        [SerializeField] private float rotationSmooth = 16f;
+        [SerializeField] private Vector3 handRotationOffsetEuler = new Vector3(0f, 0f, -180f);
+        [SerializeField] private Vector3 handHoldOffsetLocal = new Vector3(0f, 0f, 0.18f);
+        [SerializeField] private float moveForwardBiasMax = 0.08f;
+        [SerializeField] private float moveSpeedForMaxBias = 4f;
 
-        [Header("Avatar Offset Mode")]
-        [Tooltip("Transform to use as reference for avatar (eg. hand transform or wrist).")]
-        public Transform avatarReference;
-        [Tooltip("Animator on the avatar/player to apply IK to (optional).")]
-        public Animator avatarAnimator;
-        [Tooltip("Local-space offset from avatarReference for the target")]
-        public Vector3 avatarLocalPosition = Vector3.zero;
-        [Tooltip("Local-space rotation offset from avatarReference (euler)")]
-        public Vector3 avatarLocalEuler = Vector3.zero;
+        // if set, instantiate this prefab as the orb light; otherwise a plain GameObject will be created
+        [SerializeField] private GameObject orbLightPrefab;
+        // runtime-created orb light helper
+        private GameObject orbLightObj;
+        // local offset to apply after parenting (so TickRig can reapply it)
+        private Vector3 orbLightLocalOffset = Vector3.zero;
 
-        [Header("Socket Mode")]
-        [Tooltip("Optional explicit socket Transform for the target")]
-        public Transform socketTarget;
-        [Tooltip("Name of the child GameObject to use/create as an orb socket on the avatar reference")]
-        public string orbSocketName = "OrbSocket";
-        [Tooltip("If true and no socket is found, the component will create a child GameObject named `orbSocketName` on the avatar reference when SetSocketFromAvatarOffset is called.")]
-        public bool autoCreateOrbSocket = true;
-
-        [Header("Smoothing")]
-        public float positionSmooth = 12f;
-        public float rotationSmooth = 12f;
-
-        [Header("Sockets")]
-        [Tooltip("Left hand socket (OrbSocket by default)")]
-        public Transform leftHandSocket;
-        [Tooltip("Right hand socket")]
-        public Transform rightHandSocket;
-        [Tooltip("Left target socket (where orb target should be when grabbed)")]
-        public Transform leftTargetSocket;
-        [Tooltip("Right target socket")]
-        public Transform rightTargetSocket;
-        [Tooltip("Reference to the OrbSocket GameObject (created/found by SetSocketFromAvatarOffset)")]
-        public GameObject OrbSocket;
-           private PlayerControlls inputs;
-        // runtime
+        private PlayerControlls inputs;
         private Vector3 _currentPosition;
         private Quaternion _currentRotation;
-        private float _currentWeight = 0f;
-        // delta-time field (frame delta assigned where needed, not in Update/LateUpdate)
-        private float dt;
-
-        // public read-only
-        public Vector3 CurrentPosition => _currentPosition;
-        public Quaternion CurrentRotation => _currentRotation;
-        public float CurrentWeight => _currentWeight;
-
-        // operator state for grabbing the orb (can be toggled via input)
-        private bool _grabOrbOperator = false;
-        public bool GrabOrb { get => _grabOrbOperator; private set => _grabOrbOperator = value; }
+        private float _currentWeight;
+        private CharacterController characterController;
+        private bool grabOrb;
 
         void Start()
         {
-            _currentPosition = transform.position;
-            _currentRotation = transform.rotation;
+            Debug.Log("OrbHandRigLayer.Start() running");
+            characterController = GetComponent<CharacterController>();
+
+            if (avatarAnimator == null)
+                avatarAnimator = GetComponent<Animator>();
+
+            if (OrbSocket == null)
+                OrbSocket = FindDeepChild(transform, OrbSocketName)?.gameObject;
+
+            if (OrbSocket == null)
+                Debug.LogWarning("OrbHandRigLayer: OrbSocket not found.");
+
+            // ensure an Orblight object attached to the left hand bone exists
+            EnsureOrbLight();
+
+            _currentPosition = OrbSocket != null ? OrbSocket.transform.position : transform.position;
+            _currentRotation = OrbSocket != null ? OrbSocket.transform.rotation : transform.rotation;
             _currentWeight = 0f;
-            // initialize input wrapper once and subscribe to events
-            if (inputs == null)
+
+            inputs = new PlayerControlls();
+            var action = inputs.Player.OrbLight;
+            if (action != null)
             {
-                inputs = new PlayerControlls();
-                var action = inputs.Player.OrbLight;
-                if (action != null)
-                {
-                    action.started += OnOrbLightStarted;
-                    action.performed += OnOrbLightPerformed;
-                    action.canceled += OnOrbLightCanceled;
-                }
-                inputs.Enable();
+                // toggle the light each time the action is performed
+                action.performed += OnOrbLightPerformed;
+                // no longer use canceled at all
             }
+            inputs.Enable();
         }
-        void Reset()
-        {
-            OrbSocket = null;
-             dt = Time.deltaTime;
-                _currentWeight = Mathf.MoveTowards(_currentWeight, 0f, weightBlendSpeed * dt);
-               
-                _currentPosition = Vector3.Lerp(_currentPosition, transform.position, 1f - Mathf.Exp(-positionSmooth * dt * 0.5f));
-                _currentRotation = Quaternion.Slerp(_currentRotation, transform.rotation, 1f - Mathf.Exp(-rotationSmooth * dt * 0.5f));
-            
-            return;
-        }
-      
 
         void LateUpdate()
         {
-         
+            if (updateInLateUpdate)
+                TickRig(Time.deltaTime);
+        }
+
+        void Update()
+        {
+            if (!updateInLateUpdate)
+                TickRig(Time.deltaTime);
+        }
+
+        private void TickRig(float deltaTime)
+        {
+            GrabOrbSocketTarget(deltaTime);
+
+            // keep prefab jointed exactly to hand bone even if animations move it
+            if (orbLightObj != null && orbLightObj.transform.parent != null)
+            {
+                orbLightObj.transform.localPosition = orbLightLocalOffset;
+                orbLightObj.transform.localRotation = Quaternion.identity;
+            }
         }
 
         private void GrabOrbSocketTarget(float dt)
         {
-            // Use GrabOrb as operator: when true we actively drive the rig towards the grab target.
-            if (GrabOrb)
-            {
+            if (grabOrb)
                 GrabOrbTarget();
-            }
             else
-            {
-                // when not grabbing, blend weight back to zero and do a light position snap toward rest
                 _currentWeight = Mathf.MoveTowards(_currentWeight, 0f, weightBlendSpeed * dt);
-                // Optionally, slowly relax position to the component transform
-                _currentPosition = Vector3.Lerp(_currentPosition, transform.position, 1f - Mathf.Exp(-positionSmooth * dt * 0.5f));
-                _currentRotation = Quaternion.Slerp(_currentRotation, transform.rotation, 1f - Mathf.Exp(-rotationSmooth * dt * 0.5f));
-            }
         }
 
-        /// <summary>
-        /// Drive the rig toward the current grab target. This contains the previous Tick() logic.
-        /// Uses left-hand sockets by convention when available (OrbSocket = leftHandSocket).
-        /// </summary>
         public void GrabOrbTarget()
         {
-            // target defaults
-            dt = Time.deltaTime;
-            Vector3 targetPos = transform.position;
-            Quaternion targetRot = transform.rotation;
+            if (OrbSocket == null)
+                return;
 
-           
-            if (leftTargetSocket != null)
-            {
-                targetPos = leftTargetSocket.position;
-                targetRot = leftTargetSocket.rotation;
-            }
-            else if (rightTargetSocket != null)
-            {
-                targetPos = rightTargetSocket.position;
-                targetRot = rightTargetSocket.rotation;
-            }
-          
-            if (GrabOrb)
-            {
-                // smooth position/rotation
-                _currentPosition = Vector3.Lerp(_currentPosition, targetPos, 1f - Mathf.Exp(-positionSmooth * dt));
-                _currentRotation = Quaternion.Slerp(_currentRotation, targetRot, 1f - Mathf.Exp(-rotationSmooth * dt));
+            float dt = Time.deltaTime;
+            Vector3 targetPos = OrbSocket.transform.position;
+            Quaternion targetRot = OrbSocket.transform.rotation * Quaternion.Euler(handRotationOffsetEuler);
 
-                // blend weight towards desired (operator GrabOrb overrides public `weight` desired value)
-                float desired = GrabOrb ? 1f : weight;
-                _currentWeight = Mathf.MoveTowards(_currentWeight, desired, weightBlendSpeed * dt);
-            }
-}
+            targetPos += transform.TransformVector(handHoldOffsetLocal);
 
-        public bool CheckGrabOrbTarget()
-        {
-            // fallback check using the input action 'triggered' flag (useful when polling)
-            if (inputs == null)
+            float forwardBias = GetMovementForwardBias();
+            if (forwardBias > 0f)
             {
-                inputs = new PlayerControlls();
-                inputs.Enable();
-                var a = inputs.Player.OrbLight;
-                if (a != null)
-                {
-                    a.started += OnOrbLightStarted;
-                    a.performed += OnOrbLightPerformed;
-                    a.canceled += OnOrbLightCanceled;
-                }
-            }
-/*
-            var action = inputs.Player?.OrbLight;
-            bool triggered = action != null && action.triggered;
-            if (triggered)
-            {
-                // toggle the grab operator on each tap
-                GrabOrb = !GrabOrb;
-                Debug.Log($"OrbHandRigLayer: GrabOrb toggled to {GrabOrb} (triggered by input action '{action?.name}')");
+                Vector3 horizontalForward = transform.forward;
+                horizontalForward.y = 0f;
+                if (horizontalForward.sqrMagnitude > 0.0001f)
+                    horizontalForward.Normalize();
+                else
+                    horizontalForward = Vector3.forward;
+
+                targetPos += horizontalForward * forwardBias;
             }
 
-            return triggered;
-            */
-            return false; // input handling is now event-driven, so this method can return false or be repurposed for polling if needed.
+            _currentPosition = Vector3.Lerp(_currentPosition, targetPos, 1f - Mathf.Exp(-positionSmooth * dt));
+            _currentRotation = Quaternion.Slerp(_currentRotation, targetRot, 1f - Mathf.Exp(-rotationSmooth * dt));
+            _currentWeight = Mathf.MoveTowards(_currentWeight, weight, weightBlendSpeed * dt);
         }
 
-        // Input callbacks
+        private float GetMovementForwardBias()
+        {
+            if (characterController == null || moveForwardBiasMax <= 0f || moveSpeedForMaxBias <= 0f)
+                return 0f;
+
+            Vector3 velocity = characterController.velocity;
+            velocity.y = 0f;
+            float speed = velocity.magnitude;
+            if (speed <= 0.001f)
+                return 0f;
+
+            float factor = Mathf.Clamp01(speed / moveSpeedForMaxBias);
+            return moveForwardBiasMax * factor;
+        }
+
+        // no longer used (handled in Performed)
         private void OnOrbLightStarted(InputAction.CallbackContext ctx)
         {
-            // started can be used for hold-to-grab semantics
-            GrabOrb = true;
         }
 
         private void OnOrbLightPerformed(InputAction.CallbackContext ctx)
         {
-            // performed is commonly used for button taps; toggle operator
-            ToggleGrabOperator();
+            if (orbLightObj != null)
+            {
+                bool now = !orbLightObj.activeSelf;
+                orbLightObj.SetActive(now);
+                grabOrb = now; // only grab when visible
+            }
         }
 
+        // canceled handler no longer used
         private void OnOrbLightCanceled(InputAction.CallbackContext ctx)
         {
-            // canceled can end hold-to-grab
-            GrabOrb = false;
-        }
-
-        private void ToggleGrabOperator()
-        {
-            GrabOrb = !GrabOrb;
-            Debug.Log($"OrbHandRigLayer: GrabOrb toggled to {GrabOrb} (via input event)");
-        }
-        /// <summary>
-        /// Set explicit socket by transform.
-        /// </summary>
-        public void SetSocket(Transform socket)
-        {
-            socketTarget = socket;
-            mode = (socket != null) ? TargetMode.Socket : mode;
         }
 
         /// <summary>
-        /// Set a hand socket (left==true => leftHandSocket)
+        /// Finds or creates the Orblight GameObject parented to the left-hand bone.
+        /// Object is created inactive so it can be toggled on/off externally.
         /// </summary>
-        public void SetHandSocket(bool left, Transform socket)
+        private void EnsureOrbLight()
         {
-            if (left) leftHandSocket = socket; else rightHandSocket = socket;
-        }
+            if (orbLightObj != null)
+                return;
 
-        /// <summary>
-        /// Set a target socket (left==true => leftTargetSocket)
-        /// </summary>
-        public void SetTargetSocket(bool left, Transform socket)
-        {
-            if (left) leftTargetSocket = socket; else rightTargetSocket = socket;
-        }
+            // try to find existing by name anywhere under this transform
+            var existing = FindDeepChild(transform, "Orblight");
+            if (existing != null)
+            {
+                orbLightObj = existing.gameObject;
+                Debug.Log("OrbHandRigLayer: found existing Orblight object, skipping creation.");
+                return;
+            }
 
-        /// <summary>
-        /// Set avatar reference and local offset.
-        /// </summary>
-        public void SetAvatarReference(Transform avatarRef, Vector3 localPos, Vector3 localEuler)
-        {
-            avatarReference = avatarRef;
-            avatarLocalPosition = localPos;
-            avatarLocalEuler = localEuler;
-            mode = TargetMode.AvatarOffset;
-        }
+            // locate the hand bone - name contains "hand.L" (case-insensitive)
+            Transform handBone = null;
+            foreach (var t in GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name.ToLower().Contains("hand.l"))
+                {
+                    handBone = t;
+                    break;
+                }
+            }
 
-        /// <summary>
-        /// Overload to set the avatar via an Animator (preferred when using Unity's IK).
-        /// </summary>
-        public void SetAvatarReference(Animator animatorRef, Vector3 localPos, Vector3 localEuler)
-        {
-            avatarAnimator = animatorRef;
-            avatarReference = animatorRef != null ? animatorRef.transform : null;
-            avatarLocalPosition = localPos;
-            avatarLocalEuler = localEuler;
-            mode = TargetMode.AvatarOffset;
-        }
+            if (handBone == null)
+            {
+                Debug.LogWarning("OrbHandRigLayer: could not find Hand.L bone to attach Orblight");
+                return;
+            }
 
+            if (orbLightPrefab != null)
+            {
+                orbLightObj = Instantiate(orbLightPrefab, handBone, false);
+                orbLightObj.name = "Orblight"; // ensure consistent name
+                Debug.Log("OrbHandRigLayer: instantiated orbLightPrefab under handBone");
+            }
+            else
+            {
+                orbLightObj = new GameObject("Orblight");
+                orbLightObj.transform.SetParent(handBone, false);
+                orbLightObj.transform.localPosition = Vector3.zero;
+                orbLightObj.transform.localRotation = Quaternion.identity;
+                Debug.Log("OrbHandRigLayer: created empty Orblight object under handBone");
+            }
+            // apply requested size and slight green offset
+            orbLightObj.transform.localScale = Vector3.one * 0.0014f;  // even smaller
+            orbLightLocalOffset = new Vector3(0.001f, 0.001f, -0.001f);
+            orbLightObj.transform.localPosition = orbLightLocalOffset;
+            orbLightObj.SetActive(false); // always start disabled
+        }
         void OnDisable()
         {
             if (inputs != null)
             {
-                var a = inputs.Player?.OrbLight;
+                var a = inputs.Player.OrbLight;
                 if (a != null)
                 {
                     a.started -= OnOrbLightStarted;
@@ -283,30 +236,34 @@ namespace FracturedStudios.RigLayers
             }
         }
 
-        /// <summary>
-        /// Apply IK each frame when the Animator calls OnAnimatorIK.
-        /// Uses the smoothed `_currentPosition`/`_currentRotation` and `_currentWeight` computed by the rig.
-        /// </summary>
         void OnAnimatorIK(int layerIndex)
         {
             if (avatarAnimator == null) return;
 
             float w = Mathf.Clamp01(_currentWeight);
 
-            // Left hand
-            if (leftTargetSocket != null || rightTargetSocket != null)
+            if (OrbSocket != null)
             {
-                // prefer left when available
-                avatarAnimator.SetIKPositionWeight(AvatarIKGoal.LeftHand, w);
-                avatarAnimator.SetIKRotationWeight(AvatarIKGoal.LeftHand, w);
-                avatarAnimator.SetIKPosition(AvatarIKGoal.LeftHand, _currentPosition);
-                avatarAnimator.SetIKRotation(AvatarIKGoal.LeftHand, _currentRotation);
+                if (drivenHand == DrivenHand.Left)
+                {
+                    avatarAnimator.SetIKPositionWeight(AvatarIKGoal.LeftHand, w);
+                    avatarAnimator.SetIKRotationWeight(AvatarIKGoal.LeftHand, w);
+                    avatarAnimator.SetIKPosition(AvatarIKGoal.LeftHand, _currentPosition);
+                    avatarAnimator.SetIKRotation(AvatarIKGoal.LeftHand, _currentRotation);
 
-                // Right hand
-                avatarAnimator.SetIKPositionWeight(AvatarIKGoal.RightHand, w);
-                avatarAnimator.SetIKRotationWeight(AvatarIKGoal.RightHand, w);
-                avatarAnimator.SetIKPosition(AvatarIKGoal.RightHand, _currentPosition);
-                avatarAnimator.SetIKRotation(AvatarIKGoal.RightHand, _currentRotation);
+                    avatarAnimator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0f);
+                    avatarAnimator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0f);
+                }
+                else
+                {
+                    avatarAnimator.SetIKPositionWeight(AvatarIKGoal.RightHand, w);
+                    avatarAnimator.SetIKRotationWeight(AvatarIKGoal.RightHand, w);
+                    avatarAnimator.SetIKPosition(AvatarIKGoal.RightHand, _currentPosition);
+                    avatarAnimator.SetIKRotation(AvatarIKGoal.RightHand, _currentRotation);
+
+                    avatarAnimator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0f);
+                    avatarAnimator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0f);
+                }
             }
             else
             {
@@ -318,67 +275,22 @@ namespace FracturedStudios.RigLayers
             }
         }
 
-        /// <summary>
-        /// Find or create a child GameObject named by `orbSocketName` on the `avatarReference`, place it at the configured local offset
-        /// and register it as the active socket via `SetSocket`.
-        /// Callable from inspector via Context Menu.
-        /// </summary>
-        [ContextMenu("Set Socket From Avatar Offset")]
-        public void SetSocketFromAvatarOffset()
+        private Transform FindDeepChild(Transform root, string childName)
         {
-            if (avatarReference == null)
+            if (root == null || string.IsNullOrEmpty(childName))
+                return null;
+
+            if (root.name == childName)
+                return root;
+
+            for (int i = 0; i < root.childCount; i++)
             {
-                Debug.LogWarning("OrbHandRigLayer: avatarReference is null - cannot create/find OrbSocket.");
-                return;
+                Transform found = FindDeepChild(root.GetChild(i), childName);
+                if (found != null)
+                    return found;
             }
 
-            // try to find using shared ComponentExtensions helper (searches children/parents/root)
-            Transform found = ComponentExtensions.Find<Transform>(OrbSocket.gameObject, orbSocketName);
-
-            if (found == null )
-            {
-            Debug.LogWarning($"OrbHandRigLayer: OrbSocket named '{orbSocketName}' not found on avatar reference. autoCreateOrbSocket is {(autoCreateOrbSocket ? "enabled" : "disabled")}.");
-            }
-
-            if (found != null)
-            {
-            
-                SetSocket(found);
-                // keep explicit reference and use as left-target socket
-                SetTargetSocket(true, found);
-                // store GameObject reference (OrbSocket is a GameObject)
-                OrbSocket = found.gameObject;
-
-                // If no explicit leftTargetSocket was assigned, use the OrbSocket transform
-                if (leftTargetSocket == null && OrbSocket != null)
-                {
-                    leftTargetSocket = OrbSocket.transform;
-                }
-
-               
-            }
-            else
-            {
-                Reset();
-                
-            }
-        }
-
-        /// <summary>
-        /// Instantly snap current position/rotation to target.
-        /// </summary>
-        public void SnapToTarget()
-        {
-            if (mode == TargetMode.Socket && socketTarget != null)
-            {
-                _currentPosition = socketTarget.position;
-                _currentRotation = socketTarget.rotation;
-            }
-            else if (mode == TargetMode.AvatarOffset && avatarReference != null)
-            {
-                _currentPosition = avatarReference.TransformPoint(avatarLocalPosition);
-                _currentRotation = avatarReference.rotation * Quaternion.Euler(avatarLocalEuler);
-            }
+            return null;
         }
     }
 }

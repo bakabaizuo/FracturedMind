@@ -40,7 +40,18 @@ public class IsCrouchingControl : MonoBehaviour
         var playerMap = input.asset.FindActionMap("Player", throwIfNotFound: true);
         abilityAction0 = playerMap.FindAction("Ability_Flash", throwIfNotFound: false);
         if (abilityAction0 != null)
-            abilityAction0.started += _ => CastAbility();
+        {
+            VerboseLogger.SafeLog("[Input] Ability_Flash action found");
+            abilityAction0.started += ctx =>
+            {
+                VerboseLogger.SafeLog("[Input] Ability_Flash triggered");
+                CastAbility();
+            };
+        }
+        else
+        {
+            VerboseLogger.SafeLog("[Input] Ability_Flash action NOT found in control map");
+        }
         // initialize local caster (value type)
         abilityCaster = new AbilityCaster();
                     
@@ -96,6 +107,14 @@ public class IsCrouchingControl : MonoBehaviour
 
     private void Update()
     {
+        // raw key check for debugging
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+            VerboseLogger.SafeLog("[Input] raw KeyCode.Alpha1 pressed");
+
+        // also log state of action for diagnostics
+        if (abilityAction0 != null && abilityAction0.triggered)
+            VerboseLogger.SafeLog("[Input] abilityAction0.triggered true in Update");
+
         SyncFlagsFromAnimator();
     }
 
@@ -110,22 +129,23 @@ public class IsCrouchingControl : MonoBehaviour
 
     private void CastAbility()
     {
-        // Require FlashBang to be present
-       
         // Now check ability availability; if cooling down, do not run movement mods.
         var data = AbilityAtlas.GetInstance()[AbilityFlags.Skill0];
-        if (data == null || data.Waiting)
+        if (data == null)
+        {
+            VerboseLogger.SafeLog("[Flash] ability data missing");
             return;
+        }
+        if (data.Waiting)
+        {
+            VerboseLogger.SafeLog("[Flash] ability on cooldown, cast ignored");
+            return;
+        }
 
-            //this can be moved to UI but guarded with a check property
-        if (FlashBang.Instance == null)
-                    return;
-
-       
-                FlashBang.Instance.Flash();
-
+        VerboseLogger.SafeLog("[Flash] casting ability (Skill0)");
         // Perform the cast and then apply movement changes.
         abilityCaster.Cast(AbilityFlags.Skill0);
+        animController?.OnFlashAbilityTriggered();
         locomotion?.OnFlashAbilityTriggered();
     }
 }

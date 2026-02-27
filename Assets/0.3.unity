@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 380da8460ee37cb4ea3a64d5174b27ca, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -174,8 +174,8 @@ Light:
   serializedVersion: 10
   m_Type: 1
   m_Shape: 0
-  m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 1
+  m_Color: {r: 0.3490566, g: 0.3437055, b: 0.3276522, a: 1}
+  m_Intensity: 0
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -893,6 +893,12 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 194858348947907639, guid: acca2c5627002484296bff2d34261e84,
+        type: 3}
+      propertyPath: orbLightPrefab
+      value: 
+      objectReference: {fileID: 5902337260047110221, guid: 49f18c18e8409764a8f9bbf42589d9f7,
+        type: 3}
     - target: {fileID: 1906117338941114638, guid: acca2c5627002484296bff2d34261e84,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -948,40 +954,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: _Player_v0.1
       objectReference: {fileID: 0}
-    - target: {fileID: 5248179367011795080, guid: acca2c5627002484296bff2d34261e84,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.8938568
-      objectReference: {fileID: 0}
-    - target: {fileID: 5248179367011795080, guid: acca2c5627002484296bff2d34261e84,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0.4408363
-      objectReference: {fileID: 0}
-    - target: {fileID: 5248179367011795080, guid: acca2c5627002484296bff2d34261e84,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.079807624
-      objectReference: {fileID: 0}
-    - target: {fileID: 5248179367011795080, guid: acca2c5627002484296bff2d34261e84,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0.017722707
-      objectReference: {fileID: 0}
-    - target: {fileID: 6174839528167995341, guid: acca2c5627002484296bff2d34261e84,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.9061161
-      objectReference: {fileID: 0}
     - target: {fileID: 6174839528167995341, guid: acca2c5627002484296bff2d34261e84,
         type: 3}
       propertyPath: m_LocalRotation.x
       value: 0.4150545
-      objectReference: {fileID: 0}
-    - target: {fileID: 6174839528167995341, guid: acca2c5627002484296bff2d34261e84,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.08028249
       objectReference: {fileID: 0}
     - target: {fileID: 6174839528167995341, guid: acca2c5627002484296bff2d34261e84,
         type: 3}
@@ -1011,53 +987,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4889672208279801286, guid: acca2c5627002484296bff2d34261e84,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6064531755763450680}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: acca2c5627002484296bff2d34261e84, type: 3}
---- !u!1 &6064531755763450678 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4889672208279801286, guid: acca2c5627002484296bff2d34261e84,
-    type: 3}
-  m_PrefabInstance: {fileID: 6064531755763450677}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &6064531755763450679 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1906117338941114638, guid: acca2c5627002484296bff2d34261e84,
-    type: 3}
-  m_PrefabInstance: {fileID: 6064531755763450677}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &6064531755763450680
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6064531755763450678}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c701b012201bea48a8d3da6b84f46f5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mode: 0
-  updateInLateUpdate: 1
-  weight: 1
-  weightBlendSpeed: 6
-  avatarReference: {fileID: 6064531755763450679}
-  avatarLocalPosition: {x: 0, y: 0, z: 0}
-  avatarLocalEuler: {x: 0, y: 0, z: 0}
-  socketTarget: {fileID: 0}
-  orbSocketName: OrbSocket
-  autoCreateOrbSocket: 1
-  positionSmooth: 12
-  rotationSmooth: 12
-  leftHandSocket: {fileID: 0}
-  rightHandSocket: {fileID: 0}
-  leftTargetSocket: {fileID: 0}
-  rightTargetSocket: {fileID: 0}
-  OrbSocket: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
