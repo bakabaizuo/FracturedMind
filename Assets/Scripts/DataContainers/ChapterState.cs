@@ -48,6 +48,15 @@ namespace FracturedStudios
         /// </summary>
         public void SetAbilityFlash(bool enabled)
         {
+            // Log changes for debugging
+            try
+            {
+                var st = new System.Diagnostics.StackTrace(1, false);
+                var caller = st.FrameCount > 0 ? st.GetFrame(0)?.GetMethod() : null;
+                var callerName = caller != null ? $"{caller.DeclaringType?.Name}.{caller.Name}" : "<unknown>";
+                UnityEngine.Debug.Log($"[ChapterState] SetAbilityFlash({enabled}) stateId={GetHashCode()} caller={callerName}");
+            }
+            catch { }
             if (enabled) SetFlag(AbilityFlashFlag);
             else ClearFlag(AbilityFlashFlag);
         }
@@ -62,6 +71,7 @@ namespace FracturedStudios
         /// </summary>
         public bool ToggleAbilityFlash()
         {
+            
             bool now = !HasAbilityFlash();
             SetAbilityFlash(now);
             return now;

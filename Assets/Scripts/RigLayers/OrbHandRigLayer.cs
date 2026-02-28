@@ -61,6 +61,7 @@ namespace FracturedStudios.RigLayers
 
             // ensure an Orblight object attached to the left hand bone exists
             EnsureOrbLight();
+            EnsureFlashLight();
 
             _currentPosition = OrbSocket != null ? OrbSocket.transform.position : transform.position;
             _currentRotation = OrbSocket != null ? OrbSocket.transform.rotation : transform.rotation;
@@ -175,6 +176,9 @@ namespace FracturedStudios.RigLayers
         public void TriggerFlash()
         {
             if (flashLightObj == null)
+                EnsureFlashLight();
+
+            if (flashLightObj == null)
             {
                 Debug.LogWarning("OrbHandRigLayer.TriggerFlash: flashLightObj is not assigned in inspector");
                 return;
@@ -256,15 +260,7 @@ namespace FracturedStudios.RigLayers
             }
 
             // locate the hand bone - name contains "hand.L" (case-insensitive)
-            Transform handBone = null;
-            foreach (var t in GetComponentsInChildren<Transform>(true))
-            {
-                if (t.name.ToLower().Contains("hand.l"))
-                {
-                    handBone = t;
-                    break;
-                }
-            }
+            Transform handBone = FindDrivenHandBone();
 
             if (handBone == null)
             {
@@ -291,6 +287,60 @@ namespace FracturedStudios.RigLayers
             orbLightLocalOffset = new Vector3(0.001f, 0.001f, -0.001f);
             orbLightObj.transform.localPosition = orbLightLocalOffset;
             orbLightObj.SetActive(false); // always start disabled
+        }
+
+        private void EnsureFlashLight()
+        {
+            if (flashLightObj != null)
+                return;
+
+            var existing = FindDeepChild(transform, "FlashLight")
+                           ?? FindDeepChild(transform, "Flashlight")
+                           ?? FindDeepChild(transform, "FlashLightObj");
+            if (existing != null)
+            {
+                flashLightObj = existing.gameObject;
+                flashLightObj.SetActive(false);
+                return;
+            }
+
+            var handBone = FindDrivenHandBone();
+            if (handBone == null)
+                return;
+
+            flashLightObj = new GameObject("FlashLightObj");
+            flashLightObj.transform.SetParent(handBone, false);
+            flashLightObj.transform.localPosition = Vector3.zero;
+            flashLightObj.transform.localRotation = Quaternion.identity;
+
+            var light = flashLightObj.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.range = 0f;
+            light.intensity = 2.5f;
+
+            flashLightObj.SetActive(false);
+            Debug.Log("OrbHandRigLayer: created FlashLightObj under handBone");
+        }
+
+        private Transform FindDrivenHandBone()
+        {
+            string needle = drivenHand == DrivenHand.Left ? "hand.l" : "hand.r";
+            foreach (var t in GetComponentsInChildren<Transform>(true))
+            {
+                var lower = t.name.ToLower();
+                if (lower.Contains(needle))
+                    return t;
+            }
+
+            needle = drivenHand == DrivenHand.Left ? "lefthand" : "righthand";
+            foreach (var t in GetComponentsInChildren<Transform>(true))
+            {
+                var lower = t.name.ToLower();
+                if (lower.Contains(needle))
+                    return t;
+            }
+
+            return null;
         }
         void OnDisable()
         {

@@ -614,25 +614,15 @@ private void CheckAnimation()
         if (currentAnimation != animation)
         {
             VerboseLogger.SafeLog($"[Animator] ChangeAnimation requested '{animation}' crossfade={crossfade}");
-            if (animator != null)
-            {
-                int layer = 0; // always using base layer
-                int hash = Animator.StringToHash(animation);
-                if (!animator.HasState(layer, hash))
-                {
-                    VerboseLogger.SafeLog($"[Animator] WARNING: state '{animation}' not found on layer {layer}");
-                    // dump available states once for debugging
-                    var clips = animator.runtimeAnimatorController != null ? animator.runtimeAnimatorController.animationClips : null;
-                    if (clips != null)
-                    {
-                        string names = string.Join(", ", System.Array.ConvertAll(clips, c => c != null ? c.name : "<null>"));
-                        VerboseLogger.SafeLog($"[Animator] controller clips: {names}");
-                    }
-                }
-            }
-
             currentAnimation = animation;
-            animator.CrossFade(animation, crossfade);
+            if (animator == null)
+                return;
+
+            var stateToPlay = ResolveAnimationStateName(animation);
+            if (string.IsNullOrEmpty(stateToPlay))
+                return;
+
+            animator.CrossFade(stateToPlay, crossfade);
         }
     }
 
@@ -646,16 +636,62 @@ private void CheckAnimation()
         if (currentAnimation != animation)
         {
             VerboseLogger.SafeLog($"[Animator] ChangeAnimationFast requested '{animation}'");
-            if (animator != null)
-            {
-                int layer = 0;
-                int hash = Animator.StringToHash(animation);
-                if (!animator.HasState(layer, hash))
-                    VerboseLogger.SafeLog($"[Animator] WARNING: state '{animation}' not found (fast)");
-            }
             currentAnimation = animation;
-            animator.CrossFade(animation, 0.05f); // Snappier blend for movement
+            if (animator == null)
+                return;
+
+            var stateToPlay = ResolveAnimationStateName(animation);
+            if (string.IsNullOrEmpty(stateToPlay))
+                return;
+
+            animator.CrossFade(stateToPlay, 0.05f);
         }
+    }
+
+    private string ResolveAnimationStateName(string requested)
+    {
+        if (string.IsNullOrWhiteSpace(requested) || animator == null)
+            return null;
+
+        bool HasState(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return false;
+            return animator.HasState(0, Animator.StringToHash(name));
+        }
+
+        if (HasState(requested))
+            return requested;
+
+        var stripped = requested.EndsWith("_Absolute") ? requested.Substring(0, requested.Length - "_Absolute".Length) : requested;
+        if (HasState(stripped))
+        {
+            VerboseLogger.SafeLog($"[Animator] fallback state '{requested}' -> '{stripped}'");
+            return stripped;
+        }
+
+        if (requested.StartsWith("Idle"))
+        {
+            if (HasState("Idle"))
+            {
+                VerboseLogger.SafeLog($"[Animator] fallback state '{requested}' -> 'Idle'");
+                return "Idle";
+            }
+            if (HasState(animIdle))
+            {
+                VerboseLogger.SafeLog($"[Animator] fallback state '{requested}' -> '{animIdle}'");
+                return animIdle;
+            }
+        }
+
+        VerboseLogger.SafeLog($"[Animator] WARNING: state '{requested}' not found on layer 0 (crossfade skipped)");
+        var clips = animator.runtimeAnimatorController != null ? animator.runtimeAnimatorController.animationClips : null;
+        if (clips != null)
+        {
+            string names = string.Join(", ", System.Array.ConvertAll(clips, c => c != null ? c.name : "<null>"));
+            VerboseLogger.SafeLog($"[Animator] controller clips: {names}");
+        }
+        return null;
     }
 
     /// <summary>

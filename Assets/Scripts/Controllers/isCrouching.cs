@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using FracturedStudios;
 using FracturedStudios.Abilities;
 using FracturedStudios.RigLayers;
 
@@ -146,6 +147,13 @@ public class IsCrouchingControl : MonoBehaviour
         if (data.Waiting)
         {
             VerboseLogger.SafeLog("[Flash] ability on cooldown, cast ignored");
+            return;
+        }
+
+        // Guard: don't log or trigger visuals if ChapterState forbids the flash ability
+        if (!ChapterStateService.IsFlashAbilityUnlocked())
+        {
+            VerboseLogger.SafeLog("[Flash] blocked by ChapterState (Ability_Flash not unlocked)");
             return;
         }
 
