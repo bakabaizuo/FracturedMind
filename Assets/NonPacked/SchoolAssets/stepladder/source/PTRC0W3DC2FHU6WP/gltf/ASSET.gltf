@@ -1,0 +1,169 @@
+
+{
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "componentType": 5123,
+      "count": 263664,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 52612,
+      "max": [
+        0.21999996185302734,
+        1.43,
+        0.4149999380111694
+      ],
+      "min": [
+        -0.2199999237060547,
+        3.0517578127285317e-07,
+        -0.41499994754791264
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 52612,
+      "name": "UVChannel_1",
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 52612,
+      "type": "VEC3"
+    }
+  ],
+  "asset": {
+    "copyright": "2023 (c) Amazon.com, Inc.",
+    "generator": "encglb version  (post-processed with splitglb)",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 527328,
+      "byteOffset": 0
+    },
+    {
+      "buffer": 0,
+      "byteLength": 631344,
+      "byteOffset": 527328
+    },
+    {
+      "buffer": 0,
+      "byteLength": 420896,
+      "byteOffset": 1158672
+    },
+    {
+      "buffer": 0,
+      "byteLength": 631344,
+      "byteOffset": 1579568
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 2210912,
+      "uri": "ASSET.bin"
+    }
+  ],
+  "extensionsUsed": [
+    "FB_ngon_encoding"
+  ],
+  "images": [
+    {
+      "uri": "normalTexture0.png"
+    },
+    {
+      "uri": "occlusionTexture1.png"
+    },
+    {
+      "uri": "baseColorTexture2.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "extensions": {
+        
+      },
+      "name": "PTRC0W3DC2FHU6WP_MAT_MR",
+      "normalTexture": {
+        "index": 0
+      },
+      "occlusionTexture": {
+        "index": 1
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 2
+        },
+        "metallicRoughnessTexture": {
+          "index": 1
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "ASSET",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 3,
+            "POSITION": 1,
+            "TEXCOORD_0": 2
+          },
+          "extensions": {
+            "FB_ngon_encoding": {
+              
+            }
+          },
+          "indices": 0,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "ASSET"
+    }
+  ],
+  "samplers": [
+    {
+      
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ]
+}
