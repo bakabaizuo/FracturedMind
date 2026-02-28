@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using  FracturedStudios.Invoker;
+using FracturedStudios;
 
 namespace FracturedStudios.UI
 {
@@ -70,6 +71,8 @@ namespace FracturedStudios.UI
             Instance = this;
             if (panel != null) panel.SetActive(true);
             RegisterDefaultCommands();
+            // Track the chapter flag for the flash ability in the tracked-values panel
+            RegisterTrackedValue("Ability_Flash", () => ChapterStateService.IsFlashAbilityUnlocked());
         }
 
         void OnEnable()
@@ -104,6 +107,8 @@ namespace FracturedStudios.UI
 
         void OnDisable()
         {
+            // Clean up tracked value registration
+            UnregisterTrackedValue("Ability_Flash");
             try { _registrationToken?.Dispose(); } catch { }
 
             try
@@ -245,6 +250,36 @@ namespace FracturedStudios.UI
             RegisterCommand("clear", args => { _messages.Clear(); RefreshText(); });
             RegisterCommand("help", args => { AddMessage("Available commands: clear, help, last,  (use 'help <cmd>' for details)"); });
             RegisterCommand("last", args => { if (_messages.Count>0) AddMessage(_messages.Peek()); });
+            RegisterCommand("flashflag", args => {
+                // Usage: flashflag [on|off|toggle|status]
+                if (args.Length == 0)
+                {
+                    AddMessage($"FlashAbility: {ChapterStateService.IsFlashAbilityUnlocked()}");
+                    return;
+                }
+                var op = args[0].ToLower();
+                switch (op)
+                {
+                    case "on":
+                        ChapterStateService.Current.SetAbilityFlash(true);
+                        AddMessage("FlashAbility set: ON");
+                        break;
+                    case "off":
+                        ChapterStateService.Current.SetAbilityFlash(false);
+                        AddMessage("FlashAbility set: OFF");
+                        break;
+                    case "toggle":
+                        bool now = ChapterStateService.Current.ToggleAbilityFlash();
+                        AddMessage($"FlashAbility toggled: {now}");
+                        break;
+                    case "status":
+                        AddMessage($"FlashAbility: {ChapterStateService.IsFlashAbilityUnlocked()}");
+                        break;
+                    default:
+                        AddMessage("Usage: flashflag [on|off|toggle|status]");
+                        break;
+                }
+            });
             RegisterCommand("flags", args => { showActiveFlags = !showActiveFlags; AddMessage("ShowFlags: " + showActiveFlags); if (!showActiveFlags) { if (trackedValuesTextTMP != null) trackedValuesTextTMP.text = string.Empty; if (ActiveFLAGSTextTMP != null) ActiveFLAGSTextTMP.text = string.Empty; } else UpdateTrackedValuesDisplay(); });
             RegisterCommand("backplane", args => { if (args.Length == 0) { AddMessage("Usage: backplane <index>"); return; } if (int.TryParse(args[0], out var idx)) { SetBackplaneIndex(idx); AddMessage($"Backplane set to {idx}"); } else AddMessage("Invalid index"); });
             RegisterCommand("panel", args => {

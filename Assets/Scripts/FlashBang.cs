@@ -36,9 +36,21 @@ public class FlashBang : MonoBehaviour
       }
       // BlindScreen.SetActive(false);
     }
-    public void Flash(){
+    /// <summary>
+    /// Initiates the flash visual effect.
+    /// </summary>
+    /// <remarks>
+    /// This method is subscribed to the Skill0 ability data via
+    /// <c>AbilityAtlas.GetInstance()[AbilityFlags.Skill0].Subscribe(Flash)</c>.
+    /// Casting of Skill0 is guarded by <see cref="FracturedStudios.Abilities.AbilityCaster.Cast(FracturedStudios.Abilities.AbilityFlags)"/>,
+    /// which checks <see cref="FracturedStudios.ChapterStateService.IsFlashAbilityUnlocked()"/> and will block the cast
+    /// when the <c>Ability_Flash</c> chapter flag is not set. This ensures the visual effect cannot be triggered by the
+    /// normal ability path until the player has unlocked the flash ability.
+    /// </remarks>
+    public void Flash()
+    {
       VerboseLogger.SafeLog("[FlashBang] Flash() called");
-      if(BlindScreen == null)
+      if (BlindScreen == null)
         BlindScreen = GameObject.FindWithTag("Flash");
       BlindScreen.SetActive(true);
       StartCoroutine(Dim());

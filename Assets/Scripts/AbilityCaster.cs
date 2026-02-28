@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Threading.Tasks;
+using FracturedStudios;
 namespace FracturedStudios.Abilities{
 
   //this enum contains flags for each ability. each flag is equivalent to a bitmask.
@@ -71,6 +72,12 @@ namespace FracturedStudios.Abilities{
           Debug.LogWarning($"[AbilityCaster] no data for flags {flags}");
           return;
       }
+      // Heuristic guard: prevent flash (Skill0) until ChapterState grants the Ability_Flash flag
+      if (flags == AbilityFlags.Skill0 && !ChapterStateService.IsFlashAbilityUnlocked())
+      {
+        VerboseLogger.SafeLog("[AbilityCaster] Skill0 blocked by ChapterState (Ability_Flash not unlocked)");
+        return;
+      }
       VerboseLogger.SafeLog($"[AbilityCaster] request cast {flags} waiting={skill.Waiting} delay={skill.Delay}ms");
       //Trigger the skill especially if not in cooldown
       if(skill.Waiting)
@@ -78,12 +85,28 @@ namespace FracturedStudios.Abilities{
       skill?.Casting();
       VerboseLogger.SafeLog($"[AbilityCaster] {flags} invoked subscribers");
       skill.Waiting = true;
-      //TODO: have a way to cancel if a component is destroyed/if game is closed
-      //Asynchronously run the cooldown timer
+      // Asynchronously run the cooldown timer but cancel if the WorldBridgeSystem signals shutdown
+      var shutdownToken = CancellationToken.None;
+      try { shutdownToken = WorldBridgeSystem.Instance?.GetShutdownToken() ?? CancellationToken.None; } catch { shutdownToken = CancellationToken.None; }
       Task.Run(async ()=> {
-        await Task.Delay(skill.Delay);
-        skill.Waiting = false;
-        VerboseLogger.SafeLog($"[AbilityCaster] {flags} cooldown expired");
+        try
+        {
+          await Task.Delay(skill.Delay, shutdownToken);
+          skill.Waiting = false;
+          VerboseLogger.SafeLog($"[AbilityCaster] {flags} cooldown expired");
+        }
+        catch (OperationCanceledException)
+        {
+          // If we're shutting down, clear waiting so state doesn't remain stuck.
+          skill.Waiting = false;
+         
+        }
+        catch (Exception ex)
+        {
+          // Ensure we clear waiting on unexpected errors
+          skill.Waiting = false;
+          Debug.LogWarning($"[AbilityCaster] cooldown task error for {flags}: {ex.Message}");
+        }
       });
     }
   }

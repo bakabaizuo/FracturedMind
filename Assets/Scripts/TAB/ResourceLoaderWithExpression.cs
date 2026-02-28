@@ -11,29 +11,11 @@ namespace FracturedStudios.TAB
     /// </summary>
     public class ResourceLoaderWithExpression
     {
-        // Protected virtual ParameterExpression with default initializer.
-        protected virtual ParameterExpression UI { get; set; } = Expression.Parameter(typeof(object), "instance");
-
-        // Allow derived classes to provide a body expression. Default simply returns the UI parameter.
-        protected virtual Expression BuildExpressionBody()
-        {
-            // Default body: just return the UI parameter (converted to object)
-            return UI;
-        }
-
-        // Compile a simple accessor: Func<object, object> that returns the instance passed in.
-        public virtual Func<object, object> CompileUIAccessor()
-        {
-            var body = Expression.Convert(BuildExpressionBody(), typeof(object));
-            var lambda = Expression.Lambda<Func<object, object>>(body, UI);
-            return lambda.Compile();
-        }
-
-        // Example usage helper that invokes the compiled accessor immediately.
-        public virtual object InvokeUI(object instance)
-        {
-            var accessor = CompileUIAccessor();
-            return accessor(instance);
-        }
+   
+        // Note: ExpressionHelpers (in FracturedStudios.Utils) is the single-source-of-truth
+        // for building/compiling expression-based accessors. This class provides the
+        // protected `UI` ParameterExpression and a virtual `BuildExpressionBody()` so
+        // derived types can construct expression bodies; callers should use the
+        // centralized helpers in ExpressionHelpers when they need compiled delegates.
     }
 }

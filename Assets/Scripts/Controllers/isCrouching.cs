@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using FracturedStudios.Abilities;
+using FracturedStudios.RigLayers;
 
 // Input router for string-based animator controller and third-person movement.
 // Keeps the new Input System bindings but no longer uses Animator parameter hashes.
@@ -13,6 +14,7 @@ public class IsCrouchingControl : MonoBehaviour
 
     [Header("Ability Hooks")]
     [SerializeField] private ThirdPersonBasic locomotion;
+    [SerializeField] private OrbHandRigLayer orbRig;
 
     private PlayerControlls input;
     private AbilityCaster abilityCaster;
@@ -64,6 +66,11 @@ public class IsCrouchingControl : MonoBehaviour
 
         if (locomotion == null)
             locomotion = GetComponent<ThirdPersonBasic>();
+
+        if (orbRig == null)
+            orbRig = GetComponent<OrbHandRigLayer>();
+        if (orbRig == null)
+            orbRig = GetComponentInChildren<OrbHandRigLayer>();
 
         if (animController == null)
         {
@@ -143,9 +150,9 @@ public class IsCrouchingControl : MonoBehaviour
         }
 
         VerboseLogger.SafeLog("[Flash] casting ability (Skill0)");
-        // Perform the cast and then apply movement changes.
+        // Perform the cast then trigger the hand-wave animation and the rising light.
         abilityCaster.Cast(AbilityFlags.Skill0);
-        animController?.OnFlashAbilityTriggered();
-        locomotion?.OnFlashAbilityTriggered();
+        animController?.OnHandWaveTriggered();
+        orbRig?.TriggerFlash();
     }
 }

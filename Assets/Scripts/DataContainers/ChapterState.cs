@@ -13,6 +13,16 @@ namespace FracturedStudios
     [Serializable]
     public class ChapterState
     {
+        // Flag constants: put common string keys here so they're easy to find.
+        public const string AbilityFlashFlag = "Ability_Flash";
+        //To unlock the flash ability when the owl gives it, call:
+        //ChapterStateService.Current.SetAbilityFlash(true);
+        //For quick testing in the inspector/console you can toggle it with:
+        //ChapterStateService.Current.ToggleAbilityFlash();
+        //ChapterStateService.Current.HasAbilityFlash() returns whether the flag is set.
+        //ChapterStateService.cs
+
+
         public ChapterId CurrentChapter = ChapterId.Intro;
         public int ChapterStage = 0; // per-chapter stage index (use chapter-specific enums for clarity)
 
@@ -30,6 +40,31 @@ namespace FracturedStudios
             if (string.IsNullOrWhiteSpace(flag))
                 return;
             Flags.Add(flag);
+        }
+
+        /// <summary>
+        /// Convenience: set or clear the built-in flash ability flag.
+        /// Use this to flip the player's access to the flash ability at runtime.
+        /// </summary>
+        public void SetAbilityFlash(bool enabled)
+        {
+            if (enabled) SetFlag(AbilityFlashFlag);
+            else ClearFlag(AbilityFlashFlag);
+        }
+
+        /// <summary>
+        /// Returns whether the built-in flash ability flag is present.
+        /// </summary>
+        public bool HasAbilityFlash() => HasFlag(AbilityFlashFlag);
+
+        /// <summary>
+        /// Toggle the built-in flash ability flag and return the new state.
+        /// </summary>
+        public bool ToggleAbilityFlash()
+        {
+            bool now = !HasAbilityFlash();
+            SetAbilityFlash(now);
+            return now;
         }
 
         public bool HasFlag(string flag)

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -26,10 +27,16 @@ namespace FracturedStudios.RigLayers
 
         // if set, instantiate this prefab as the orb light; otherwise a plain GameObject will be created
         [SerializeField] private GameObject orbLightPrefab;
+        // Separate light socket assigned in inspector, activated by the flash ability (key 1)
+        [SerializeField] private GameObject flashLightObj;
+        // How long the flash light stays on after the ability fires
+        [SerializeField] private float flashLightDuration = 1.2f;
         // runtime-created orb light helper
         private GameObject orbLightObj;
         // local offset to apply after parenting (so TickRig can reapply it)
         private Vector3 orbLightLocalOffset = Vector3.zero;
+        // coroutine handle so we don't overlap flash activations
+        private Coroutine flashLightCoroutine;
 
         private PlayerControlls inputs;
         private Vector3 _currentPosition;
@@ -161,6 +168,70 @@ namespace FracturedStudios.RigLayers
             }
         }
 
+        /// <summary>
+        /// Flash ability (key 1): activates <see cref="flashLightObj"/> on the hand for <see cref="flashLightDuration"/> seconds.
+        /// FlashLightObj is a separate light socket – assign it in the inspector, parented to the hand bone.
+        /// </summary>
+        public void TriggerFlash()
+        {
+            if (flashLightObj == null)
+            {
+                Debug.LogWarning("OrbHandRigLayer.TriggerFlash: flashLightObj is not assigned in inspector");
+                return;
+            }
+            if (flashLightCoroutine != null)
+                StopCoroutine(flashLightCoroutine);
+            flashLightCoroutine = StartCoroutine(FlashLightRoutine());
+        }
+
+        private IEnumerator FlashLightRoutine()
+        {
+            // Ensure object is active so the Light component updates
+            flashLightObj.SetActive(true);
+            VerboseLogger.SafeLog($"[OrbLight] flash light on for {flashLightDuration:0.00}s");
+
+            // Try to find a Light component on the object or its children
+            Light flashLight = flashLightObj.GetComponentInChildren<Light>();
+            if (flashLight == null)
+            {
+                Debug.LogWarning("OrbHandRigLayer.FlashLightRoutine: no Light component found on flashLightObj");
+                // Fallback: simply wait the duration then deactivate
+                yield return new WaitForSeconds(flashLightDuration);
+                flashLightObj.SetActive(false);
+                flashLightCoroutine = null;
+                VerboseLogger.SafeLog("[OrbLight] flash light off (no Light component)");
+                yield break;
+            }
+
+            // Animate light range (radius) from 0 -> 10 over the configured duration
+            float startRange = 0f;
+            float targetRange = 10f;
+            flashLight.range = startRange;
+
+            float elapsed = 0f;
+            while (elapsed < flashLightDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / flashLightDuration);
+                // Smooth the interpolation for nicer easing
+                float eased = Mathf.SmoothStep(0f, 1f, t);
+                flashLight.range = Mathf.Lerp(startRange, targetRange, eased);
+                yield return null;
+            }
+
+            // Ensure final value
+            flashLight.range = targetRange;
+
+            // Optionally keep the light on briefly at full size, then turn off
+            yield return new WaitForSeconds(0.05f);
+
+            // Reset and deactivate
+            flashLight.range = 0f;
+            flashLightObj.SetActive(false);
+            flashLightCoroutine = null;
+            VerboseLogger.SafeLog("[OrbLight] flash light off");
+        }
+
         // canceled handler no longer used
         private void OnOrbLightCanceled(InputAction.CallbackContext ctx)
         {
@@ -215,7 +286,7 @@ namespace FracturedStudios.RigLayers
                 orbLightObj.transform.localRotation = Quaternion.identity;
                 Debug.Log("OrbHandRigLayer: created empty Orblight object under handBone");
             }
-            // apply requested size and slight green offset
+            // apply requested size and slight offset
             orbLightObj.transform.localScale = Vector3.one * 0.0014f;  // even smaller
             orbLightLocalOffset = new Vector3(0.001f, 0.001f, -0.001f);
             orbLightObj.transform.localPosition = orbLightLocalOffset;

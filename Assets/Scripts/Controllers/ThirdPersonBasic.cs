@@ -62,9 +62,6 @@ public class ThirdPersonBasic : MonoBehaviour
     private bool isGrounded;
 
     [Header("Abilities")]
-    [SerializeField] private float flashMoveMultiplier = 3.6f; // speed multiplier during flash effect
-    [SerializeField] private float flashMoveDuration = 1.5f;   // duration of movement mod (match animator)
-    private float flashMoveTimer;
     // Sprint boost (temporary speed modifier triggered by tap-sprint)
     private float sprintBoostTimer = 0f;
     private float sprintBoostMultiplier = 1f;
@@ -118,9 +115,6 @@ public class ThirdPersonBasic : MonoBehaviour
     {
         HandleGroundCheck();
         HandleJumpAndGravity();
-
-        if (flashMoveTimer > 0f)
-            flashMoveTimer -= Time.deltaTime;
 
         if (cameraPivotOverride != null && controlCamera)
             SyncCameraPivotPosition();
@@ -178,8 +172,7 @@ private void HandleGroundCheck()
             ? moveSpeed
             : (crouchActive ? moveSpeed * crouchSpeedMultiplier : moveSpeed);
 
-        float flashMultiplier = flashMoveTimer > 0f ? flashMoveMultiplier : 1f;
-        float effectiveSpeed = baseEffective * flashMultiplier * sprintBoostMultiplier;
+        float effectiveSpeed = baseEffective * sprintBoostMultiplier;
 
         if (inputDirection.magnitude >= 0.1f)
         {
@@ -307,19 +300,6 @@ private void OnDrawGizmosSelected()
             return Camera.main.transform.eulerAngles.y;
 
         return transform.eulerAngles.y;
-    }
-
-    public void OnFlashAbilityTriggered(float overrideMultiplier = -1f, float overrideDuration = -1f)
-    {
-        float moveMultiplier = overrideMultiplier > 1f ? overrideMultiplier : flashMoveMultiplier;
-        float moveDuration = overrideDuration > 0f ? overrideDuration : flashMoveDuration;
-
-        if (moveMultiplier <= 1f || moveDuration <= 0f)
-            return;
-
-        VerboseLogger.SafeLog($"[Movement] flash triggered mult={moveMultiplier} dur={moveDuration}");
-        flashMoveMultiplier = moveMultiplier;
-        flashMoveTimer = moveDuration;
     }
 
     /// <summary>

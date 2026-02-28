@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using System.Linq.Expressions;
 using FracturedStudios.Data;
+using System.Threading;
 
 namespace FracturedStudios.Invoker
 {
@@ -23,6 +24,8 @@ namespace FracturedStudios.Invoker
         private readonly Dictionary<(string id, string method), MethodInfo> _methodCache = new();
 
         private DynamicDictionaryInvoker _invoker;
+        // Cancellation token source that is cancelled when the WorldBridgeSystem is destroyed
+        private CancellationTokenSource _shutdownCts;
 
         private void Awake()
         {
@@ -40,8 +43,12 @@ namespace FracturedStudios.Invoker
                 var go = new GameObject("DynamicDictionaryInvoker");
                 DontDestroyOnLoad(go);
                 _invoker = go.AddComponent<DynamicDictionaryInvoker>();
+                #if UNITY_EDITOR
                 Debug.Log($"[{nameof(WorldBridgeSystem)}] Created {nameof(DynamicDictionaryInvoker)}");
+                #endif
             }
+            // create shutdown CTS after invoker setup
+            _shutdownCts = new CancellationTokenSource();
         }
 
         private void OnDestroy()
@@ -51,8 +58,20 @@ namespace FracturedStudios.Invoker
                 _idRegistry.Clear();
                 _memberCache.Clear();
                 _methodCache.Clear();
+                // cancel any registered shutdown-aware operations
+                try { _shutdownCts?.Cancel(); } catch { }
+                try { _shutdownCts?.Dispose(); } catch { }
                 Instance = null;
             }
+        }
+
+        /// <summary>
+        /// Cancellation token that is cancelled when the WorldBridgeSystem is destroyed.
+        /// Use this to tie background work to the application's lifetime.
+        /// </summary>
+        public CancellationToken GetShutdownToken()
+        {
+            return _shutdownCts?.Token ?? CancellationToken.None;
         }
 
         // Expression-based invoker builder (returns object or null for void)
@@ -109,7 +128,9 @@ namespace FracturedStudios.Invoker
 
             id = string.Intern(id);
             _idRegistry[id] = target;
+            #if UNITY_EDITOR
             Debug.Log($"[{nameof(WorldBridgeSystem)}] Registered ID {id} -> {target.name} ({target.GetType().Name})");
+            #endif
         }
 
         public void UnregisterID(string id)
@@ -119,7 +140,14 @@ namespace FracturedStudios.Invoker
                 return;
             }
             if (_idRegistry.TryRemove(id, out _))
+            {
+                #if UNITY_EDITOR
                 Debug.Log($"[{nameof(WorldBridgeSystem)}] Unregistered ID {id}");
+                #endif
+
+                // Clean up any invoker registrations that used this id as their entry id
+                try { _invoker?.RemoveAllEntriesForId(id); } catch { }
+            }
         }
 
         public T GetByID<T>(string id) where T : UnityEngine.Object
@@ -164,7 +192,9 @@ namespace FracturedStudios.Invoker
             try
             {
                 method.Invoke(target, args);
+                #if UNITY_EDITOR
                 Debug.Log($"[{nameof(WorldBridgeSystem)}] Called {methodName} on {id}");
+                #endif
             }
             catch (Exception ex)
             {
@@ -211,7 +241,9 @@ namespace FracturedStudios.Invoker
                     field.SetValue(target, value);
                 else if (member is PropertyInfo prop)
                     prop.SetValue(target, value);
+                #if UNITY_EDITOR
                 Debug.Log($"[{nameof(WorldBridgeSystem)}] Set {memberName} on {id} to {value}");
+                #endif
                 return true;
             }
             catch (Exception ex)
@@ -280,6 +312,12 @@ namespace FracturedStudios.Invoker
             return _invoker.Register(key, method, layer, id, metadata);
         }
 
+        public IDisposable RegisterInvokerReturn(string key, Func<object[], object> method, DynamicDictionaryInvoker.Layer layer = DynamicDictionaryInvoker.Layer.Func, string id = null, object metadata = null)
+        {
+            if (_invoker == null) return null;
+            return _invoker.RegisterReturn(key, method, layer, id, metadata);
+        }
+
         public bool PayInvoke(string key, object token = null, params object[] args)
         {
             if (_invoker == null)
@@ -305,6 +343,18 @@ namespace FracturedStudios.Invoker
             _invoker.Invoke(key, args);
         }
 
+        public object[] InvokeKeyReturn(string key, params object[] args)
+        {
+            if (_invoker == null) return Array.Empty<object>();
+            return _invoker.InvokeReturn(key, args);
+        }
+
+        public object InvokeKeyReturnFirst(string key, params object[] args)
+        {
+            if (_invoker == null) return null;
+            return _invoker.InvokeReturnFirst(key, args);
+        }
+
         public void InvokeSafeKey(string key, params object[] args)
         {
             if (_invoker == null)
@@ -313,14 +363,35 @@ namespace FracturedStudios.Invoker
             }
             _invoker.InvokeSafe(key, args);
         }
+
+        /// <summary>
+        /// Invoke a key once and then remove all handlers registered under that key.
+        /// </summary>
+        public void InvokeOnceKey(string key, params object[] args)
+        {
+            if (_invoker == null) return;
+            _invoker.InvokeOnce(key, args);
+        }
+
+        /// <summary>
+        /// Remove all registered invocation entries that match the given entry id across all keys.
+        /// Returns the number of removed entries.
+        /// </summary>
+        public int RemoveAllEntriesForId(string entryId)
+        {
+            if (_invoker == null) return 0;
+            return _invoker.RemoveAllEntriesForId(entryId);
+        }
         #endregion
 
         #region Debug
         public void PrintRegistry()
         {
+            #if UNITY_EDITOR
             Debug.Log($"[{nameof(WorldBridgeSystem)}] ID registry ({_idRegistry.Count} entries):");
             foreach (var kv in _idRegistry)
                 Debug.Log($"{kv.Key} -> {kv.Value?.name} ({kv.Value?.GetType().Name ?? "null"})");
+            #endif
         }
         #endregion
     }
@@ -561,6 +632,29 @@ namespace FracturedStudios.Invoker
             {
                 if (input()) { Value = true; break; }
             }
+            return Value;
+        }
+    }
+    public sealed class XorNode : LogicNode
+    {
+        private readonly List<Func<bool>> _inputs = new();
+
+        public IDisposable AddInput(Func<bool> getter)
+        {
+            _inputs.Add(getter);
+            return new NodeToken(() => _inputs.Remove(getter));
+        }
+
+        // Parity XOR: true when an odd number of inputs evaluate true
+        public override bool Evaluate()
+        {
+            int trueCount = 0;
+            foreach (var input in _inputs)
+            {
+                try { if (input()) trueCount++; }
+                catch { }
+            }
+            Value = (trueCount & 1) == 1;
             return Value;
         }
     }
