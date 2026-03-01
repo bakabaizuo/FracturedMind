@@ -67,7 +67,16 @@ public class StringscriptAnimatior : MonoBehaviour
     private string currentAnimation = "";
     private int currentIdle;
     private Vector2 movement;
-    
+
+    // track last non‑zero input so we can keep animations playing when player slides
+    private float lastMoveX = 0f;
+    private float lastMoveY = 0f;
+    [SerializeField, Tooltip("Input magnitude below this value is considered zero but animation will hold previous direction")]
+    private float moveInputEpsilon = 0.05f;
+
+    // remember the player's nominal speed so we can temporarily zero it while idle
+    private float cachedMoveSpeed = 0f;
+
     // Added runtime references
     private PlayerCaseController CaseLambdas;
     private AudioSource audioSource;
@@ -100,7 +109,8 @@ public class StringscriptAnimatior : MonoBehaviour
     public bool IsCrouched => crouchState == CrouchState.Crouched;
     public bool IsCrouchSettling => crouchState == CrouchState.Entering;
     public bool IsDodging => dodgeState != DodgeState.Ready;
-    public bool IsSprinting => sprintState == SprintState.Sprinting;
+    // sprint disabled while crouched
+    public bool IsSprinting => sprintState == SprintState.Sprinting && !IsCrouched;
 
     // Guards
     public bool CanToggleCrouch => !IsDodging;
@@ -122,6 +132,10 @@ public class StringscriptAnimatior : MonoBehaviour
         ChangeAnimation(animIdle);
         StartCoroutine(ChangeIdle());
 
+        // cache movespeed from locomotion component (may read from PlayerData)
+        if (ThirdPersonBasic.Instance != null)
+            cachedMoveSpeed = ThirdPersonBasic.Instance.moveSpeed;
+
         // Help diagnose "no dodge logs" confusion: this prints once per play session.
         if (!debugDodge)
             VerboseLogger.SafeLog("[Dodge] debugDodge is OFF. Enable 'Debug Dodge' on StringscriptAnimatior to capture dodge traces.");
@@ -131,14 +145,55 @@ public class StringscriptAnimatior : MonoBehaviour
     {
         // Movement input still comes from old axes for now.
         // (Later you can pipe your Input System move vector into this class instead.)
-        movement = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        float rawX = Input.GetAxisRaw("Horizontal");
+        float rawY = Input.GetAxisRaw("Vertical");
+
+        // exact zero means the button/key was released; clear history and force stop
+        if (rawX == 0f && rawY == 0f)
+        {
+            movement = Vector2.zero;
+            lastMoveX = 0f;
+            lastMoveY = 0f;
+
+            // zero out player move speed to prevent sliding
+            if (ThirdPersonBasic.Instance != null && ThirdPersonBasic.Instance.moveSpeed != 0f)
+            {
+                cachedMoveSpeed = ThirdPersonBasic.Instance.moveSpeed;
+                ThirdPersonBasic.Instance.moveSpeed = 0f;
+            }
+        }
+        else
+        {
+            // remember last meaningful direction so we don't snap to idle during a slide
+            if (Mathf.Abs(rawX) > moveInputEpsilon) lastMoveX = rawX;
+            if (Mathf.Abs(rawY) > moveInputEpsilon) lastMoveY = rawY;
+
+            movement = new Vector2(rawX, rawY);
+            if (movement.sqrMagnitude < moveInputEpsilon * moveInputEpsilon)
+            {
+                // small drift, keep previous direction
+                movement = new Vector2(lastMoveX, lastMoveY);
+            }
+
+            // restore moveSpeed if we previously zeroed it
+            if (ThirdPersonBasic.Instance != null && ThirdPersonBasic.Instance.moveSpeed == 0f)
+            {
+                ThirdPersonBasic.Instance.moveSpeed = cachedMoveSpeed;
+            }
+        }
 
         TickLocomotionMode();
         TickAnimationByMode();
     }
 
     // Input driver API
-    public void SetSprint(bool on) => sprintState = on ? SprintState.Sprinting : SprintState.NotSprinting;
+    public void SetSprint(bool on)
+    {
+        // ignore sprint requests while crouched
+        if (IsCrouched && on)
+            return;
+        sprintState = on ? SprintState.Sprinting : SprintState.NotSprinting;
+    }
 
     /// <summary>Plays the hand-wave animation for the configured duration then returns to normal locomotion.</summary>
     public void OnHandWaveTriggered(float durationOverride = -1f)
@@ -541,6 +596,7 @@ private void CheckAnimation()
     // Standing/walking/running branch DO NOT EDIT OR CHANGE THIS FUNCTION unless HAVE ANIMATIONS
     if (isMoving)
     {
+        // sprint flag already respects crouch via IsSprinting property
         bool isRunning = IsSprinting;
         if(Mathf.Abs(movement.y) > Mathf.Abs(movement.x))
         {

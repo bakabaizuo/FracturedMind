@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using FracturedStudios.Abilities;
+using FracturedStudios.Data; // for PlayerData reference
+using FracturedStudios.Invoker; //for worldbridge.
+
 [RequireComponent(typeof(CharacterController))]
 public class ThirdPersonBasic : MonoBehaviour
 {
@@ -16,11 +19,39 @@ public class ThirdPersonBasic : MonoBehaviour
     }
     AbilityCaster Caster;
     [Header("Movement Settings")]
-    public float moveSpeed = 6f;
+    // moveSpeed is driven from player data if available; inspector value acts as a fallback/default.
+    // keep old serialized value when upgrading prefabs
+    [UnityEngine.Serialization.FormerlySerializedAs("moveSpeed")]
+    [SerializeField] private float _fallbackMoveSpeed = 5f;
     public float rotationSpeed = 10f;
     public float jumpHeight = 2f;
     public float gravity = -40f;   // Stronger gravity for snappier feel
     public float slopeLimit = 45f; // Max walkable slope angle
+
+    /// <summary>
+    /// Effective movement speed.  If a PlayerData instance exists, read
+    /// the value from there; otherwise fall back to the serialized field.
+    /// </summary>
+    public float moveSpeed
+    {
+        get
+        {
+            // use safe navigation; ensure both Instance and data are valid
+            return WorldBridgeSystem.Instance?.data?.moveSpeed ?? _fallbackMoveSpeed;
+        }
+        set
+        {
+            // write through to the PlayerData if available, otherwise update fallback
+            if (WorldBridgeSystem.Instance?.data != null)
+            {
+                WorldBridgeSystem.Instance.data.moveSpeed = value;
+            }
+            else
+            {
+                _fallbackMoveSpeed = value;
+            }
+        }
+    }
 
     [Header("Mouse Look")]
     [SerializeField] private bool enableMouseLook = true;
@@ -63,8 +94,11 @@ public class ThirdPersonBasic : MonoBehaviour
 
     [Header("Abilities")]
     // Sprint boost (temporary speed modifier triggered by tap-sprint)
-    private float sprintBoostTimer = 0f;
+    private float sprintBoostTimer = 10f;
     private float sprintBoostMultiplier = 1f;
+
+    [Header("Sprint")]
+    [SerializeField] private float sprintMultiplier = 1.5f; // multiplier when holding shift (ignored while crouched)
 
     // NEW: Jump cooldown to prevent spamming
     private float jumpCooldown = 0.1f;  // short buffer
@@ -172,7 +206,11 @@ private void HandleGroundCheck()
             ? moveSpeed
             : (crouchActive ? moveSpeed * crouchSpeedMultiplier : moveSpeed);
 
-        float effectiveSpeed = baseEffective * sprintBoostMultiplier;
+        // SHIFT to sprint, but disable sprinting while crouched
+        bool sprinting = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && !crouchActive;
+        // Can stack with temporary boost abilities
+        float sprintFactor = sprinting ? sprintMultiplier : 1f;
+        float effectiveSpeed = baseEffective * sprintBoostMultiplier * sprintFactor;
 
         if (inputDirection.magnitude >= 0.1f)
         {

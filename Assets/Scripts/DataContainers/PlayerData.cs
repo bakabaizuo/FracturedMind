@@ -30,6 +30,10 @@ namespace FracturedStudios.Data
         [SerializeField] private int _xp = 0;
         [SerializeField] private int _level = 1;
 
+        // movement-related values
+        [Header("Movement")]
+        [SerializeField] public float _moveSpeed = 6f;
+
         [Header("Attributes")]
         [SerializeField] private int _agility = 10;
         [SerializeField] private int _strength = 10;
@@ -131,6 +135,23 @@ namespace FracturedStudios.Data
             {
                 if (_wepSkill == value) return;
                 _wepSkill = Mathf.Clamp(value, 0, 100);
+                RaiseStatsChanged();
+            }
+        }
+
+        /// <summary>
+        /// How fast the player is allowed to move (m/s).
+        /// Stored here so other systems (AI, UI) can query from a shared
+        /// data source rather than hardcoding a value in the controller.
+        /// </summary>
+        public float moveSpeed
+        {
+            get => _moveSpeed;
+            set
+            {
+                float newVal = Mathf.Max(0f, value);
+                if (Mathf.Approximately(_moveSpeed, newVal)) return;
+                _moveSpeed = newVal;
                 RaiseStatsChanged();
             }
         }
@@ -299,7 +320,8 @@ private void HandlePlayerDeathStateChange(DeathState newState)
             _currentHP = 100;
             _xp = 0;
             _level = 1;
-           CurrentDeathState = DeathState.Alive; 
+            _moveSpeed = 6f;
+            CurrentDeathState = DeathState.Alive; 
 
 
             _agility = 10;
