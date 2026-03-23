@@ -27,9 +27,12 @@ namespace FracturedStudios
         private LadderItem carriedLadder;
         private PlayerControlls controls;
 
-        // Current interaction context mask. Can be updated by triggers, chapter orchestration, or position checks.
-        private InteractionKind currentInteractionMask = InteractionKind.Default;
+        // Exposed for other systems (e.g. VentEntryTrigger needs to know if ladder is carried)
+        public LadderItem CarriedLadder => carriedLadder;
+        public bool IsCarryingLadder => carriedLadder != null;
 
+        // Context mask kept for future/external orchestration; not used to gate core flow.
+        private InteractionKind currentInteractionMask = InteractionKind.Default;
         public void AddInteractionContext(InteractionKind kind) => currentInteractionMask |= kind;
         public void RemoveInteractionContext(InteractionKind kind) => currentInteractionMask &= ~kind;
         public void SetInteractionContext(InteractionKind kind) => currentInteractionMask = kind;
@@ -40,152 +43,98 @@ namespace FracturedStudios
             controls.Player.Interact.started += ctx => OnInteractPressed();
         }
 
-        void OnEnable()
-        {
-            controls?.Enable();
-        }
+        void OnEnable()  { controls?.Enable(); }
+        void OnDisable() { controls?.Disable(); }
 
-        void OnDisable()
-        {
-            controls?.Disable();
-        }
+        // ─── Core flow ───────────────────────────────────────────────────────────
 
         private void OnInteractPressed()
         {
-            // Top-level entry on button press. Use the currentInteractionMask to decide behavior.
             if (chapterState != null && chapterState.ChapterStage > maxAllowedChapterStage)
-                return; // guarded by chapter
+                return;
 
-            // Try ladder-oriented interactions first if flagged
-            if ((currentInteractionMask & InteractionKind.Ladder) == InteractionKind.Ladder)
+            if (carriedLadder != null)
             {
-                if (TryPerformLadderInteraction())
-                    return;
+                // Carrying: try to place at a snap point; otherwise drop at feet.
+                if (!TryPlaceCarried())
+                    DropCarried();
+                return;
             }
 
-            if ((currentInteractionMask & InteractionKind.Placement) == InteractionKind.Placement)
-            {
-                if (TryPerformPlacementInteraction())
-                    return;
-            }
+            // Not carrying: try ladder pickup first, then general IInteractable.
+            if (TryPickupLadder())
+                return;
 
-            if ((currentInteractionMask & InteractionKind.Default) == InteractionKind.Default)
-            {
-                var resultTag = DefaultInteraction();
-                // resultTag can be used by orchestration systems; for now log it
-                if (!string.IsNullOrEmpty(resultTag))
-                    Debug.Log($"[Interact] Default result tag: {resultTag}");
-            }
+            DefaultInteraction();
         }
 
-        private void HandleLadderPickup(LadderItem ladder)
+        // ─── Pickup ──────────────────────────────────────────────────────────────
+
+        /// <summary>Raycast for a LadderItem in the world and pick it up.</summary>
+        private bool TryPickupLadder()
         {
+            if (!Raycast(out RaycastHit hit)) return false;
+            var ladder = hit.collider.GetComponentInParent<LadderItem>();
+            if (ladder == null || ladder.IsCarried) return false;
             ladder.Pickup(transform);
             carriedLadder = ladder;
-            if (chapterState != null)
-            {
-                chapterState.SetFlag(nameof(IntroStage.LadderFound));
-                chapterState.ChapterStage = (int)IntroStage.LadderFound;
-            }
+            SetChapterFlag(nameof(IntroStage.LadderFound), IntroStage.LadderFound);
+            return true;
         }
 
-        private void HandleLadderPlacement(LadderPlacementPoint point)
+        // ─── Place ───────────────────────────────────────────────────────────────
+
+        /// <summary>Raycast for a LadderPlacementPoint and place the carried ladder. Returns true on success.</summary>
+        private bool TryPlaceCarried()
         {
-            if (carriedLadder == null)
-            {
-                var placed = point.PlacedLadder;
-                if (placed != null && !placed.IsCarried)
-                {
-                    placed.Pickup(transform);
-                    carriedLadder = placed;
-                    if (chapterState != null)
-                    {
-                        chapterState.SetFlag(nameof(IntroStage.LadderFound));
-                        chapterState.ChapterStage = (int)IntroStage.LadderFound;
-                    }
-                }
-            }
-            else
-            {
-                if (point.TryPlace(carriedLadder))
-                {
-                    carriedLadder = null;
-                    if (chapterState != null)
-                    {
-                        chapterState.SetFlag("LadderPlaced");
-                        chapterState.ChapterStage = (int)IntroStage.LadderFound;
-                    }
-                }
-            }
+            if (!Raycast(out RaycastHit hit)) return false;
+            var point = hit.collider.GetComponentInParent<LadderPlacementPoint>();
+            if (point == null) return false;
+            if (!point.TryPlace(carriedLadder)) return false;
+            carriedLadder = null;
+            SetChapterFlag("LadderPlaced", IntroStage.LadderPlaced);
+            return true;
         }
 
-        private bool TryPerformLadderInteraction()
+        // ─── Drop ────────────────────────────────────────────────────────────────
+
+        /// <summary>Drop the carried ladder at the player's feet.</summary>
+        private void DropCarried()
         {
-            var cam = Camera.main;
-            if (cam == null) return false;
-            Ray ray = new Ray(cam.transform.position, cam.transform.forward);
-            if (!Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask))
-                return false;
-
-            var ladder = hit.collider.GetComponentInParent<LadderItem>();
-            if (ladder != null && !ladder.IsCarried)
-            {
-                HandleLadderPickup(ladder);
-                return true;
-            }
-
-            return false;
+            if (carriedLadder == null) return;
+            Vector3 dropPos = transform.position + transform.forward * 1f + Vector3.up * 0.05f;
+            carriedLadder.Drop(dropPos, Quaternion.LookRotation(transform.forward, Vector3.up));
+            carriedLadder = null;
         }
 
-        private bool TryPerformPlacementInteraction()
+        /// <summary>External call: force-drop the ladder (e.g. from VentEntryTrigger).</summary>
+        public void ForceDropLadder() => DropCarried();
+
+        // ─── General interact ────────────────────────────────────────────────────
+
+        /// <summary>General IInteractable path (pen distraction, doors, etc.).</summary>
+        private void DefaultInteraction()
         {
-            var cam = Camera.main;
-            if (cam == null) return false;
-            Ray ray = new Ray(cam.transform.position, cam.transform.forward);
-            if (!Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask))
-                return false;
-
-            var placement = hit.collider.GetComponentInParent<LadderPlacementPoint>();
-            if (placement != null)
-            {
-                HandleLadderPlacement(placement);
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// DefaultInteraction: general-purpose interaction path.
-        /// Returns the 'tag' of the hit object (or empty) so orchestration systems can react.
-        /// </summary>
-        private string DefaultInteraction()
-        {
-            var cam = Camera.main;
-            if (cam == null) return string.Empty;
-            Ray ray = new Ray(cam.transform.position, cam.transform.forward);
-            if (!Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask))
-            {
-                // fallback: if carrying ladder, drop
-                if (carriedLadder != null)
-                {
-                    Vector3 dropPos = transform.position + transform.forward * 1f + Vector3.up * 0.1f;
-                    carriedLadder.Drop(dropPos, Quaternion.LookRotation(transform.forward, Vector3.up));
-                    carriedLadder = null;
-                    return "LadderDropped";
-                }
-                return string.Empty;
-            }
-
+            if (!Raycast(out RaycastHit hit)) return;
             var interactable = hit.collider.GetComponentInParent<IInteractable>();
             if (interactable != null)
-            {
-                if (interactable.Interact(transform))
-                    return hit.collider.gameObject.tag ?? string.Empty;
-            }
+                interactable.Interact(transform);
+        }
 
-            // Default: return the tag of what we hit so external systems can route behavior
-            return hit.collider != null ? hit.collider.gameObject.tag ?? string.Empty : string.Empty;
+        // ─── Helpers ─────────────────────────────────────────────────────────────
+
+        private bool Raycast(out RaycastHit hit)
+        {
+            var cam = Camera.main;
+            if (cam == null) { hit = default; return false; }
+            return Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, interactRange, interactMask);
+        }
+
+        private void SetChapterFlag(string flag, IntroStage stage)
+        {
+            if (chapterState == null) return;
+            chapterState.SetFlag(flag);
+            chapterState.ChapterStage = (int)stage;
         }
     }
 }

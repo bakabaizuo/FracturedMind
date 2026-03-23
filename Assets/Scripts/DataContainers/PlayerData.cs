@@ -225,6 +225,12 @@ private void HandlePlayerDeathStateChange(DeathState newState)
         {
             base.Awake();
             DataContainerBase.Instance?.Register(this);
+               
+                if (WorldBridgeSystem.Instance != null)
+                {
+                    WorldBridgeSystem.Instance.RegisterID(playerId, gameObject);
+                        WorldBridgeSystem.Instance.data = this;
+                }
         }
 
         protected override void OnDestroy()

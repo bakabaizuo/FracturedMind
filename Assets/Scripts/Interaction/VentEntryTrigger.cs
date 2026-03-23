@@ -6,8 +6,16 @@ namespace FracturedStudios
     [DisallowMultipleComponent]
     public class VentEntryTrigger : MonoBehaviour
     {
+        [Header("References")]
+        [Tooltip("The placement zone under this vent. Assign in Inspector.")]
+        [SerializeField] private LadderPlacementPoint placementZone;
+
         [Header("Events")]
         [SerializeField] private UnityEvent onVentEntered;
+
+        [Header("Debug")]
+        [Tooltip("Log to console when vent entry is triggered")]
+        [SerializeField] private bool debugVentEntry = true;
 
         [Header("Chapter")]
         [SerializeField] private ChapterState chapterState;
@@ -17,6 +25,11 @@ namespace FracturedStudios
             if (!other.CompareTag("Player"))
                 return;
 
+            // Force-drop if player somehow enters the vent still carrying the ladder,
+            // so PlayerInteract.carriedLadder is cleared before the ladder is destroyed.
+            var interact = other.GetComponentInParent<PlayerInteract>();
+            interact?.ForceDropLadder();
+
             Enter();
         }
 
@@ -25,14 +38,11 @@ namespace FracturedStudios
         /// </summary>
         public void Enter()
         {
-            // Try to find the placed ladder first, otherwise any ladder instance
-            var zone = FindObjectOfType<LadderPlacementPoint>();
-            LadderItem ladder = null;
-            if (zone != null && zone.PlacedLadder != null)
-                ladder = zone.PlacedLadder;
+            // Prefer the directly assigned placement zone; fall back to scene search.
+            LadderItem ladder = placementZone != null ? placementZone.PlacedLadder : null;
 
             if (ladder == null)
-                ladder = FindObjectOfType<LadderItem>();
+                ladder = FindFirstObjectByType<LadderItem>();
 
             ladder?.HandleVentEntered();
 
@@ -41,6 +51,9 @@ namespace FracturedStudios
                 chapterState.SetFlag(nameof(IntroStage.VentEntered));
                 chapterState.ChapterStage = (int)IntroStage.VentEntered;
             }
+
+            if (debugVentEntry)
+                Debug.Log($"[VentEntryTrigger] Vent entered at {Time.time:F2}, placementZone={(placementZone!=null?placementZone.name:"none")}");
 
             onVentEntered?.Invoke();
         }
