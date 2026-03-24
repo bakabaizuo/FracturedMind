@@ -150,11 +150,12 @@ namespace FracturedStudios
         None = 0,
         BulliedInHall = 1,
         LadderFound = 2,
-        VentEntered = 3,
-        LibraryEntered = 4,
-        LampExploded = 5,
-        BookTaken = 6,
-        PortalPulled = 7,
+        LadderPlaced = 3,
+        VentEntered = 4,
+        LibraryEntered = 5,
+        LampExploded = 6,
+        BookTaken = 7,
+        PortalPulled = 8,
     }
 
     /// <summary>

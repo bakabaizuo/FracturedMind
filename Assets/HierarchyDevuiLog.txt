@@ -1,0 +1,61 @@
+- DevConsolePrefabv1 (Parent: None)
+  [Component] Transform
+  [Component] scrip
+  [Component] DevConsoleToggler
+  - DevConsole (Parent: DevConsolePrefabv1)
+    [Component] RectTransform
+    [Component] Canvas
+    [Component] CanvasScaler
+    [Component] GraphicRaycaster
+    [Component] DebugDevConsoleUI
+    - DevPanel (Parent: DevConsole)
+      [Component] RectTransform
+      [Component] CanvasRenderer
+      [Component] Image
+      [Component] ScrollRect
+      - In (Parent: DevPanel)
+        [Component] RectTransform
+        [Component] CanvasRenderer
+        [Component] Image
+        [Component] TMP_InputField
+        - Text Area (Parent: In)
+          [Component] RectTransform
+          [Component] RectMask2D
+          - Caret (Parent: Text Area)
+            [Component] RectTransform
+            [Component] CanvasRenderer
+            [Component] TMP_SelectionCaret
+            [Component] LayoutElement
+          - Text (Parent: Text Area)
+            [Component] RectTransform
+            [Component] CanvasRenderer
+            [Component] TextMeshProUGUI
+          - Placeholder (Parent: Text Area)
+            [Component] RectTransform
+            [Component] CanvasRenderer
+            [Component] TextMeshProUGUI
+            [Component] LayoutElement
+    - flagss (Parent: DevConsole)
+      [Component] RectTransform
+      [Component] CanvasRenderer
+      [Component] TextMeshProUGUI
+    - flags (Parent: DevConsole)
+      [Component] RectTransform
+      [Component] CanvasRenderer
+      [Component] TextMeshProUGUI
+    - val (Parent: DevConsole)
+      [Component] RectTransform
+      [Component] CanvasRenderer
+      [Component] TextMeshProUGUI
+    - vals (Parent: DevConsole)
+      [Component] RectTransform
+      [Component] CanvasRenderer
+      [Component] TextMeshProUGUI
+    - DevConsoleV1 (Parent: DevConsole)
+      [Component] RectTransform
+      [Component] CanvasRenderer
+      [Component] TextMeshProUGUI
+    - DevConsoleV1 (1) (Parent: DevConsole)
+      [Component] RectTransform
+      [Component] CanvasRenderer
+      [Component] TextMeshProUGUI

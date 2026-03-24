@@ -91,7 +91,7 @@ namespace FracturedStudios.UI
             {
                 if (inputFieldTMP != null)
                 {
-                    inputFieldTMP.onSubmit.AddListener(OnInputSubmitTMP);
+                    inputFieldTMP.onEndEdit.AddListener(OnInputSubmitTMP);
                 }
                 if (inputFieldLegacy != null)
                 {
@@ -103,6 +103,22 @@ namespace FracturedStudios.UI
             // Refresh visible text and add a short enabled message so you can confirm it's active
             try { RefreshText(); } catch { }
             try { AddMessage("DevConsole enabled"); } catch { }
+
+            // Auto-focus the input field so the player can type immediately
+            try
+            {
+                if (inputFieldTMP != null)
+                {
+                    inputFieldTMP.ActivateInputField();
+                    inputFieldTMP.Select();
+                }
+                else if (inputFieldLegacy != null)
+                {
+                    inputFieldLegacy.ActivateInputField();
+                    inputFieldLegacy.Select();
+                }
+            }
+            catch { }
         }
 
         void OnDisable()
@@ -113,7 +129,7 @@ namespace FracturedStudios.UI
 
             try
             {
-                if (inputFieldTMP != null) inputFieldTMP.onSubmit.RemoveListener(OnInputSubmitTMP);
+                if (inputFieldTMP != null) inputFieldTMP.onEndEdit.RemoveListener(OnInputSubmitTMP);
                 if (inputFieldLegacy != null) inputFieldLegacy.onEndEdit.RemoveListener(OnInputEndEditLegacy);
             }
             catch { }
@@ -169,9 +185,10 @@ namespace FracturedStudios.UI
             if (!string.IsNullOrWhiteSpace(line)) SubmitCommand(line);
         }
 
-        // TMP submit handler
+        // TMP submit handler — wired to onEndEdit; guard ensures only Enter triggers execution, not focus-loss clicks
         private void OnInputSubmitTMP(string s)
         {
+            if (!Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter)) return;
             if (!string.IsNullOrWhiteSpace(s)) SubmitCommand(s);
         }
 

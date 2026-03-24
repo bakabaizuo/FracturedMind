@@ -98,7 +98,7 @@ public class ThirdPersonBasic : MonoBehaviour
     private float sprintBoostMultiplier = 1f;
 
     [Header("Sprint")]
-    [SerializeField] private float sprintMultiplier = 1.5f; // multiplier when holding shift (ignored while crouched)
+    [SerializeField] private float sprintMultiplier = 2f; // multiplier when holding shift (ignored while crouched)
 
     // NEW: Jump cooldown to prevent spamming
     private float jumpCooldown = 0.1f;  // short buffer

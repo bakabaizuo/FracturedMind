@@ -20,6 +20,9 @@ namespace FracturedStudios.UI
         [Tooltip("Optional explicit reference to the DevConsole GameObject. If null, the script will search for a child with name 'devConsoleName' in Start().")]
         public GameObject devConsole;
 
+        [Tooltip("Components to disable while the console is open (e.g. ThirdPersonBasic, PlayerInteract). Drag player components here.")]
+        public MonoBehaviour[] disableWhileOpen;
+
         void Start()
         {
             if (devConsole == null)
@@ -69,6 +72,15 @@ namespace FracturedStudios.UI
                 return;
             }
             devConsole.SetActive(visible);
+
+            // Disable/enable player-side components so input doesn't bleed through
+            if (disableWhileOpen != null)
+            {
+                foreach (var c in disableWhileOpen)
+                {
+                    if (c != null) c.enabled = !visible;
+                }
+            }
         }
 
         // Expose a context menu command that matches your requested label "`toggle" so you can toggle from the inspector.
