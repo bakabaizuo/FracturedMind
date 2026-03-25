@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
-
+using System.Collections;
+using System.Collections.Generic;
 namespace FracturedStudios
 {
     /// <summary>
@@ -32,6 +33,10 @@ namespace FracturedStudios
         [SerializeField, Min(0f)] private float pickupGlideSpeed = 5f;  // m/s toward carry point
         [SerializeField, Min(0f)] private float glideSnapDistance = 0.06f; // snap once within this distance
 
+        [Header("Placement Tween")]
+        [SerializeField] private bool placeTweenEnabled = true;
+        [SerializeField, Min(0f)] private float placeTweenDuration = 0.15f; // seconds
+
         [Header("Events")]
         [SerializeField] private UnityEvent onPickedUp;
         [SerializeField] private UnityEvent onPlaced;
@@ -41,6 +46,9 @@ namespace FracturedStudios
         private Transform holdAnchor;
         private Rigidbody rb;
         private bool originalUseGravity;
+
+        public Transform Carrier => carrier;
+        public PlayerInteract CarrierPlayerInteract => carrier != null ? carrier.GetComponent<PlayerInteract>() : null;
         private bool originalIsKinematic;
         private RigidbodyInterpolation originalInterpolation;
         private CollisionDetectionMode originalCollisionDetectionMode;
@@ -137,11 +145,16 @@ namespace FracturedStudios
 
         public void Pickup(Transform newCarrier)
         {
+            VerboseLogger.SafeLog($"LadderItem.Pickup invoked on '{gameObject.name}' newCarrier={(newCarrier==null?"null":newCarrier.name)}");
             if (newCarrier == null)
+            {
+                VerboseLogger.SafeLog($"LadderItem.Pickup aborted: newCarrier is null for '{gameObject.name}'");
                 return;
+            }
 
             carrier = newCarrier;
             holdAnchor = ResolveHoldAnchor(newCarrier);
+            VerboseLogger.SafeLog($"LadderItem.Pickup decided holdAnchor={(holdAnchor==null?"null":holdAnchor.name)}");
             isCarried = true;
             carryVelocity = Vector3.zero;
             if (rb != null)
@@ -158,7 +171,7 @@ namespace FracturedStudios
             onPickedUp?.Invoke();
         }
 
-        public void Drop(Vector3 position, Quaternion rotation)
+        public void Drop(Vector3 position, Quaternion rotation, bool maintainNoGravity = false)
         {
             carrier = null;
             holdAnchor = null;
@@ -170,6 +183,12 @@ namespace FracturedStudios
                 rb.isKinematic = originalIsKinematic;
                 rb.interpolation = originalInterpolation;
                 rb.collisionDetectionMode = originalCollisionDetectionMode;
+
+                if (maintainNoGravity)
+                {
+                    rb.useGravity = false;
+                    rb.isKinematic = true;
+                }
             }
             transform.SetPositionAndRotation(position, rotation);
             SetCollidersEnabled(true);
@@ -178,15 +197,103 @@ namespace FracturedStudios
 
         public void PlaceAt(Transform snapPoint)
         {
-            if (snapPoint == null)
-                return;
+            VerboseLogger.SafeLog($"LadderItem.PlaceAt (simple) called for '{gameObject.name}' snapPoint={(snapPoint==null?"null":snapPoint.name)}");
+            PlaceAt(snapPoint, true, Vector3.up, Vector3.zero);
+        }
 
-            Drop(snapPoint.position, snapPoint.rotation);
-            // Ensure renderers/colliders are enabled after placement (defensive - prevents staying invisible).
+        public void PlaceAt(Transform snapPoint, bool alignRotationToSnapPoint, Vector3 upAxis, Vector3 eulerOffset)
+        {
+            VerboseLogger.SafeLog($"LadderItem.PlaceAt called for '{gameObject.name}' snapPoint={(snapPoint==null?"null":snapPoint.name)} alignRotation={alignRotationToSnapPoint} upAxis={upAxis} eulerOffset={eulerOffset}");
+            if (snapPoint == null)
+            {
+                VerboseLogger.SafeLog($"LadderItem.PlaceAt abort: snapPoint is null for '{gameObject.name}'");
+                return;
+            }
+
+            if (upAxis == default)
+            {
+                VerboseLogger.SafeLog("LadderItem.PlaceAt: upAxis was default; using Vector3.up");
+                upAxis = Vector3.up;
+            }
+
+            Quaternion targetRotation;
+            if (alignRotationToSnapPoint)
+            {
+                Vector3 forward = snapPoint.forward;
+                if (forward == Vector3.zero)
+                {
+                    forward = snapPoint.rotation * Vector3.forward;
+                    VerboseLogger.SafeLog($"LadderItem.PlaceAt: snapPoint.forward was zero, using snapPoint.rotation*forward = {forward}");
+                }
+                targetRotation = Quaternion.LookRotation(forward, upAxis);
+            }
+            else
+            {
+                targetRotation = snapPoint.rotation;
+            }
+
+            if (eulerOffset != Vector3.zero)
+            {
+                targetRotation = targetRotation * Quaternion.Euler(eulerOffset);
+                VerboseLogger.SafeLog($"LadderItem.PlaceAt: applied euler offset {eulerOffset}, final rot={targetRotation.eulerAngles}");
+            }
+
+            Vector3 startPosition = transform.position;
+            Quaternion startRotation = transform.rotation;
+            Vector3 targetPosition = snapPoint.position;
+
+            if (placeTweenEnabled && placeTweenDuration > 0f)
+            {
+                StartCoroutine(PlaceTweenCoroutine(startPosition, targetPosition, startRotation, targetRotation, placeTweenDuration));
+            }
+            else
+            {
+                CompletePlace(targetPosition, targetRotation);
+            }
+        }
+
+        private IEnumerator PlaceTweenCoroutine(Vector3 startPosition, Vector3 targetPosition, Quaternion startRotation, Quaternion targetRotation, float duration)
+        {
+            if (rb != null)
+            {
+                rb.useGravity = false;
+                rb.isKinematic = true;
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+
+            float t = 0f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float alpha = Mathf.Clamp01(t / duration);
+                transform.position = Vector3.Lerp(startPosition, targetPosition, alpha);
+                transform.rotation = Quaternion.Slerp(startRotation, targetRotation, alpha);
+                yield return null;
+            }
+
+            CompletePlace(targetPosition, targetRotation);
+        }
+
+        private void CompletePlace(Vector3 position, Quaternion rotation)
+        {
+            Drop(position, rotation, true);
             SetCollidersEnabled(true);
             SetRenderersEnabled(true);
             gameObject.SetActive(true);
             onPlaced?.Invoke();
+            VerboseLogger.SafeLog($"LadderItem.PlaceAt complete for '{gameObject.name}'");
+        }
+
+        /// <summary>
+        /// Rotate carried ladder around world up axis (free rotation).
+        /// </summary>
+        public void RotateBy(float yawDegrees)
+        {
+            if (!isCarried)
+                return;
+
+            transform.Rotate(Vector3.up, yawDegrees, Space.World);
         }
 
         /// <summary>

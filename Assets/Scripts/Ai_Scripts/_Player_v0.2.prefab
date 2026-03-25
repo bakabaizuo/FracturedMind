@@ -3135,6 +3135,8 @@ MonoBehaviour:
     FlagMask: 0
     AbilitiesOwned: []
   maxAllowedChapterStage: 4
+  enableCarryRotation: 1
+  carryRotationSpeedDegreesPerSecond: 120
 --- !u!1 &5300496159603080467
 GameObject:
   m_ObjectHideFlags: 0

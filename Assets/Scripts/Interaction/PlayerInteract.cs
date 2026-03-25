@@ -79,6 +79,21 @@ namespace FracturedStudios
             }
         }
 
+        [Header("Carry Rotation")]
+        [SerializeField] private bool enableCarryRotation = true;
+        [SerializeField] private float carryRotationSpeedDegreesPerSecond = 120f;
+
+        void Update()
+        {
+            if (carriedLadder != null && enableCarryRotation)
+            {
+                if (Input.GetMouseButton(0))
+                {
+                    carriedLadder.RotateBy(carryRotationSpeedDegreesPerSecond * Time.deltaTime);
+                }
+            }
+        }
+
         void OnEnable()  { controls?.Enable(); }
         void OnDisable() { controls?.Disable(); }
 
@@ -371,12 +386,55 @@ namespace FracturedStudios
         /// <summary>Raycast for a LadderPlacementPoint and place the carried ladder. Returns true on success.</summary>
         private bool TryPlaceCarried()
         {
-            if (!Raycast(out RaycastHit hit)) return false;
-            var point = hit.collider.GetComponentInParent<LadderPlacementPoint>();
-            if (point == null) return false;
-            if (!point.TryPlace(carriedLadder)) return false;
+            if (carriedLadder == null)
+            {
+                VerboseLogger.SafeLog("PlayerInteract.TryPlaceCarried: no carried ladder");
+                return false;
+            }
+
+            // No raycast needed: detect placement points by collider overlap around the ladder.
+            float overlapRadius = 0.5f;
+            Vector3 center = carriedLadder.transform.position;
+            var hits = Physics.OverlapSphere(center, overlapRadius, interactMask, QueryTriggerInteraction.Collide);
+            VerboseLogger.SafeLog($"PlayerInteract.TryPlaceCarried: looking for placement points near ladder at {center} with radius {overlapRadius}, hits={hits.Length}");
+
+            foreach (var hit in hits)
+            {
+                if (hit == null) continue;
+                var point = hit.GetComponentInParent<LadderPlacementPoint>();
+                if (point == null) continue;
+
+                VerboseLogger.SafeLog($"PlayerInteract.TryPlaceCarried: overlapped LadderPlacementPoint {point.gameObject.name}");
+                if (AttemptPlaceCarried(point))
+                {
+                    return true;
+                }
+            }
+
+            VerboseLogger.SafeLog("PlayerInteract.TryPlaceCarried: no placement point in overlap range");
+            return false;
+        }
+
+        /// <summary>External call: attempt to place currently carried ladder on a placement point.</summary>
+        public bool AttemptPlaceCarried(LadderPlacementPoint point)
+        {
+            VerboseLogger.SafeLog($"PlayerInteract.AttemptPlaceCarried: point={(point==null?"null":point.gameObject.name)} carriedLadder={(carriedLadder==null?"null":carriedLadder.gameObject.name)}");
+
+            if (point == null || carriedLadder == null)
+            {
+                VerboseLogger.SafeLog("PlayerInteract.AttemptPlaceCarried: abort due null point/carriedLadder");
+                return false;
+            }
+
+            if (!point.TryPlace(carriedLadder))
+            {
+                VerboseLogger.SafeLog($"PlayerInteract.AttemptPlaceCarried: point.TryPlace failed for ladder {carriedLadder.gameObject.name}");
+                return false;
+            }
+
             carriedLadder = null;
             SetChapterFlag("LadderPlaced", IntroStage.LadderPlaced);
+            VerboseLogger.SafeLog("PlayerInteract.AttemptPlaceCarried: success");
             return true;
         }
 
