@@ -122,19 +122,25 @@ _Last audited: March 23, 2026_
 
 ## Minimal Implementation Plan
 
-1) **Ladder beat** — `LadderItem` + `LadderPlacementPoint` scripts complete. Status: 🟡 Needs scene prefab wiring + in-scene test.
+1) **Ladder beat** — `LadderItem` + `LadderPlacementPoint` scripts complete. Status: Done.
    - Carry collision, pickup glide, RequireComponent(Collider) all done in code.
    - Scene: place `LadderItem` prefab between storage racks; place `LadderPlacementPoint` under vent with a `SnapPoint` child Transform.
-   - Set `carryObstacleMask` to exclude Player and Ladder layers in Inspector.
-2) **PlayerInteract** — carry-state-driven pickup/drop/re-pickup complete. Status: 🟡 Needs scene component attach.
+ uses Tag "Player" for trigger detection; `carryObstacleMask` should exclude Player + Ladder layers.
+2) **PlayerInteract** — carry-state-driven pickup/drop/re-pickup complete. Status: Done.
    - Add to player GameObject; Input Action `Player/Interact` must be bound (E key).
+   Note: LadderItem Snaps to Position and lerps in a while loop and disables its gravity RB.
+   Works.
    - Assign `ChapterState` ref if chapter gating is needed.
-3) **Vent entry** — `VentEntryTrigger.cs` complete. Status: 🟡 Needs trigger collider placed + `onVentEntered` wired to scene transition.
-   - Add `BoxCollider (isTrigger)` at vent mouth; assign `LadderPlacementPoint` to `placementZone` field.
-   - Wire `onVentEntered` → fade/load/teleport to library.
-4) **Library lamp slice (cutscene)** — `LibraryLampBehavior.cs` exists. Status: ❌ Timeline drive not yet set up.
+
+3) **Vent entry** — `VentEntryTrigger.cs` complete. Status: Defer to Cutscene `onVentEntered` wired to scene transition. - Wire `onVentEntered` → fade/load/teleport to library. <-- needed. 
+   
+   
+4) **Library lamp slice (cutscene)** — `LibraryLampBehavior.cs` exists. Status: ❌ Timeline drive not yet set up. Defer until Library is Built in scene. WIP. 3/23/2026.
    - Drive flicker/explode via Timeline, not player gaze.
    - Disable `LampVisionSensor` during sequence.
+
+
+   Next steps: Librarian setup and Scene setup. Lamp is Cutscene and Animation dependent, not Gameplay dependent. Defer until cutscene is set up, then decide how to handle the LampVisionSensor critique (disable during cutscene or leave as-is).
 
 ---
 
@@ -158,8 +164,8 @@ Xiona, a nerdy goth girl, is bullied daily at school. Fed up, she decides to fig
 #### Gameplay — School Storage Room
 - Find the small ladder hidden between the storage racks.
 - Place ladder directly beneath the vent hatch (`LadderItem` → `LadderPlacementZone`).
-- Enter the ventilation system (`VentEntryTrigger`).
-- Xiona's internal monologue while crawling: _"I've had it with these bullies, just you wait! I'm going to the library and I'm going to give them a good psychological kicking!"_
+- Enter the ventilation system (`VentEntryTrigger`). <- animation dependent.
+- Xiona's internal monologue while crawling: _"I've had it with these bullies, just you wait! I'm going to the library and I'm going to give them a good psychological kicking!"_ <- UI wireing
 - Navigate vents to exit through the school's main hallway side (exit is nearby).
 - `ChapterId.Intro` / `IntroStage` advances here.
 
