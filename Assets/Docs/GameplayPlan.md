@@ -32,7 +32,8 @@ _Last audited: March 23, 2026_
 | Vent → library transition | VentEntryTrigger onVentEntered hookup | 🟡 Needs scene place |
 | Library lamp cutscene | Timeline / LibraryLampBehavior wiring | 🟡 Needs Timeline setup |
 | Guard obstruction layers | LibrarianPerceptionDriver layermask | 🟡 Needs tuning |
-| LampVisionSensor disable in cutscene | LampVisionSensor.enabled = false | ❌ Not wired yet |
+
+| LampVisionSensor critique in cutscene | ❌ Not wired yet | Note: Defered till trigger ready. Cutscene and Animation Dependent. Not Gameplay dependent. Decide what do to with it after cutscene is set up. or Defer to Cutcene Controller semantics |
 
 ---
 
@@ -56,7 +57,8 @@ _Last audited: March 23, 2026_
 - `Assets/Scripts/Controllers/LookTargetLerper.cs` — smooth look-target utility.
 
 ### Sensing
-- `Assets/Scripts/Controllers/LampVisionSensor.cs` — cone + raycast LOS to lamps; auto-added by ThirdPersonBasic.
+- `Assets/Scripts/Controllers/LampVisionSensor.cs` — cone + raycast LOS to lamps; auto-added by ThirdPersonBasic. 
+
 
 ### Environment
 - `Assets/Scripts/Environment/LibraryLampBehavior.cs` — look counting, flicker, explosion hooks.
