@@ -147,7 +147,7 @@ Xiona, a nerdy goth girl, is bullied daily at school. Fed up, she decides to fig
 
 ### INTRO — Detailed Script
 
-#### Cutscene — `Intro_BullyHall`
+#### Cutscene — `Intro_BullyHall` ~
 - School bell rings. _"Time to go to class!"_
 - Xiona closes her locker — bullies waiting right beside her, the last students in the hallway.
 - Bullies taunt: _"hahahahaaha ofc, you don't have anything in life except for your parents and your silly best friend who's worthless! Hahahaahaha!"_
@@ -166,7 +166,7 @@ Xiona, a nerdy goth girl, is bullied daily at school. Fed up, she decides to fig
 #### Transition — Loading Screen / Brief Black Screen
 > _"?LOADING SCREEN or just a sec black screen?"_ — decision pending.
 
-#### Cutscene — Library Arrival
+#### Cutscene — Library Arrival ~
 - Xiona arrives at the library.
 - She searches the science section for psychology books, near the biology shelves — adjacent to the restricted area entrance (librarian visible at desk on the other side).
 - She catches the flickering lamp out of the corner of her eye in the distance. Glances at it; thinks nothing of it; looks away to continue searching.
@@ -186,7 +186,7 @@ Xiona, a nerdy goth girl, is bullied daily at school. Fed up, she decides to fig
 - As Xiona approaches, darkness deepens, red glow intensifies corridor by corridor.
 - At the far end: a book radiating the red glow. **Interact with book** → triggers cutscene.
 
-#### Cutscene — `Library_BookPortal`
+#### Cutscene — `Library_BookPortal` ~
 - Camera focuses on the book in Xiona's hands. Red glow fades away.
 - Camera cuts to full-body view: she holds **_"Ancient Forbidden Witchcraft"_**.
 - She opens it — confirms the title.
@@ -202,7 +202,7 @@ Xiona, a nerdy goth girl, is bullied daily at school. Fed up, she decides to fig
 
 ### Chapter 1: A Forsaken Abyss
 
-#### Cutscene — Waking Up
+#### Cutscene — Waking Up ~
 - Xiona wakes. A **luminous owl** hovers above her. She panics and scrambles backwards.
 - Owl: _"I thought you were dead — I'm glad to have been wrong."_
 - She asks why he can talk and why he glows. He explains he is one of the ancient creatures.

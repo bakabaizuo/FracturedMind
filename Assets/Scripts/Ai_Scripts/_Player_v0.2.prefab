@@ -474,7 +474,7 @@ GameObject:
   - component: {fileID: 408425792960025449}
   m_Layer: 0
   m_Name: GEO-head_animation_realistic.002
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1933,7 +1933,7 @@ GameObject:
   - component: {fileID: 12947926161300348}
   m_Layer: 0
   m_Name: NurbsPath.004
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2686,6 +2686,7 @@ GameObject:
   - component: {fileID: 579895888676744863}
   - component: {fileID: 2509206954425700342}
   - component: {fileID: 9005086658109291995}
+  - component: {fileID: 2787069548725500614}
   m_Layer: 7
   m_Name: _Player_v0.2
   m_TagString: Player
@@ -3105,6 +3106,35 @@ MonoBehaviour:
   - 
   flagToAdd: 
   flagToRemove: 
+--- !u!114 &2787069548725500614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4889672208279801286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d67565ede4b7fb48a0bb45341a9ea1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ignoreHitLayers:
+    serializedVersion: 2
+    m_Bits: 416
+  ignoreHitTags: []
+  ladderTag: Ladder
+  debugPickup: 1
+  debugGizmos: 1
+  interactRange: 3
+  interactMask:
+    serializedVersion: 2
+    m_Bits: 8
+  chapterState:
+    CurrentChapter: 0
+    ChapterStage: 0
+    FlagMask: 0
+    AbilitiesOwned: []
+  maxAllowedChapterStage: 4
 --- !u!1 &5300496159603080467
 GameObject:
   m_ObjectHideFlags: 0
@@ -3765,7 +3795,7 @@ GameObject:
   - component: {fileID: 4411590878321827546}
   m_Layer: 0
   m_Name: metarig.002
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4642,7 +4672,7 @@ GameObject:
   - component: {fileID: 5523150416157046282}
   m_Layer: 0
   m_Name: spine
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -69,6 +69,14 @@ public class ThirdPersonBasic : MonoBehaviour
     private float orbitPitch;
     private float currentPitch;
 
+    /// <summary>
+    /// Anchor used by held/world-facing interactions. In third-person this is the
+    /// orbit pivot the camera rotates around, which gives a stable forward/up basis.
+    /// </summary>
+    public Transform InteractionAnchor => cameraPivotOverride != null
+        ? cameraPivotOverride
+        : (cameraFollowSocket != null ? cameraFollowSocket : transform);
+
     [Header("Crouch Settings")]
     [SerializeField] private float crouchSpeedMultiplier = 0.5f;
     [SerializeField] private StringscriptAnimatior animController;

@@ -9,11 +9,12 @@ TagManager:
   - Enemy
   - PlayerCollider
   - LookTarget
+  - Ladder
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Interact
   - Water
   - UI
   - 
