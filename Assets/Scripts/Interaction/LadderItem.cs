@@ -304,8 +304,12 @@ namespace FracturedStudios
         {
             if (!destroyOnVentEnter)
                 return;
-
+          var trig = FindFirstObjectByType<VentEntryTrigger>();
+var result = trig != null ? trig.ProbeCutsceneFor(trig) : VentEntryTrigger.SequenceResult.Interrupted;
+       if (result == VentEntryTrigger.SequenceResult.Success)
+       {
             Destroy(gameObject);
+       }
         }
 
         private void SetRenderersEnabled(bool enabled)

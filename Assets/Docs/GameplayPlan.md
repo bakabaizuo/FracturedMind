@@ -18,7 +18,7 @@ _Last audited: March 23, 2026_
 | Event/data bus | EventInvokers/WorldBridgeSystem.cs | ✅ Done |
 | Interaction interface | Interaction/IInteractable.cs | ✅ Exists |
 | Ladder pickup + carry collision + glide | Interaction/LadderItem.cs | ✅ Done |
-| Ladder placement zone | Interaction/LadderPlacementZone.cs | ✅ Exists |
+| Ladder placement zone | Interaction/LadderPlacementZone.cs | ✅ Done |
 | Player interact (pickup/drop/re-pickup) | Interaction/PlayerInteract.cs | ✅ Done |
 | Vent entry trigger + debug | Interaction/VentEntryTrigger.cs | ✅ Done |
 | AI Librarian guard | AI_Librarian/ (LibrarianController + PerceptionDriver + NpuVm) | ✅ Exists |
