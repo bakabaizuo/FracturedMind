@@ -86,7 +86,7 @@ enum IntroDialogueComplete
 
     //Switch StateMachine for Chapters Area
     //we use public enum IntroStage for driving the state machine
-    private IntroDialogueComplete IntroSwitch()
+    private IntroDialogueComplete IntroSwitch() //Move to Action based instead of onUpdate.
     {
       if (chapterState.CurrentChapter != ChapterId.Intro)
         return IntroDialogueComplete.None;

@@ -132,15 +132,19 @@ _Last audited: March 23, 2026_
    Works.
    - Assign `ChapterState` ref if chapter gating is needed.
 
-3) **Vent entry** — `VentEntryTrigger.cs` complete. Status: Defer to Cutscene `onVentEntered` wired to scene transition. - Wire `onVentEntered` → fade/load/teleport to library. <-- needed. 
-   
-   
-4) **Library lamp slice (cutscene)** — `LibraryLampBehavior.cs` exists. Status: ❌ Timeline drive not yet set up. Defer until Library is Built in scene. WIP. 3/23/2026.
-   - Drive flicker/explode via Timeline, not player gaze.
-   - Disable `LampVisionSensor` during sequence.
+3) **Vent entry** — `VentEntryTrigger.cs` is done in code. Track this part of the plan:
+  - [x] Trigger on `Player` tag and fire `onVentEntered`.
+  - [ ] Wire `onVentEntered` to the library transition (fade/load/teleport).
+  - [ ] Land Xiona in the library science section near the biology shelves.
+  - [ ] Reveal the old pen as the first interaction/distraction item.
 
+4) **Gameplay goal** — track the library stealth slice through the book interaction:
+  - [ ] Slip into the restricted area unseen.
+  - [ ] Use the old pen if the librarian blocks the path.
+  - [ ] Reach the red-glow book at the far end.
+  - [ ] Interact with book.
 
-   Next steps: Librarian setup and Scene setup. Lamp is Cutscene and Animation dependent, not Gameplay dependent. Defer until cutscene is set up, then decide how to handle the LampVisionSensor critique (disable during cutscene or leave as-is).
+  Next steps: finish the vent-to-library transition first, The lamp beat stays deferred until the animation/cutscene pass is ready. Stealth mechanics need adjusting. heuristics and the rest of the library beat can be iterated on  without the lamp cutscene setup, as they are not dependent on it. and is decoupled/modular. so we can afford to iterate on them separately.
 
 ---
 
@@ -171,19 +175,21 @@ Xiona, a nerdy goth girl, is bullied daily at school. Fed up, she decides to fig
 
 #### Transition — Loading Screen / Brief Black Screen
 > _"?LOADING SCREEN or just a sec black screen?"_ — decision pending.
+> Use this beat as the vent-to-library handoff before the stealth section starts.
 
 #### Cutscene — Library Arrival ~
-- Xiona arrives at the library.
-- She searches the science section for psychology books, near the biology shelves — adjacent to the restricted area entrance (librarian visible at desk on the other side).
-- She catches the flickering lamp out of the corner of her eye in the distance. Glances at it; thinks nothing of it; looks away to continue searching.
+- Xiona lands in the library science section, near the biology shelves and adjacent to the restricted area entrance.
+- The librarian is visible at the desk on the other side of the entry.
+- She catches the flickering lamp out of the corner of her eye in the distance, glances at it, then looks away to keep searching.
 - The moment she looks away — **the lamp explodes** (`Library_LampExplode`).
-- _"well, that's a goner…"_ — notices the explosion came from inside the restricted area.
-- Observes: WARNING sign at the entrance; librarian seated at desk beside it.
+- _"well, that's a goner…"_ — she notices the explosion came from inside the restricted area.
+- She sees the WARNING sign at the entrance and the librarian seated beside it.
 - _"I really want to have a look inside, maybe I should distract her."_
 - She spots an **old pen** on a nearby bookshelf. (Interact → distraction item.)
 
 #### Gameplay — Library Restricted Area (Stealth)
-- **Goal**: enter the restricted area as fast as possible while sneaking.
+- **Goal**: slip into the restricted area, stay unseen, and reach the red-glow book.
+- Use the old pen as the distraction item if the librarian blocks the path.
 - Once past the entrance at a certain depth, Xiona whispers: _"I think the librarian is coming…"_
 - Sneak toward the dark end of the restricted section while the librarian patrols.
 - **Hide**: duck behind racks and museum-style cabinets to break line-of-sight (`LibrarianPerceptionDriver`).
