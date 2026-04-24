@@ -22,13 +22,19 @@ namespace FracturedMind.AI
             public readonly float Belief;
             public readonly Vector3? TargetPosition;
             public readonly bool PlayerIsCrouching;
+            public readonly float LightLevel;
+            public readonly float Darkness;
+            public readonly float HalfDarkness;
 
-            public PerceptionSnapshot(float alertFlag, float belief, Vector3? targetPosition, bool playerIsCrouching)
+            public PerceptionSnapshot(float alertFlag, float belief, Vector3? targetPosition, bool playerIsCrouching, float lightLevel, float darkness, float halfDarkness)
             {
                 AlertFlag = alertFlag;
                 Belief = belief;
                 TargetPosition = targetPosition;
                 PlayerIsCrouching = playerIsCrouching;
+                LightLevel = lightLevel;
+                Darkness = darkness;
+                HalfDarkness = halfDarkness;
             }
         }
         [Header("Scene refs")]
@@ -57,6 +63,9 @@ namespace FracturedMind.AI
         [SerializeField] bool pushToController = true;
         [SerializeField] LibrarianController controller;
 
+        [Header("Light")]
+        [SerializeField] AiLightProcessor aiLightProcessor;
+
         [Header("Debug")] 
         [SerializeField] float currentBelief;
         [SerializeField] float alertFlag;
@@ -77,11 +86,17 @@ namespace FracturedMind.AI
         static readonly ProfilerMarker OverlapQueryMarker = new ProfilerMarker("Librarian.Perception.Overlap");
         static readonly ProfilerMarker VmTickMarker = new ProfilerMarker("Librarian.Perception.VM");
 
+
+
+
+
+
         void Awake()
         {
             if (eye == null) eye = transform;
             if (player == null) player = ThirdPersonBasic.Instance;
             if (controller == null) controller = GetComponent<LibrarianController>();
+            if (aiLightProcessor == null) aiLightProcessor = FindFirstObjectByType<AiLightProcessor>();
 
             // Allocate hits buffer
             var size = Mathf.Max(1, maxHits);
@@ -170,18 +185,20 @@ namespace FracturedMind.AI
                     _lastPlayerPos = pos;
                 }
 
-                // Light level stub: set to 1; plug your lighting sampling here.
-                float lightLevel = 1f;
+                // Light level and darkness now feed the perception snapshot and controller mode logic.
+                float lightLevel = aiLightProcessor != null ? aiLightProcessor.SampleLightLevel(eye.position, eye.forward) : 1f;
+                float darkness = aiLightProcessor != null ? aiLightProcessor.SampleDarkness(eye.position, eye.forward) : 0f;
+                float halfDarkness = aiLightProcessor != null ? aiLightProcessor.SampleHalfDarkness(eye.position, eye.forward) : darkness * 0.5f;
 
                 if (bestDot >= 0f)
                 {
                     float distNorm = Mathf.InverseLerp(distClamp, minViewDistance, bestDist);
                     float crouchPenalty = playerCrouched ? crouchVisibilityMultiplier : 1f;
 
-                    _vm.SetRegister(0, bestDot * crouchPenalty); // dot attenuated if crouched
+                    _vm.SetRegister(0, bestDot * crouchPenalty); // dot attenuated if crouched // add * crouchVisibilityMultiplier
                     _vm.SetRegister(1, distNorm);
                     _vm.SetRegister(2, lightLevel * crouchPenalty);
-                    _vm.SetRegister(3, motionScalar * crouchPenalty);
+                    _vm.SetRegister(3, motionScalar * crouchPenalty);///* crouchVisibilityMultiplier
                 }
                 else
                 {
@@ -208,8 +225,8 @@ namespace FracturedMind.AI
                     {
                         VerboseLogger.SafeLog("[Librarian] Controller has no NavMeshAgent; pursuit will not move.");
                     }
-                    VerboseLogger.SafeLog($"[Librarian] Pushing snapshot: alert={alertFlag:0.00} belief={currentBelief:0.00} targetSet={_bestTarget.HasValue}");
-                    controller.OnPerceptionUpdate(new PerceptionSnapshot(alertFlag, currentBelief, _bestTarget, playerCrouched));
+                    VerboseLogger.SafeLog($"[Librarian] Pushing snapshot: alert={alertFlag:0.00} belief={currentBelief:0.00} targetSet={_bestTarget.HasValue} light={lightLevel:0.00} dark={darkness:0.00}");
+                    controller.OnPerceptionUpdate(new PerceptionSnapshot(alertFlag, currentBelief, _bestTarget, playerCrouched, lightLevel, darkness, halfDarkness));
                 }
             }
         }

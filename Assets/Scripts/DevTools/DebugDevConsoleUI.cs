@@ -49,6 +49,12 @@ namespace FracturedStudios.UI
         [Tooltip("Optional TMP text used to display tracked values (falls back to ActiveFLAGSTextTMP)")]
         public TMP_Text trackedValuesTextTMP;
 
+        [Header("Light Test Panel")]
+        [Tooltip("Optional TMP text used for append-only light / darkness debug values")]
+        public TMP_Text lightTestTextTMP;
+        [Tooltip("Maximum number of light test lines to retain")]
+        public int maxLightTestMessages = 12;
+
         private readonly Dictionary<string, Func<object>> _trackedValues = new Dictionary<string, Func<object>>(StringComparer.OrdinalIgnoreCase);
         public int DebugPanelIndex = 0; // ideally switching with < and > keys.
         [Header("Debug Panels")]
@@ -62,6 +68,7 @@ namespace FracturedStudios.UI
         private int historyIndex = -1;
 
         private readonly Queue<string> _messages = new Queue<string>();
+        private readonly Queue<string> _lightMessages = new Queue<string>();
         private readonly Dictionary<string, Action<string[]>> _commands = new Dictionary<string, Action<string[]>>(StringComparer.OrdinalIgnoreCase);
         private IDisposable _registrationToken;
        
@@ -150,6 +157,26 @@ namespace FracturedStudios.UI
             RefreshText();
         }
 
+        /// <summary>
+        /// Append a value line to the dedicated light test panel.
+        /// This is separate from the main console message stream.
+        /// </summary>
+        public void AddLightMessage(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return;
+
+            string ts = DateTime.Now.ToString("HH:mm:ss");
+            _lightMessages.Enqueue($"[{ts}] {message}");
+            while (_lightMessages.Count > maxLightTestMessages) _lightMessages.Dequeue();
+            RefreshLightText();
+        }
+
+        public void ClearLightMessages()
+        {
+            _lightMessages.Clear();
+            RefreshLightText();
+        }
+
         private void RefreshText()
         {
             string text = string.Join("\n", _messages.ToArray());
@@ -168,6 +195,12 @@ namespace FracturedStudios.UI
                 Canvas.ForceUpdateCanvases();
                 outputScrollRect.verticalNormalizedPosition = 0f;
             }
+        }
+
+        private void RefreshLightText()
+        {
+            if (lightTestTextTMP == null) return;
+            lightTestTextTMP.text = string.Join("\n", _lightMessages.ToArray());
         }
 
         // Simple command system (register commands via RegisterCommand)
@@ -265,6 +298,7 @@ namespace FracturedStudios.UI
         private void RegisterDefaultCommands()
         {
             RegisterCommand("clear", args => { _messages.Clear(); RefreshText(); });
+                RegisterCommand("lightclear", args => { ClearLightMessages(); AddMessage("Light test panel cleared"); });
             RegisterCommand("help", args => { AddMessage("Available commands: clear, help, last,  (use 'help <cmd>' for details)"); });
             RegisterCommand("last", args => { if (_messages.Count>0) AddMessage(_messages.Peek()); });
             RegisterCommand("flashflag", args => {

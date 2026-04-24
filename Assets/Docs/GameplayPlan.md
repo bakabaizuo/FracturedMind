@@ -87,6 +87,7 @@ _Last audited: March 23, 2026_
 - `Assets/Scripts/AI_Librarian/NpuVm.cs` — lightweight neural-program-unit VM for guard belief.
 - `Assets/Scripts/AI_Librarian/NpuProgramBuilder.cs` — builds sample detection programs.
 - `Assets/Scripts/AI_Librarian/NpuAgentRunner.cs` — drives NPU tick loop.
+- `Assets/Scripts/AI_Librarian/AiLightProcessor.cs` — runtime light/darkness sampler feeding perception inputs; belief still resolves from the NPU memory output.
 - `Assets/Scripts/AI_Librarian/AiPerceptionBindings.cs / Provider` — binding helpers.
 - `Assets/Scripts/AI_Librarian/_Librarian_v0.1.prefab` — guard prefab.
 
@@ -190,6 +191,7 @@ Xiona, a nerdy goth girl, is bullied daily at school. Fed up, she decides to fig
 #### Gameplay — Library Restricted Area (Stealth)
 - **Goal**: slip into the restricted area, stay unseen, and reach the red-glow book.
 - Use the old pen as the distraction item if the librarian blocks the path.
+- Restricted-area marker component (planned, not written yet): a small scene-side component that marks the library's controlled zone and gives the stealth beat a readable anchor in the plan.
 - Once past the entrance at a certain depth, Xiona whispers: _"I think the librarian is coming…"_
 - Sneak toward the dark end of the restricted section while the librarian patrols.
 - **Hide**: duck behind racks and museum-style cabinets to break line-of-sight (`LibrarianPerceptionDriver`).

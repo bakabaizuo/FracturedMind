@@ -20,6 +20,11 @@ namespace FracturedMind.AI
         [SerializeField] bool respectPlayerCrouchInGuard = true;
         [SerializeField] LibrarianPerceptionDriver perception;
 
+        [Header("Light / Darkness")]
+        [SerializeField, Range(0f, 1f)] float darknessThreshold = 0.65f;
+        [SerializeField, Range(0f, 1f)] float darknessFallbackThreshold = 0.35f;
+        [SerializeField, Range(0f, 1f)] float darknessAlertMultiplier = 0.5f;
+
         [Header("Animation hooks")]
         [SerializeField] Animator animator;
         [SerializeField] string alertParam = "Alert";
@@ -49,6 +54,14 @@ namespace FracturedMind.AI
             bool shouldPursue = false;
             float alert = snap.AlertFlag;
             bool playerCrouched = IsPlayerCrouching || snap.PlayerIsCrouching;
+            float darkness = Mathf.Clamp01(snap.Darkness);
+            float halfDarkness = Mathf.Clamp01(snap.HalfDarkness);
+            bool isDark = darkness >= darknessThreshold;
+            bool isFallbackDark = darkness >= darknessFallbackThreshold;
+
+            float darknessBlend = 1f - darkness;
+            float fallbackBlend = 1f - halfDarkness;
+            alert *= Mathf.Lerp(darknessAlertMultiplier, 1f, Mathf.Clamp01(Mathf.Max(darknessBlend, fallbackBlend)));
 
             if (_agent == null)
             {
@@ -56,7 +69,7 @@ namespace FracturedMind.AI
             }
             else
             {
-                VerboseLogger.SafeLog($"[LibrarianController] Incoming snap alert={alert:0.00} belief={snap.Belief:0.00} targetSet={snap.TargetPosition.HasValue} mode={mode}");
+                VerboseLogger.SafeLog($"[LibrarianController] Incoming snap alert={alert:0.00} belief={snap.Belief:0.00} targetSet={snap.TargetPosition.HasValue} mode={mode} dark={darkness:0.00} half={halfDarkness:0.00}");
             }
 
             switch (mode)
@@ -65,7 +78,7 @@ namespace FracturedMind.AI
                     shouldPursue = false;
                     break;
                 case LibrarianPerceptionDriver.LibrarianMode.Guard:
-                    shouldPursue = alert >= alertThreshold;
+                    shouldPursue = !isDark && alert >= alertThreshold;
                     if (playerCrouched)
                     {
                         if (respectPlayerCrouchInGuard)
@@ -78,9 +91,14 @@ namespace FracturedMind.AI
                             VerboseLogger.SafeLog("[LibrarianController] Guard ignoring crouch (respect off)");
                         }
                     }
+                    else if (isFallbackDark)
+                    {
+                        shouldPursue = alert >= (alertThreshold * 1.25f);
+                        VerboseLogger.SafeLog("[LibrarianController] Guard softened by low light fallback");
+                    }
                     break;
                 case LibrarianPerceptionDriver.LibrarianMode.Pursue:
-                    shouldPursue = alert >= alertThreshold;
+                    shouldPursue = !isDark && alert >= alertThreshold;
 
                     if (shouldPursue)
                         HandlePursue(snap, alert);
@@ -94,7 +112,7 @@ namespace FracturedMind.AI
             }
 
             // Escalate Guard -> Pursue when we have a target and alert crosses threshold
-            if (autoEscalateToPursueOnTarget && snap.TargetPosition.HasValue && alert >= alertThreshold && mode == LibrarianPerceptionDriver.LibrarianMode.Guard)
+            if (autoEscalateToPursueOnTarget && snap.TargetPosition.HasValue && !isDark && alert >= alertThreshold && mode == LibrarianPerceptionDriver.LibrarianMode.Guard)
             {
                 mode = LibrarianPerceptionDriver.LibrarianMode.Pursue;
                 VerboseLogger.SafeLog("[LibrarianController] Auto-escalated Guard -> Pursue");

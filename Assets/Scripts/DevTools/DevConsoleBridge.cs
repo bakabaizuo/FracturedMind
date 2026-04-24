@@ -13,6 +13,12 @@ namespace FracturedStudios.UI
             catch { }
         }
 
+        public static void AddLightMessage(string msg)
+        {
+            try { DebugDevConsoleUI.Instance?.AddLightMessage(msg); }
+            catch { }
+        }
+
         public static void RegisterCommand(string command, Action<string[]> action)
         {
             try { DebugDevConsoleUI.Instance?.RegisterCommand(command, action); }
