@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using FracturedStudios.UI;
 
 namespace FracturedMind.AI
 {
@@ -35,16 +36,48 @@ namespace FracturedMind.AI
         bool _alertParamChecked;
         bool _alertParamExists;
         int _alertParamHash;
+        float _lastScaledAlert;
+        bool _lastShouldPursue;
+        bool _lastIsDark;
+        bool _lastIsFallbackDark;
+
+        string _modeDebugKey;
+        string _scaledAlertDebugKey;
+        string _shouldPursueDebugKey;
+        string _isDarkDebugKey;
+        string _isFallbackDarkDebugKey;
+        string _darknessThresholdDebugKey;
+        string _darknessFallbackThresholdDebugKey;
+        string _darknessAlertMultiplierDebugKey;
 
         void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
             if (perception == null) perception = GetComponent<LibrarianPerceptionDriver>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
+            string debugKeyPrefix = $"AI.{gameObject.name}.{GetInstanceID()}.Controller";
+            _modeDebugKey = debugKeyPrefix + ".Mode";
+            _scaledAlertDebugKey = debugKeyPrefix + ".ScaledAlert";
+            _shouldPursueDebugKey = debugKeyPrefix + ".ShouldPursue";
+            _isDarkDebugKey = debugKeyPrefix + ".IsDark";
+            _isFallbackDarkDebugKey = debugKeyPrefix + ".IsFallbackDark";
+            _darknessThresholdDebugKey = debugKeyPrefix + ".DarknessThreshold";
+            _darknessFallbackThresholdDebugKey = debugKeyPrefix + ".FallbackThreshold";
+            _darknessAlertMultiplierDebugKey = debugKeyPrefix + ".DarknessAlertMultiplier";
             if (animator == null)
             {
                 VerboseLogger.SafeLog("[LibrarianController] No Animator found on self or children.");
             }
+        }
+
+        void OnEnable()
+        {
+            RegisterDebugTrackedValues();
+        }
+
+        void OnDisable()
+        {
+            UnregisterDebugTrackedValues();
         }
 
         public bool IsPlayerCrouching => perception != null && perception.IsPlayerCrouched();
@@ -62,6 +95,9 @@ namespace FracturedMind.AI
             float darknessBlend = 1f - darkness;
             float fallbackBlend = 1f - halfDarkness;
             alert *= Mathf.Lerp(darknessAlertMultiplier, 1f, Mathf.Clamp01(Mathf.Max(darknessBlend, fallbackBlend)));
+            _lastScaledAlert = alert;
+            _lastIsDark = isDark;
+            _lastIsFallbackDark = isFallbackDark;
 
             if (_agent == null)
             {
@@ -119,6 +155,8 @@ namespace FracturedMind.AI
                 shouldPursue = true;
             }
 
+            _lastShouldPursue = shouldPursue;
+
             _repathTimer -= Time.fixedDeltaTime;
             if (shouldPursue && _agent != null && snap.TargetPosition.HasValue && _repathTimer <= 0f)
             {
@@ -153,6 +191,30 @@ namespace FracturedMind.AI
                     animator.SetFloat(_alertParamHash, alert);
                 }
             }
+        }
+
+        void RegisterDebugTrackedValues()
+        {
+            DevConsoleBridge.RegisterTrackedValue(_modeDebugKey, () => mode.ToString());
+            DevConsoleBridge.RegisterTrackedValue(_scaledAlertDebugKey, () => _lastScaledAlert);
+            DevConsoleBridge.RegisterTrackedValue(_shouldPursueDebugKey, () => _lastShouldPursue);
+            DevConsoleBridge.RegisterTrackedValue(_isDarkDebugKey, () => _lastIsDark);
+            DevConsoleBridge.RegisterTrackedValue(_isFallbackDarkDebugKey, () => _lastIsFallbackDark);
+            DevConsoleBridge.RegisterTrackedValue(_darknessThresholdDebugKey, () => darknessThreshold);
+            DevConsoleBridge.RegisterTrackedValue(_darknessFallbackThresholdDebugKey, () => darknessFallbackThreshold);
+            DevConsoleBridge.RegisterTrackedValue(_darknessAlertMultiplierDebugKey, () => darknessAlertMultiplier);
+        }
+
+        void UnregisterDebugTrackedValues()
+        {
+            DevConsoleBridge.UnregisterTrackedValue(_modeDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_scaledAlertDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_shouldPursueDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_isDarkDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_isFallbackDarkDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_darknessThresholdDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_darknessFallbackThresholdDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_darknessAlertMultiplierDebugKey);
         }
 
         public void SetMode(LibrarianPerceptionDriver.LibrarianMode newMode)

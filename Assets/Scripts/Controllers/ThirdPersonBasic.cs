@@ -56,6 +56,7 @@ public class ThirdPersonBasic : MonoBehaviour
     [Header("Mouse Look")]
     [SerializeField] private bool enableMouseLook = true;
     [SerializeField] private float mouseSensitivity = 120f;
+    [SerializeField, Range(0f, 1f)] private float mouseTunePercent = 0.96f;
     [SerializeField] private float pitchClampMin = -60f;
     [SerializeField] private float pitchClampMax = 75f;
     [SerializeField] private Transform cameraPivotOverride; // optional pivot the mouse rotates instead of Camera.main
@@ -65,6 +66,7 @@ public class ThirdPersonBasic : MonoBehaviour
     [Header("Camera Control")]
     [Tooltip("If enabled the controller will override camera transforms at runtime. Disable to edit camera in the Inspector/prefab.")]
     [SerializeField] private bool controlCamera = true;
+    [SerializeField, Min(0f)] private float pivotFollowLerpSpeed = 20f;
     private float orbitYaw;
     private float orbitPitch;
     private float currentPitch;
@@ -139,9 +141,11 @@ public class ThirdPersonBasic : MonoBehaviour
 
         EnsureLampVisionSensor();
 
-        // If pivot override is parented to the player, detach so it stops inheriting rotation
-        if (controlCamera && cameraPivotOverride != null && detachPivotFromPlayer && cameraPivotOverride.parent != null)
-            cameraPivotOverride.SetParent(null, true);
+        if (controlCamera)
+        {
+            DetachCameraPivotIfNeeded();
+            SnapCameraPivotToFollowSocket();
+        }
 
         // Initialize orbit yaw from current camera or player yaw so mouse look starts aligned
         if (Camera.main != null)
@@ -157,9 +161,6 @@ public class ThirdPersonBasic : MonoBehaviour
     {
         HandleGroundCheck();
         HandleJumpAndGravity();
-
-        if (cameraPivotOverride != null && controlCamera)
-            SyncCameraPivotPosition();
 
         if (enableMouseLook && controlCamera)
             HandleMouseLook();
@@ -299,12 +300,18 @@ private void OnDrawGizmosSelected()
         Gizmos.color = isGrounded ? Color.green : Color.red;
         Gizmos.DrawWireSphere(groundCheck.position, groundDistance);
     }
+
+    Vector3 lineStart = transform.position + (Vector3.up * 0.7f) + (transform.forward * 0.5f);
+    Vector3 lineEnd = lineStart + transform.forward;
+    Gizmos.color = isGrounded ? Color.green : Color.red;
+    Gizmos.DrawLine(lineStart, lineEnd);
 }
 
     private void HandleMouseLook()
     {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+        float tunedSensitivity = mouseSensitivity * Mathf.Clamp01(mouseTunePercent);
+        float mouseX = Input.GetAxis("Mouse X") * tunedSensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * tunedSensitivity * Time.deltaTime;
 
         orbitYaw = Mathf.Repeat(orbitYaw + mouseX, 360f);
         orbitPitch = Mathf.Clamp(orbitPitch - mouseY, pitchClampMin, pitchClampMax);
@@ -330,7 +337,31 @@ private void OnDrawGizmosSelected()
         if (cameraPivotOverride == null || cameraFollowSocket == null)
             return;
 
-        // Follow position only; rotation handled in HandleMouseLook to avoid inheriting player transform
+        Vector3 targetPosition = cameraFollowSocket.position;
+
+        if (pivotFollowLerpSpeed <= 0f)
+        {
+            cameraPivotOverride.position = targetPosition;
+            return;
+        }
+
+        float followAlpha = 1f - Mathf.Exp(-pivotFollowLerpSpeed * Time.deltaTime);
+        cameraPivotOverride.position = Vector3.Lerp(cameraPivotOverride.position, targetPosition, followAlpha);
+    }
+
+    private void DetachCameraPivotIfNeeded()
+    {
+        if (cameraPivotOverride == null || !detachPivotFromPlayer || cameraPivotOverride.parent == null)
+            return;
+
+        cameraPivotOverride.SetParent(null, true);
+    }
+
+    private void SnapCameraPivotToFollowSocket()
+    {
+        if (cameraPivotOverride == null || cameraFollowSocket == null)
+            return;
+
         cameraPivotOverride.position = cameraFollowSocket.position;
     }
 
@@ -369,6 +400,9 @@ private void OnDrawGizmosSelected()
             if (sprintBoostTimer <= 0f)
                 sprintBoostMultiplier = 1f;
         }
+
+        if (controlCamera && cameraPivotOverride != null)
+            SyncCameraPivotPosition();
     }
 
 }

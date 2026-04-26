@@ -1,6 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 using Unity.Profiling;
+using FracturedStudios.UI;
 
 namespace FracturedMind.AI
 {
@@ -72,6 +73,17 @@ namespace FracturedMind.AI
         [SerializeField] bool drawGizmos = true;
 
         float _lastAlertFlag;
+        float _lastLightLevel = 1f;
+        float _lastDarkness;
+        float _lastHalfDarkness;
+        bool _lastTargetDetected;
+
+        string _lightLevelDebugKey;
+        string _darknessDebugKey;
+        string _halfDarknessDebugKey;
+        string _beliefDebugKey;
+        string _alertDebugKey;
+        string _targetDetectedDebugKey;
 
         Collider[] _hits = null; // assigned in Awake after maxHits set
         Vector3 _lastPlayerPos;
@@ -98,6 +110,14 @@ namespace FracturedMind.AI
             if (controller == null) controller = GetComponent<LibrarianController>();
             if (aiLightProcessor == null) aiLightProcessor = FindFirstObjectByType<AiLightProcessor>();
 
+            string debugKeyPrefix = $"AI.{gameObject.name}.{GetInstanceID()}.Perception";
+            _lightLevelDebugKey = debugKeyPrefix + ".LightLevel";
+            _darknessDebugKey = debugKeyPrefix + ".Darkness";
+            _halfDarknessDebugKey = debugKeyPrefix + ".HalfDarkness";
+            _beliefDebugKey = debugKeyPrefix + ".Belief";
+            _alertDebugKey = debugKeyPrefix + ".Alert";
+            _targetDetectedDebugKey = debugKeyPrefix + ".TargetDetected";
+
             // Allocate hits buffer
             var size = Mathf.Max(1, maxHits);
             _hits = new Collider[size];
@@ -118,11 +138,13 @@ namespace FracturedMind.AI
             }
 
             _vm = new NpuVm(_program ?? new NpuVm.Instruction[0], registerCount, memorySize);
+            RegisterDebugTrackedValues();
             VerboseLogger.SafeLog("[Librarian] Perception VM initialized");
         }
 
         void OnDisable()
         {
+            UnregisterDebugTrackedValues();
             _vm = null;
         }
 
@@ -189,6 +211,10 @@ namespace FracturedMind.AI
                 float lightLevel = aiLightProcessor != null ? aiLightProcessor.SampleLightLevel(eye.position, eye.forward) : 1f;
                 float darkness = aiLightProcessor != null ? aiLightProcessor.SampleDarkness(eye.position, eye.forward) : 0f;
                 float halfDarkness = aiLightProcessor != null ? aiLightProcessor.SampleHalfDarkness(eye.position, eye.forward) : darkness * 0.5f;
+                _lastLightLevel = lightLevel;
+                _lastDarkness = darkness;
+                _lastHalfDarkness = halfDarkness;
+                _lastTargetDetected = _bestTarget.HasValue;
 
                 if (bestDot >= 0f)
                 {
@@ -288,6 +314,26 @@ namespace FracturedMind.AI
 
             Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.3f);
             Gizmos.DrawWireCube(pivot.position + Vector3.up * verticalTolerance * 0.5f, new Vector3(1f, verticalTolerance, 1f));
+        }
+
+        void RegisterDebugTrackedValues()
+        {
+            DevConsoleBridge.RegisterTrackedValue(_lightLevelDebugKey, () => _lastLightLevel);
+            DevConsoleBridge.RegisterTrackedValue(_darknessDebugKey, () => _lastDarkness);
+            DevConsoleBridge.RegisterTrackedValue(_halfDarknessDebugKey, () => _lastHalfDarkness);
+            DevConsoleBridge.RegisterTrackedValue(_beliefDebugKey, () => currentBelief);
+            DevConsoleBridge.RegisterTrackedValue(_alertDebugKey, () => alertFlag);
+            DevConsoleBridge.RegisterTrackedValue(_targetDetectedDebugKey, () => _lastTargetDetected);
+        }
+
+        void UnregisterDebugTrackedValues()
+        {
+            DevConsoleBridge.UnregisterTrackedValue(_lightLevelDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_darknessDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_halfDarknessDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_beliefDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_alertDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_targetDetectedDebugKey);
         }
     }
 }

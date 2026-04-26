@@ -61,6 +61,15 @@ namespace FracturedStudios.UI
         [Tooltip("Optional explicit array of panels to switch between. If empty the children of `debugPanelsParent` or this GameObject will be used.")]
         public GameObject[] debugPanels;
 
+        [Tooltip("Panel index used for the main console log view.")]
+        public int consolePanelIndex = 0;
+
+        [Tooltip("Panel index used for tracked values like AI light and controller state.")]
+        public int trackedValuesPanelIndex = 1;
+
+        [Tooltip("Panel index used for append-only light test messages.")]
+        public int lightTestPanelIndex = 2;
+
         [Tooltip("Optional parent transform whose immediate children will be treated as panels when `debugPanels` is empty.")]
         public Transform debugPanelsParent;
         // Simple in-memory command history (newest at end)
@@ -78,12 +87,14 @@ namespace FracturedStudios.UI
             Instance = this;
             if (panel != null) panel.SetActive(true);
             RegisterDefaultCommands();
-            // Track the chapter flag for the flash ability in the tracked-values panel
-            RegisterTrackedValue("Ability_Flash", () => ChapterStateService.IsFlashAbilityUnlocked());
+            DevConsoleBridge.ApplyBufferedRegistrations(this);
         }
 
         void OnEnable()
         {
+            RegisterDefaultTrackedValues();
+            DevConsoleBridge.ApplyBufferedRegistrations(this);
+
             try
             {
                 if (WorldBridgeSystem.Instance != null)
@@ -203,6 +214,41 @@ namespace FracturedStudios.UI
             lightTestTextTMP.text = string.Join("\n", _lightMessages.ToArray());
         }
 
+        private void SetTrackedValuesVisible(bool visible)
+        {
+            showActiveFlags = visible;
+            if (!showActiveFlags)
+            {
+                if (trackedValuesTextTMP != null) trackedValuesTextTMP.text = string.Empty;
+                if (ActiveFLAGSTextTMP != null) ActiveFLAGSTextTMP.text = string.Empty;
+                return;
+            }
+
+            SelectConfiguredPanel(trackedValuesPanelIndex);
+            UpdateTrackedValuesDisplay();
+        }
+
+        private void SetLightPanelVisible()
+        {
+            SelectConfiguredPanel(lightTestPanelIndex);
+            RefreshLightText();
+        }
+
+        private void SetConsolePanelVisible()
+        {
+            SelectConfiguredPanel(consolePanelIndex);
+            RefreshText();
+        }
+
+        private void SelectConfiguredPanel(int configuredIndex)
+        {
+            EnsureBuiltPanels();
+            if (debugPanels == null || debugPanels.Length == 0) return;
+
+            int clampedIndex = Mathf.Clamp(configuredIndex, 0, debugPanels.Length - 1);
+            SetDebugPanelIndex(clampedIndex);
+        }
+
         // Simple command system (register commands via RegisterCommand)
         public void RegisterCommand(string command, Action<string[]> action)
         {
@@ -297,10 +343,10 @@ namespace FracturedStudios.UI
 
         private void RegisterDefaultCommands()
         {
-            RegisterCommand("clear", args => { _messages.Clear(); RefreshText(); });
-                RegisterCommand("lightclear", args => { ClearLightMessages(); AddMessage("Light test panel cleared"); });
+            RegisterCommand("clear", args => { _messages.Clear(); SetConsolePanelVisible(); });
+            RegisterCommand("lightclear", args => { ClearLightMessages(); SetLightPanelVisible(); AddMessage("Light test panel cleared"); });
             RegisterCommand("help", args => { AddMessage("Available commands: clear, help, last,  (use 'help <cmd>' for details)"); });
-            RegisterCommand("last", args => { if (_messages.Count>0) AddMessage(_messages.Peek()); });
+            RegisterCommand("last", args => { if (_messages.Count>0) { SetConsolePanelVisible(); AddMessage(_messages.Peek()); } });
             RegisterCommand("flashflag", args => {
                 // Usage: flashflag [on|off|toggle|status]
                 if (args.Length == 0)
@@ -331,7 +377,32 @@ namespace FracturedStudios.UI
                         break;
                 }
             });
-            RegisterCommand("flags", args => { showActiveFlags = !showActiveFlags; AddMessage("ShowFlags: " + showActiveFlags); if (!showActiveFlags) { if (trackedValuesTextTMP != null) trackedValuesTextTMP.text = string.Empty; if (ActiveFLAGSTextTMP != null) ActiveFLAGSTextTMP.text = string.Empty; } else UpdateTrackedValuesDisplay(); });
+            RegisterCommand("flags", args => { SetTrackedValuesVisible(!showActiveFlags); AddMessage("ShowFlags: " + showActiveFlags); });
+            RegisterCommand("lightwatch", args => {
+                if (args.Length == 0 || args[0].Equals("toggle", StringComparison.OrdinalIgnoreCase))
+                {
+                    SetTrackedValuesVisible(!showActiveFlags);
+                }
+                else if (args[0].Equals("on", StringComparison.OrdinalIgnoreCase))
+                {
+                    SetTrackedValuesVisible(true);
+                }
+                else if (args[0].Equals("off", StringComparison.OrdinalIgnoreCase))
+                {
+                    SetTrackedValuesVisible(false);
+                }
+                else if (args[0].Equals("status", StringComparison.OrdinalIgnoreCase))
+                {
+                }
+                else
+                {
+                    AddMessage("Usage: lightwatch [on|off|toggle|status]");
+                    return;
+                }
+
+                AddMessage("Light watch: " + showActiveFlags);
+            });
+            RegisterCommand("lightpanel", args => { SetLightPanelVisible(); AddMessage("Light test panel selected"); });
             RegisterCommand("backplane", args => { if (args.Length == 0) { AddMessage("Usage: backplane <index>"); return; } if (int.TryParse(args[0], out var idx)) { SetBackplaneIndex(idx); AddMessage($"Backplane set to {idx}"); } else AddMessage("Invalid index"); });
             RegisterCommand("panel", args => {
                 if (args.Length == 0) { AddMessage($"Current panel: {DebugPanelIndex}"); return; }
@@ -439,6 +510,14 @@ namespace FracturedStudios.UI
         {
             if (!showActiveFlags) return;
             if ((trackedValuesTextTMP == null) && (ActiveFLAGSTextTMP == null)) return;
+            if (_trackedValues.Count == 0)
+            {
+                const string emptyText = "<no tracked values registered>";
+                if (trackedValuesTextTMP != null) trackedValuesTextTMP.text = emptyText;
+                if (ActiveFLAGSTextTMP != null) ActiveFLAGSTextTMP.text = emptyText;
+                return;
+            }
+
             var lines = new List<string>();
             foreach (var kv in _trackedValues)
             {
@@ -451,6 +530,11 @@ namespace FracturedStudios.UI
             string text = string.Join("\n", lines);
             if (trackedValuesTextTMP != null) trackedValuesTextTMP.text = text;
             if (ActiveFLAGSTextTMP != null) ActiveFLAGSTextTMP.text = text;
+        }
+
+        private void RegisterDefaultTrackedValues()
+        {
+            RegisterTrackedValue("Ability_Flash", () => ChapterStateService.IsFlashAbilityUnlocked());
         }
           
         private string GetTransformPath(Transform transform, Transform root)
