@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
+using FracturedStudios.Invoker;
 
 namespace FracturedStudios.Utils
 {
@@ -44,6 +47,49 @@ namespace FracturedStudios.Utils
     /// </summary>
     public static class ExpressionHelpers
     {
+        private readonly struct ExpBridgeKey : IEquatable<ExpBridgeKey>
+        {
+            public readonly Type Type;
+            public readonly string PathInterned;
+            public readonly int Shift;
+            public readonly int Bits;
+
+            public ExpBridgeKey(Type type, string pathInterned, int shift, int bits)
+            {
+                Type = type;
+                PathInterned = pathInterned;
+                Shift = shift;
+                Bits = bits;
+            }
+
+            public bool Equals(ExpBridgeKey other)
+            {
+                return Type == other.Type
+                    && PathInterned == other.PathInterned
+                    && Shift == other.Shift
+                    && Bits == other.Bits;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is ExpBridgeKey other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = Type != null ? Type.GetHashCode() : 0;
+                    hash = (hash * 397) ^ (PathInterned != null ? PathInterned.GetHashCode() : 0);
+                    hash = (hash * 397) ^ Shift;
+                    hash = (hash * 397) ^ Bits;
+                    return hash;
+                }
+            }
+        }
+
+        private static readonly Dictionary<ExpBridgeKey, Func<object, int>> Cache = new Dictionary<ExpBridgeKey, Func<object, int>>();
+
         // Build and compile a boxed getter: Func<object, object>
         public static Func<object, object> CreateBoxedGetter(Type targetType, string memberPath)
         {
@@ -71,6 +117,77 @@ namespace FracturedStudios.Utils
             }
             var body = Expression.Convert(current, typeof(TResult));
             return Expression.Lambda<Func<TTarget, TResult>>(body, (ParameterExpression)param).Compile();
+        }
+
+        public static Func<object, int> CreateShiftedIntGetter(Type targetType, string memberPath, int shift, int bitCount)
+        {
+            if (targetType == null) throw new ArgumentNullException(nameof(targetType));
+            if (string.IsNullOrWhiteSpace(memberPath)) throw new ArgumentNullException(nameof(memberPath));
+            if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
+            if (bitCount <= 0 || bitCount > 32) throw new ArgumentOutOfRangeException(nameof(bitCount));
+
+            var param = Expression.Parameter(typeof(object), "instance");
+            Expression current = Expression.Convert(param, targetType);
+            foreach (var part in memberPath.Split('.'))
+            {
+                current = Expression.PropertyOrField(current, part);
+            }
+
+            var valueType = Nullable.GetUnderlyingType(current.Type) ?? current.Type;
+            if (!(valueType.IsEnum
+                || valueType == typeof(byte)
+                || valueType == typeof(sbyte)
+                || valueType == typeof(short)
+                || valueType == typeof(ushort)
+                || valueType == typeof(int)
+                || valueType == typeof(uint)
+                || valueType == typeof(long)
+                || valueType == typeof(ulong)))
+            {
+                throw new ArgumentException($"Member '{memberPath}' on type {targetType.FullName} is not an integral or enum value.");
+            }
+
+            ulong maskValue = bitCount == 32 ? uint.MaxValue : ((1UL << bitCount) - 1UL);
+            var asUInt64 = Expression.Convert(current, typeof(ulong));
+            var shifted = Expression.RightShift(asUInt64, Expression.Constant(shift));
+            var masked = Expression.And(shifted, Expression.Constant(maskValue));
+            var body = Expression.Convert(masked, typeof(int));
+
+            return Expression.Lambda<Func<object, int>>(body, param).Compile();
+        }
+
+        public static Func<object, int> GetOrCreateShiftedGetter(Type type, string path, int shift, int bits)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
+
+            var key = new ExpBridgeKey(type, string.Intern(path), shift, bits);
+
+            if (Cache.TryGetValue(key, out var getter))
+                return getter;
+
+            getter = CreateShiftedIntGetter(type, path, shift, bits);
+            Cache[key] = getter;
+            return getter;
+        }
+
+        public static Func<string, int> CreateWorldShiftedGetter(string memberPath, int shift, int bitCount)
+        {
+            if (string.IsNullOrWhiteSpace(memberPath)) throw new ArgumentNullException(nameof(memberPath));
+
+            return id =>
+            {
+                var bridge = WorldBridgeSystem.Instance;
+                if (bridge == null || string.IsNullOrWhiteSpace(id))
+                    return 0;
+
+                var obj = bridge.GetByID<UnityEngine.Object>(id);
+                if (obj == null)
+                    return 0;
+
+                var getter = GetOrCreateShiftedGetter(obj.GetType(), memberPath, shift, bitCount);
+                return getter(obj);
+            };
         }
 
         // Build and compile a boxed setter: Action<object, object>
@@ -125,6 +242,78 @@ namespace FracturedStudios.Utils
                 return null;
             }
             return cur;
+        }
+    }
+
+    [Flags]
+    public enum RouteScope : uint
+    {
+        None = 0u,
+        Local = 1u << 0,
+        Global = 1u << 1,
+        Persistent = 1u << 2,
+        Transient = 1u << 3,
+        Authenticated = 1u << 4,
+        AllInternal = Local | Transient,
+        Everything = 0xFFFFFFFFu
+    }
+
+    public static class ScopeHelper
+    {
+        public static bool IsInScope(RouteScope current, RouteScope target)
+        {
+            return (current & target) != 0;
+        }
+
+        public static bool MatchesAll(RouteScope current, RouteScope required)
+        {
+            return (current & required) == required;
+        }
+
+        public static RouteScope Add(RouteScope current, RouteScope value)
+        {
+            return current | value;
+        }
+
+        public static RouteScope Remove(RouteScope current, RouteScope value)
+        {
+            return current & ~value;
+        }
+
+        public static RouteScope Toggle(RouteScope current, RouteScope value)
+        {
+            return current ^ value;
+        }
+
+        public static bool HasAny(RouteScope current, RouteScope flags)
+        {
+            return IsInScope(current, flags);
+        }
+
+        public static bool HasAll(RouteScope current, RouteScope flags)
+        {
+            return MatchesAll(current, flags);
+        }
+
+        public static RouteScope ParseScope(string input, RouteScope fallback = RouteScope.Local)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return fallback;
+
+            var trimmed = input.Trim();
+
+            if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                if (ulong.TryParse(trimmed.Substring(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var hexValue))
+                    return (RouteScope)hexValue;
+            }
+
+            if (ulong.TryParse(trimmed, NumberStyles.Integer, CultureInfo.InvariantCulture, out var numericValue))
+                return (RouteScope)numericValue;
+
+            if (Enum.TryParse<RouteScope>(trimmed, true, out var parsed))
+                return parsed;
+
+            return fallback;
         }
     }
 }
