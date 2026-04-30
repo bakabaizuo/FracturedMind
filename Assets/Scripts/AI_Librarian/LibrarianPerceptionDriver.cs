@@ -14,6 +14,7 @@ namespace FracturedMind.AI
         {
             Passive,
             Guard,
+            Investigate,
             Pursue
         }
 
@@ -108,7 +109,7 @@ namespace FracturedMind.AI
             if (eye == null) eye = transform;
             if (player == null) player = ThirdPersonBasic.Instance;
             if (controller == null) controller = GetComponent<LibrarianController>();
-            if (aiLightProcessor == null) aiLightProcessor = FindFirstObjectByType<AiLightProcessor>();
+            if (aiLightProcessor == null) aiLightProcessor = ResolveAiLightProcessor();
 
             string debugKeyPrefix = $"AI.{gameObject.name}.{GetInstanceID()}.Perception";
             _lightLevelDebugKey = debugKeyPrefix + ".LightLevel";
@@ -128,6 +129,27 @@ namespace FracturedMind.AI
             {
                 _lastPlayerPos = player.transform.position;
             }
+        }
+
+        AiLightProcessor ResolveAiLightProcessor()
+        {
+            GameObject lightHolder = GameObject.Find(AiLightProcessor.ObjectHolder);
+            if (lightHolder != null)
+            {
+                var processor = lightHolder.GetComponent<AiLightProcessor>();
+                if (processor != null)
+                    return processor;
+            }
+
+            GameObject systemRoot = GameObject.Find("_System");
+            if (systemRoot != null)
+            {
+                var processor = systemRoot.GetComponentInChildren<AiLightProcessor>(true);
+                if (processor != null)
+                    return processor;
+            }
+
+            return FindFirstObjectByType<AiLightProcessor>();
         }
 
         void OnEnable()
@@ -157,40 +179,7 @@ namespace FracturedMind.AI
                 bool playerCrouched = IsPlayerCrouched();
                 float distClamp = maxViewDistance * (playerCrouched ? crouchDistanceMultiplier : 1f);
                 float fovCos = Mathf.Cos(0.5f * fovDegrees * Mathf.Deg2Rad);
-
-                int count;
-                using (OverlapQueryMarker.Auto())
-                {
-                    // Snapshot candidate targets in a clamped volume using OverlapSphereNonAlloc (no allocations)
-                    count = Physics.OverlapSphereNonAlloc(eye.position, distClamp, _hits, targetMask, QueryTriggerInteraction.Ignore);
-                }
-                VerboseLogger.SafeLog($"[Librarian] Scan hits={count} distClamp={distClamp:0.0} fov={fovDegrees:0.0}");
-
-                float bestDot = -1f;
-                float bestDist = distClamp;
-                _bestTarget = null;
-
-                for (int i = 0; i < count; i++)
-                {
-                    var t = _hits[i].transform;
-                    Vector3 dir = t.position - eye.position;
-                    float dist = dir.magnitude;
-                    if (dist < minViewDistance || dist > distClamp) continue;
-                    if (Mathf.Abs(dir.y) > verticalTolerance) continue;
-
-                    Vector3 dirXZ = new Vector3(dir.x, 0f, dir.z).normalized;
-                    Vector3 fwdXZ = new Vector3(eye.forward.x, 0f, eye.forward.z).normalized;
-                    float dot = Vector3.Dot(fwdXZ, dirXZ);
-                    if (dot < fovCos) continue;
-
-                    if (dot > bestDot)
-                    {
-                        bestDot = dot;
-                        bestDist = dist;
-                        _bestTarget = t.position;
-                        VerboseLogger.SafeLog($"[Librarian] Candidate hit {t.name} dot={dot:0.00} dist={dist:0.0}");
-                    }
-                }
+                _bestTarget = FindBestTarget(distClamp, fovCos, out float bestDot, out float bestDist);
 
                 // Compute motion scalar from player displacement (normalized by move speed or crouch speed)
                 float motionScalar = 0f;
@@ -207,10 +196,13 @@ namespace FracturedMind.AI
                     _lastPlayerPos = pos;
                 }
 
-                // Light level and darkness now feed the perception snapshot and controller mode logic.
-                float lightLevel = aiLightProcessor != null ? aiLightProcessor.SampleLightLevel(eye.position, eye.forward) : 1f;
-                float darkness = aiLightProcessor != null ? aiLightProcessor.SampleDarkness(eye.position, eye.forward) : 0f;
-                float halfDarkness = aiLightProcessor != null ? aiLightProcessor.SampleHalfDarkness(eye.position, eye.forward) : darkness * 0.5f;
+                // Sample lighting at the player's position so darkness reflects where the target currently stands,
+                // while the librarian eye transform continues to control sight-cone comparisons above.
+                Vector3 lightSamplePosition = player.transform.position;
+                Vector3 lightSampleForward = eye.forward;
+                float lightLevel = aiLightProcessor != null ? aiLightProcessor.SampleLightLevel(lightSamplePosition, lightSampleForward) : 1f;
+                float darkness = aiLightProcessor != null ? aiLightProcessor.SampleDarkness(lightSamplePosition, lightSampleForward) : 0f;
+                float halfDarkness = aiLightProcessor != null ? aiLightProcessor.SampleHalfDarkness(lightSamplePosition, lightSampleForward) : darkness * 0.5f;
                 _lastLightLevel = lightLevel;
                 _lastDarkness = darkness;
                 _lastHalfDarkness = halfDarkness;
@@ -255,6 +247,45 @@ namespace FracturedMind.AI
                     controller.OnPerceptionUpdate(new PerceptionSnapshot(alertFlag, currentBelief, _bestTarget, playerCrouched, lightLevel, darkness, halfDarkness));
                 }
             }
+        }
+
+        Vector3? FindBestTarget(float distClamp, float fovCos, out float bestDot, out float bestDist)
+        {
+            int count;
+            using (OverlapQueryMarker.Auto())
+            {
+                // Snapshot candidate targets in a clamped volume using OverlapSphereNonAlloc (no allocations)
+                count = Physics.OverlapSphereNonAlloc(eye.position, distClamp, _hits, targetMask, QueryTriggerInteraction.Ignore);
+            }
+            VerboseLogger.SafeLog($"[Librarian] Scan hits={count} distClamp={distClamp:0.0} fov={fovDegrees:0.0}");
+
+            bestDot = -1f;
+            bestDist = distClamp;
+            Vector3? bestTarget = null;
+
+            for (int i = 0; i < count; i++)
+            {
+                var t = _hits[i].transform;
+                Vector3 dir = t.position - eye.position;
+                float dist = dir.magnitude;
+                if (dist < minViewDistance || dist > distClamp) continue;
+                if (Mathf.Abs(dir.y) > verticalTolerance) continue;
+
+                Vector3 dirXZ = new Vector3(dir.x, 0f, dir.z).normalized;
+                Vector3 fwdXZ = new Vector3(eye.forward.x, 0f, eye.forward.z).normalized;
+                float dot = Vector3.Dot(fwdXZ, dirXZ);
+                if (dot < fovCos) continue;
+
+                if (dot > bestDot)
+                {
+                    bestDot = dot;
+                    bestDist = dist;
+                    bestTarget = t.position;
+                    VerboseLogger.SafeLog($"[Librarian] Candidate hit {t.name} dot={dot:0.00} dist={dist:0.0}");
+                }
+            }
+
+            return bestTarget;
         }
 
         bool playerHasCrouchFlagFromAnimator(ThirdPersonBasic tp)

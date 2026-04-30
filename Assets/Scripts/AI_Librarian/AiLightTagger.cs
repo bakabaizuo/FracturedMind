@@ -23,7 +23,7 @@ namespace FracturedMind.AI
             if (processor == null)
                 processor = FindFirstObjectByType<AiLightProcessor>();
 
-            if (processor != null && _light != null)
+            if (processor != null)
                 processor.Register(_light);
         }
 

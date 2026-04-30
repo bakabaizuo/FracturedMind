@@ -62,16 +62,16 @@ namespace FracturedMind.AI
 
         public void SetRegister(int index, float value)
         {
-            _regs[index] = value;
+            _regs[index] = Sanitize(value);
         }
 
-        public float GetRegister(int index) => _regs[index];
+        public float GetRegister(int index) => Sanitize(_regs[index]);
 
-        public float ReadMem(int index) => _mem[index];
+        public float ReadMem(int index) => Sanitize(_mem[index]);
 
         public void WriteMem(int index, float value)
         {
-            _mem[index] = value;
+            _mem[index] = Sanitize(value);
         }
 
         public void Tick(float dt)
@@ -93,32 +93,32 @@ namespace FracturedMind.AI
                     case Op.Noop:
                         break;
                     case Op.LoadMem:
-                        regs[ins.Dst] = mem[ins.SrcA];
+                        regs[ins.Dst] = Sanitize(mem[ins.SrcA]);
                         break;
                     case Op.StoreMem:
-                        mem[ins.Dst] = regs[ins.SrcA];
+                        mem[ins.Dst] = Sanitize(regs[ins.SrcA]);
                         break;
                     case Op.MoveImm:
-                        regs[ins.Dst] = BitConverter.Int32BitsToSingle(ins.Imm);
+                        regs[ins.Dst] = Sanitize(BitConverter.Int32BitsToSingle(ins.Imm));
                         break;
                     case Op.Add:
-                        regs[ins.Dst] = regs[ins.SrcA] + regs[ins.SrcB];
+                        regs[ins.Dst] = Sanitize(regs[ins.SrcA] + regs[ins.SrcB]);
                         break;
                     case Op.Mul:
-                        regs[ins.Dst] = regs[ins.SrcA] * regs[ins.SrcB];
+                        regs[ins.Dst] = Sanitize(regs[ins.SrcA] * regs[ins.SrcB]);
                         break;
                     case Op.Mad:
-                        regs[ins.Dst] = regs[ins.SrcA] * regs[ins.SrcB] + regs[ins.SrcC];
+                        regs[ins.Dst] = Sanitize(regs[ins.SrcA] * regs[ins.SrcB] + regs[ins.SrcC]);
                         break;
                     case Op.Lerp:
-                        regs[ins.Dst] = Lerp(regs[ins.SrcA], regs[ins.SrcB], regs[ins.SrcC]);
+                        regs[ins.Dst] = Sanitize(Lerp(regs[ins.SrcA], regs[ins.SrcB], regs[ins.SrcC]));
                         break;
                     case Op.Saturate:
-                        regs[ins.Dst] = Saturate(regs[ins.SrcA]);
+                        regs[ins.Dst] = Sanitize(Saturate(regs[ins.SrcA]));
                         break;
                     case Op.Decay:
                         // Exponential decay with dt scaling; Imm holds rate.
-                        regs[ins.Dst] = Lerp(regs[ins.Dst], 0f, 1f - (float)Math.Exp(-BitConverter.Int32BitsToSingle(ins.Imm) * dt));
+                        regs[ins.Dst] = Sanitize(Lerp(regs[ins.Dst], 0f, 1f - (float)Math.Exp(-BitConverter.Int32BitsToSingle(ins.Imm) * dt)));
                         break;
                     case Op.CmpGt:
                         regs[ins.Dst] = regs[ins.SrcA] > regs[ins.SrcB] ? 1f : 0f;
@@ -149,9 +149,15 @@ namespace FracturedMind.AI
 
         static float Saturate(float v)
         {
+            if (float.IsNaN(v) || float.IsInfinity(v)) return 0f;
             if (v < 0f) return 0f;
             if (v > 1f) return 1f;
             return v;
+        }
+
+        static float Sanitize(float value)
+        {
+            return (float.IsNaN(value) || float.IsInfinity(value)) ? 0f : value;
         }
     }
 }

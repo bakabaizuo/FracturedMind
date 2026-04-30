@@ -10,9 +10,39 @@ namespace FracturedMind.AI
     [RequireComponent(typeof(NavMeshAgent))]
     public sealed class LibrarianController : MonoBehaviour
     {
+        readonly struct DecisionResult
+        {
+            public readonly LibrarianPerceptionDriver.LibrarianMode Mode;
+            public readonly bool ShouldPursue;
+            public readonly string Reason;
+            public readonly float DarknessDelta;
+            public readonly float HalfDarknessDelta;
+            public readonly float PursueAlertDelta;
+            public readonly float InvestigateAlertDelta;
+
+            public DecisionResult(
+                LibrarianPerceptionDriver.LibrarianMode mode,
+                bool shouldPursue,
+                string reason,
+                float darknessDelta,
+                float halfDarknessDelta,
+                float pursueAlertDelta,
+                float investigateAlertDelta)
+            {
+                Mode = mode;
+                ShouldPursue = shouldPursue;
+                Reason = reason;
+                DarknessDelta = darknessDelta;
+                HalfDarknessDelta = halfDarknessDelta;
+                PursueAlertDelta = pursueAlertDelta;
+                InvestigateAlertDelta = investigateAlertDelta;
+            }
+        }
+
         [Header("Mode & thresholds")]
         [SerializeField] LibrarianPerceptionDriver.LibrarianMode mode = LibrarianPerceptionDriver.LibrarianMode.Guard;
         [SerializeField] float alertThreshold = 0.5f;
+        [SerializeField] float investigateAlertThreshold = 0.2f;
         [SerializeField] float repathInterval = 0.25f;
         [SerializeField] bool autoEscalateToPursueOnTarget = true;
         [SerializeField] float baseSpeed = 3.5f;
@@ -22,7 +52,7 @@ namespace FracturedMind.AI
         [SerializeField] LibrarianPerceptionDriver perception;
 
         [Header("Light / Darkness")]
-        [SerializeField, Range(0f, 1f)] float darknessThreshold = 0.65f;
+        [SerializeField, Range(0f, 1f)] float darknessThreshold = 0.75f;
         [SerializeField, Range(0f, 1f)] float darknessFallbackThreshold = 0.35f;
         [SerializeField, Range(0f, 1f)] float darknessAlertMultiplier = 0.5f;
 
@@ -40,6 +70,12 @@ namespace FracturedMind.AI
         bool _lastShouldPursue;
         bool _lastIsDark;
         bool _lastIsFallbackDark;
+        bool _lastPlayerCrouched;
+        float _lastDarknessDelta;
+        float _lastHalfDarknessDelta;
+        float _lastPursueAlertDelta;
+        float _lastInvestigateAlertDelta;
+        string _lastDecisionReason = "startup";
 
         string _modeDebugKey;
         string _scaledAlertDebugKey;
@@ -49,6 +85,18 @@ namespace FracturedMind.AI
         string _darknessThresholdDebugKey;
         string _darknessFallbackThresholdDebugKey;
         string _darknessAlertMultiplierDebugKey;
+        string _investigateAlertThresholdDebugKey;
+        string _darknessDeltaDebugKey;
+        string _halfDarknessDeltaDebugKey;
+        string _pursueAlertDeltaDebugKey;
+        string _investigateAlertDeltaDebugKey;
+        string _decisionReasonDebugKey;
+        string _activeFlagsDetailKey;
+
+        const int ActiveFlagShouldPursueBit = 0;
+        const int ActiveFlagIsDarkBit = 1;
+        const int ActiveFlagFallbackDarkBit = 2;
+        const int ActiveFlagPlayerCrouchedBit = 3;
 
         void Awake()
         {
@@ -64,6 +112,13 @@ namespace FracturedMind.AI
             _darknessThresholdDebugKey = debugKeyPrefix + ".DarknessThreshold";
             _darknessFallbackThresholdDebugKey = debugKeyPrefix + ".FallbackThreshold";
             _darknessAlertMultiplierDebugKey = debugKeyPrefix + ".DarknessAlertMultiplier";
+            _investigateAlertThresholdDebugKey = debugKeyPrefix + ".InvestigateThreshold";
+            _darknessDeltaDebugKey = debugKeyPrefix + ".DarknessDelta";
+            _halfDarknessDeltaDebugKey = debugKeyPrefix + ".HalfDarknessDelta";
+            _pursueAlertDeltaDebugKey = debugKeyPrefix + ".PursueAlertDelta";
+            _investigateAlertDeltaDebugKey = debugKeyPrefix + ".InvestigateAlertDelta";
+            _decisionReasonDebugKey = debugKeyPrefix + ".DecisionReason";
+            _activeFlagsDetailKey = debugKeyPrefix + ".ActiveFlagsDetail";
             if (animator == null)
             {
                 VerboseLogger.SafeLog("[LibrarianController] No Animator found on self or children.");
@@ -84,20 +139,25 @@ namespace FracturedMind.AI
 
         public void OnPerceptionUpdate(LibrarianPerceptionDriver.PerceptionSnapshot snap)
         {
-            bool shouldPursue = false;
             float alert = snap.AlertFlag;
             bool playerCrouched = IsPlayerCrouching || snap.PlayerIsCrouching;
             float darkness = Mathf.Clamp01(snap.Darkness);
             float halfDarkness = Mathf.Clamp01(snap.HalfDarkness);
-            bool isDark = darkness >= darknessThreshold;
-            bool isFallbackDark = darkness >= darknessFallbackThreshold;
 
             float darknessBlend = 1f - darkness;
             float fallbackBlend = 1f - halfDarkness;
             alert *= Mathf.Lerp(darknessAlertMultiplier, 1f, Mathf.Clamp01(Mathf.Max(darknessBlend, fallbackBlend)));
+            DecisionResult decision = EvaluateDecision(snap, alert, playerCrouched, darkness, halfDarkness);
+            mode = decision.Mode;
             _lastScaledAlert = alert;
-            _lastIsDark = isDark;
-            _lastIsFallbackDark = isFallbackDark;
+            _lastIsDark = decision.DarknessDelta >= 0f;
+            _lastIsFallbackDark = decision.HalfDarknessDelta >= 0f;
+            _lastPlayerCrouched = playerCrouched;
+            _lastDarknessDelta = decision.DarknessDelta;
+            _lastHalfDarknessDelta = decision.HalfDarknessDelta;
+            _lastPursueAlertDelta = decision.PursueAlertDelta;
+            _lastInvestigateAlertDelta = decision.InvestigateAlertDelta;
+            _lastDecisionReason = decision.Reason;
 
             if (_agent == null)
             {
@@ -108,57 +168,17 @@ namespace FracturedMind.AI
                 VerboseLogger.SafeLog($"[LibrarianController] Incoming snap alert={alert:0.00} belief={snap.Belief:0.00} targetSet={snap.TargetPosition.HasValue} mode={mode} dark={darkness:0.00} half={halfDarkness:0.00}");
             }
 
-            switch (mode)
-            {
-                case LibrarianPerceptionDriver.LibrarianMode.Passive:
-                    shouldPursue = false;
-                    break;
-                case LibrarianPerceptionDriver.LibrarianMode.Guard:
-                    shouldPursue = !isDark && alert >= alertThreshold;
-                    if (playerCrouched)
-                    {
-                        if (respectPlayerCrouchInGuard)
-                        {
-                            shouldPursue = false;
-                            VerboseLogger.SafeLog("[LibrarianController] Guard hold due to player crouch");
-                        }
-                        else
-                        {
-                            VerboseLogger.SafeLog("[LibrarianController] Guard ignoring crouch (respect off)");
-                        }
-                    }
-                    else if (isFallbackDark)
-                    {
-                        shouldPursue = alert >= (alertThreshold * 1.25f);
-                        VerboseLogger.SafeLog("[LibrarianController] Guard softened by low light fallback");
-                    }
-                    break;
-                case LibrarianPerceptionDriver.LibrarianMode.Pursue:
-                    shouldPursue = !isDark && alert >= alertThreshold;
-
-                    if (shouldPursue)
-                        HandlePursue(snap, alert);
-                    break;
-            }
-
             // Debug: if we have a target and alert but are not pursuing, log why.
-            if (snap.TargetPosition.HasValue && alert > 0.05f && !shouldPursue)
+            if (snap.TargetPosition.HasValue && alert > 0.05f && !decision.ShouldPursue)
             {
-                VerboseLogger.SafeLog($"[LibrarianController] Not pursuing. mode={mode} alert={alert:0.00} thresh={alertThreshold:0.00} crouch={playerCrouched} respectCrouch={respectPlayerCrouchInGuard}");
+                VerboseLogger.SafeLog($"[LibrarianController] Not pursuing. mode={mode} reason={decision.Reason} alert={alert:0.00} pursueDelta={decision.PursueAlertDelta:0.00} darknessDelta={decision.DarknessDelta:0.00} halfDelta={decision.HalfDarknessDelta:0.00} crouch={playerCrouched}");
             }
 
-            // Escalate Guard -> Pursue when we have a target and alert crosses threshold
-            if (autoEscalateToPursueOnTarget && snap.TargetPosition.HasValue && !isDark && alert >= alertThreshold && mode == LibrarianPerceptionDriver.LibrarianMode.Guard)
-            {
-                mode = LibrarianPerceptionDriver.LibrarianMode.Pursue;
-                VerboseLogger.SafeLog("[LibrarianController] Auto-escalated Guard -> Pursue");
-                shouldPursue = true;
-            }
-
-            _lastShouldPursue = shouldPursue;
+            _lastShouldPursue = decision.ShouldPursue;
+            UpdateActiveFlags(decision.ShouldPursue, _lastIsDark, _lastIsFallbackDark, playerCrouched);
 
             _repathTimer -= Time.fixedDeltaTime;
-            if (shouldPursue && _agent != null && snap.TargetPosition.HasValue && _repathTimer <= 0f)
+            if (decision.ShouldPursue && _agent != null && snap.TargetPosition.HasValue && _repathTimer <= 0f)
             {
                 _agent.SetDestination(snap.TargetPosition.Value);
                 VerboseLogger.SafeLog($"[LibrarianController] Repath to {snap.TargetPosition.Value} alert={alert:0.00} mode={mode}");
@@ -203,6 +223,13 @@ namespace FracturedMind.AI
             DevConsoleBridge.RegisterTrackedValue(_darknessThresholdDebugKey, () => darknessThreshold);
             DevConsoleBridge.RegisterTrackedValue(_darknessFallbackThresholdDebugKey, () => darknessFallbackThreshold);
             DevConsoleBridge.RegisterTrackedValue(_darknessAlertMultiplierDebugKey, () => darknessAlertMultiplier);
+            DevConsoleBridge.RegisterTrackedValue(_investigateAlertThresholdDebugKey, () => investigateAlertThreshold);
+            DevConsoleBridge.RegisterTrackedValue(_darknessDeltaDebugKey, () => _lastDarknessDelta);
+            DevConsoleBridge.RegisterTrackedValue(_halfDarknessDeltaDebugKey, () => _lastHalfDarknessDelta);
+            DevConsoleBridge.RegisterTrackedValue(_pursueAlertDeltaDebugKey, () => _lastPursueAlertDelta);
+            DevConsoleBridge.RegisterTrackedValue(_investigateAlertDeltaDebugKey, () => _lastInvestigateAlertDelta);
+            DevConsoleBridge.RegisterTrackedValue(_decisionReasonDebugKey, () => _lastDecisionReason);
+            DevConsoleBridge.RegisterActiveFlagsDetail(_activeFlagsDetailKey, BuildActiveFlagsDetailText);
         }
 
         void UnregisterDebugTrackedValues()
@@ -215,6 +242,199 @@ namespace FracturedMind.AI
             DevConsoleBridge.UnregisterTrackedValue(_darknessThresholdDebugKey);
             DevConsoleBridge.UnregisterTrackedValue(_darknessFallbackThresholdDebugKey);
             DevConsoleBridge.UnregisterTrackedValue(_darknessAlertMultiplierDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_investigateAlertThresholdDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_darknessDeltaDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_halfDarknessDeltaDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_pursueAlertDeltaDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_investigateAlertDeltaDebugKey);
+            DevConsoleBridge.UnregisterTrackedValue(_decisionReasonDebugKey);
+            DevConsoleBridge.UnregisterActiveFlagsDetail(_activeFlagsDetailKey);
+        }
+
+        string BuildActiveFlagsDetailText()
+        {
+            return $"Mode: {mode}\n" +
+                   $"ScaledAlert: {_lastScaledAlert:0.00}\n" +
+                   $"ShouldPursue: {_lastShouldPursue}\n" +
+                   $"IsDark: {_lastIsDark}\n" +
+                   $"IsFallbackDark: {_lastIsFallbackDark}\n" +
+                   $"PlayerCrouched: {_lastPlayerCrouched}\n" +
+                   $"DecisionReason: {_lastDecisionReason}\n" +
+                   $"DarknessDelta: {_lastDarknessDelta:0.00}\n" +
+                   $"HalfDarknessDelta: {_lastHalfDarknessDelta:0.00}\n" +
+                   $"PursueAlertDelta: {_lastPursueAlertDelta:0.00}\n" +
+                   $"InvestigateAlertDelta: {_lastInvestigateAlertDelta:0.00}\n" +
+                   $"DarknessThreshold: {darknessThreshold:0.00}\n" +
+                   $"FallbackThreshold: {darknessFallbackThreshold:0.00}\n" +
+                   $"InvestigateThreshold: {investigateAlertThreshold:0.00}\n" +
+                   $"DarknessAlertMultiplier: {darknessAlertMultiplier:0.00}";
+        }
+
+        void UpdateActiveFlags(bool shouldPursue, bool isDark, bool isFallbackDark, bool playerCrouched)
+        {
+            var console = DebugDevConsoleUI.Instance;
+            if (console == null)
+                return;
+
+            console.SetActiveFlagBit(ActiveFlagShouldPursueBit, shouldPursue);
+            console.SetActiveFlagBit(ActiveFlagIsDarkBit, isDark);
+            console.SetActiveFlagBit(ActiveFlagFallbackDarkBit, isFallbackDark);
+            console.SetActiveFlagBit(ActiveFlagPlayerCrouchedBit, playerCrouched);
+        }
+
+        DecisionResult EvaluateDecision(
+            LibrarianPerceptionDriver.PerceptionSnapshot snap,
+            float alert,
+            bool playerCrouched,
+            float darkness,
+            float halfDarkness)
+        {
+            float darknessDelta = darkness - darknessThreshold;
+            float halfDarknessDelta = halfDarkness - darknessFallbackThreshold;
+            float pursueAlertDelta = alert - alertThreshold;
+            float investigateAlertDelta = alert - investigateAlertThreshold;
+            bool isDark = darknessDelta >= 0f;
+            bool isFallbackDark = halfDarknessDelta >= 0f;
+            LibrarianPerceptionDriver.LibrarianMode resolvedMode = ResolveMode(snap, pursueAlertDelta, investigateAlertDelta, isDark);
+
+            switch (resolvedMode)
+            {
+                case LibrarianPerceptionDriver.LibrarianMode.Passive:
+                    return new DecisionResult(resolvedMode, false, "passive", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+                case LibrarianPerceptionDriver.LibrarianMode.Guard:
+                    return EvaluateGuardMode(resolvedMode, playerCrouched, isDark, isFallbackDark, darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+                case LibrarianPerceptionDriver.LibrarianMode.Investigate:
+                    return EvaluateInvestigateMode(resolvedMode, snap, isDark, isFallbackDark, darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+                case LibrarianPerceptionDriver.LibrarianMode.Pursue:
+                    return EvaluatePursueMode(resolvedMode, snap, isDark, darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+                default:
+                    return new DecisionResult(resolvedMode, false, "unknown-mode", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+            }
+        }
+
+        DecisionResult EvaluateGuardMode(
+            LibrarianPerceptionDriver.LibrarianMode resolvedMode,
+            bool playerCrouched,
+            bool isDark,
+            bool isFallbackDark,
+            float darknessDelta,
+            float halfDarknessDelta,
+            float pursueAlertDelta,
+            float investigateAlertDelta)
+        {
+            if (playerCrouched)
+            {
+                if (respectPlayerCrouchInGuard)
+                {
+                    VerboseLogger.SafeLog("[LibrarianController] Guard hold due to player crouch");
+                    return new DecisionResult(resolvedMode, false, "guard-crouch-hold", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+                }
+
+                VerboseLogger.SafeLog("[LibrarianController] Guard ignoring crouch (respect off)");
+            }
+
+            float requiredAlertDelta = pursueAlertDelta;
+            if (isFallbackDark)
+            {
+                requiredAlertDelta = pursueAlertDelta - (alertThreshold * 0.25f);
+                VerboseLogger.SafeLog("[LibrarianController] Guard softened by low light fallback");
+            }
+
+            if (isDark)
+                return new DecisionResult(resolvedMode, false, "guard-dark", darknessDelta, halfDarknessDelta, requiredAlertDelta, investigateAlertDelta);
+
+            if (requiredAlertDelta < 0f)
+                return new DecisionResult(resolvedMode, false, "guard-alert-low", darknessDelta, halfDarknessDelta, requiredAlertDelta, investigateAlertDelta);
+
+            return new DecisionResult(resolvedMode, true, isFallbackDark ? "guard-fallback-pass" : "guard-pass", darknessDelta, halfDarknessDelta, requiredAlertDelta, investigateAlertDelta);
+        }
+
+        DecisionResult EvaluateInvestigateMode(
+            LibrarianPerceptionDriver.LibrarianMode resolvedMode,
+            LibrarianPerceptionDriver.PerceptionSnapshot snap,
+            bool isDark,
+            bool isFallbackDark,
+            float darknessDelta,
+            float halfDarknessDelta,
+            float pursueAlertDelta,
+            float investigateAlertDelta)
+        {
+            if (!snap.TargetPosition.HasValue)
+                return new DecisionResult(resolvedMode, false, "investigate-no-target", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+            if (isDark)
+                return new DecisionResult(resolvedMode, false, "investigate-dark", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+            float requiredInvestigateDelta = isFallbackDark
+                ? investigateAlertDelta - Mathf.Max(0f, (alertThreshold * 0.75f) - investigateAlertThreshold)
+                : investigateAlertDelta;
+
+            if (requiredInvestigateDelta < 0f)
+                return new DecisionResult(resolvedMode, false, "investigate-alert-low", darknessDelta, halfDarknessDelta, pursueAlertDelta, requiredInvestigateDelta);
+
+            return new DecisionResult(resolvedMode, true, isFallbackDark ? "investigate-fallback-pass" : "investigate-pass", darknessDelta, halfDarknessDelta, pursueAlertDelta, requiredInvestigateDelta);
+        }
+
+        DecisionResult EvaluatePursueMode(
+            LibrarianPerceptionDriver.LibrarianMode resolvedMode,
+            LibrarianPerceptionDriver.PerceptionSnapshot snap,
+            bool isDark,
+            float darknessDelta,
+            float halfDarknessDelta,
+            float pursueAlertDelta,
+            float investigateAlertDelta)
+        {
+            if (isDark)
+                return new DecisionResult(resolvedMode, false, "pursue-dark", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+            if (pursueAlertDelta < 0f)
+                return new DecisionResult(resolvedMode, false, "pursue-alert-low", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+            HandlePursue(snap, pursueAlertDelta + alertThreshold);
+
+            return new DecisionResult(resolvedMode, true, "pursue-pass", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+        }
+
+        LibrarianPerceptionDriver.LibrarianMode ResolveMode(
+            LibrarianPerceptionDriver.PerceptionSnapshot snap,
+            float pursueAlertDelta,
+            float investigateAlertDelta,
+            bool isDark)
+        {
+            if (mode == LibrarianPerceptionDriver.LibrarianMode.Investigate)
+            {
+                if (!snap.TargetPosition.HasValue || isDark)
+                    return LibrarianPerceptionDriver.LibrarianMode.Guard;
+
+                if (pursueAlertDelta >= 0f)
+                    return LibrarianPerceptionDriver.LibrarianMode.Pursue;
+
+                return LibrarianPerceptionDriver.LibrarianMode.Investigate;
+            }
+
+            if (autoEscalateToPursueOnTarget
+                && snap.TargetPosition.HasValue
+                && !isDark
+                && pursueAlertDelta >= 0f
+                && mode == LibrarianPerceptionDriver.LibrarianMode.Guard)
+            {
+                VerboseLogger.SafeLog("[LibrarianController] Auto-escalated Guard -> Pursue");
+                return LibrarianPerceptionDriver.LibrarianMode.Pursue;
+            }
+
+            if (mode == LibrarianPerceptionDriver.LibrarianMode.Guard
+                && snap.TargetPosition.HasValue
+                && !isDark
+                && investigateAlertDelta >= 0f)
+            {
+                return LibrarianPerceptionDriver.LibrarianMode.Investigate;
+            }
+
+            return mode;
         }
 
         public void SetMode(LibrarianPerceptionDriver.LibrarianMode newMode)

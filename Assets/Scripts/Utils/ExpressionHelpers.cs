@@ -88,7 +88,8 @@ namespace FracturedStudios.Utils
             }
         }
 
-        private static readonly Dictionary<ExpBridgeKey, Func<object, int>> Cache = new Dictionary<ExpBridgeKey, Func<object, int>>();
+        private static readonly Dictionary<ExpBridgeKey, Func<object, int>> IntCache = new Dictionary<ExpBridgeKey, Func<object, int>>();
+        private static readonly Dictionary<ExpBridgeKey, Func<object, ulong>> BitsCache = new Dictionary<ExpBridgeKey, Func<object, ulong>>();
 
         // Build and compile a boxed getter: Func<object, object>
         public static Func<object, object> CreateBoxedGetter(Type targetType, string memberPath)
@@ -119,12 +120,14 @@ namespace FracturedStudios.Utils
             return Expression.Lambda<Func<TTarget, TResult>>(body, (ParameterExpression)param).Compile();
         }
 
-        public static Func<object, int> CreateShiftedIntGetter(Type targetType, string memberPath, int shift, int bitCount)
+        public static Func<object, ulong> CreateShiftedBitsGetter(Type targetType, string memberPath, int shift, int bitCount)
         {
             if (targetType == null) throw new ArgumentNullException(nameof(targetType));
             if (string.IsNullOrWhiteSpace(memberPath)) throw new ArgumentNullException(nameof(memberPath));
             if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
-            if (bitCount <= 0 || bitCount > 32) throw new ArgumentOutOfRangeException(nameof(bitCount));
+            if (bitCount <= 0 || bitCount > 64) throw new ArgumentOutOfRangeException(nameof(bitCount));
+            if (shift >= 64) throw new ArgumentOutOfRangeException(nameof(shift));
+            if (shift + bitCount > 64) throw new ArgumentOutOfRangeException(nameof(bitCount));
 
             var param = Expression.Parameter(typeof(object), "instance");
             Expression current = Expression.Convert(param, targetType);
@@ -147,13 +150,38 @@ namespace FracturedStudios.Utils
                 throw new ArgumentException($"Member '{memberPath}' on type {targetType.FullName} is not an integral or enum value.");
             }
 
-            ulong maskValue = bitCount == 32 ? uint.MaxValue : ((1UL << bitCount) - 1UL);
-            var asUInt64 = Expression.Convert(current, typeof(ulong));
+            var underlyingType = valueType.IsEnum ? Enum.GetUnderlyingType(valueType) : valueType;
+            Expression numeric = current.Type == underlyingType ? current : Expression.Convert(current, underlyingType);
+
+            ulong maskValue = bitCount == 64 ? ulong.MaxValue : ((1UL << bitCount) - 1UL);
+            var asUInt64 = Expression.Convert(numeric, typeof(ulong));
             var shifted = Expression.RightShift(asUInt64, Expression.Constant(shift));
             var masked = Expression.And(shifted, Expression.Constant(maskValue));
-            var body = Expression.Convert(masked, typeof(int));
 
-            return Expression.Lambda<Func<object, int>>(body, param).Compile();
+            return Expression.Lambda<Func<object, ulong>>(masked, param).Compile();
+        }
+
+        public static Func<object, int> CreateShiftedIntGetter(Type targetType, string memberPath, int shift, int bitCount)
+        {
+            if (bitCount <= 0 || bitCount > 32) throw new ArgumentOutOfRangeException(nameof(bitCount));
+
+            var bitsGetter = CreateShiftedBitsGetter(targetType, memberPath, shift, bitCount);
+            return instance => unchecked((int)bitsGetter(instance));
+        }
+
+        public static Func<object, ulong> GetOrCreateShiftedBitsGetter(Type type, string path, int shift, int bits)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
+
+            var key = new ExpBridgeKey(type, string.Intern(path), shift, bits);
+
+            if (BitsCache.TryGetValue(key, out var getter))
+                return getter;
+
+            getter = CreateShiftedBitsGetter(type, path, shift, bits);
+            BitsCache[key] = getter;
+            return getter;
         }
 
         public static Func<object, int> GetOrCreateShiftedGetter(Type type, string path, int shift, int bits)
@@ -163,12 +191,55 @@ namespace FracturedStudios.Utils
 
             var key = new ExpBridgeKey(type, string.Intern(path), shift, bits);
 
-            if (Cache.TryGetValue(key, out var getter))
+            if (IntCache.TryGetValue(key, out var getter))
                 return getter;
 
             getter = CreateShiftedIntGetter(type, path, shift, bits);
-            Cache[key] = getter;
+            IntCache[key] = getter;
             return getter;
+        }
+
+        public static Func<object, bool> CreateFlagBoolGetter(Type type, string path, RouteScope flag)
+        {
+            return CreateFlagBoolGetter(type, path, 8, 8, flag);
+        }
+
+        public static Func<object, bool> CreateFlagBoolGetter(Type type, string path, int shift, int bitCount, RouteScope flag)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
+
+            var getter = GetOrCreateShiftedGetter(type, path, shift, bitCount);
+            return obj => ScopeHelper.HasAny(ScopeHelper.GetScope(obj, getter), flag);
+        }
+
+        public static Func<object, bool> CreateBitBoolGetter(Type targetType, string memberPath, int bitIndex)
+        {
+            if (targetType == null) throw new ArgumentNullException(nameof(targetType));
+            if (string.IsNullOrWhiteSpace(memberPath)) throw new ArgumentNullException(nameof(memberPath));
+            if (bitIndex < 0 || bitIndex > 63) throw new ArgumentOutOfRangeException(nameof(bitIndex));
+
+            var getter = GetOrCreateShiftedBitsGetter(targetType, memberPath, bitIndex, 1);
+            return obj => getter(obj) != 0UL;
+        }
+
+        public static Func<string, ulong> CreateWorldShiftedBitsGetter(string memberPath, int shift, int bitCount)
+        {
+            if (string.IsNullOrWhiteSpace(memberPath)) throw new ArgumentNullException(nameof(memberPath));
+
+            return id =>
+            {
+                var bridge = WorldBridgeSystem.Instance;
+                if (bridge == null || string.IsNullOrWhiteSpace(id))
+                    return 0UL;
+
+                var obj = bridge.GetByID<UnityEngine.Object>(id);
+                if (obj == null)
+                    return 0UL;
+
+                var getter = GetOrCreateShiftedBitsGetter(obj.GetType(), memberPath, shift, bitCount);
+                return getter(obj);
+            };
         }
 
         public static Func<string, int> CreateWorldShiftedGetter(string memberPath, int shift, int bitCount)
@@ -187,6 +258,36 @@ namespace FracturedStudios.Utils
 
                 var getter = GetOrCreateShiftedGetter(obj.GetType(), memberPath, shift, bitCount);
                 return getter(obj);
+            };
+        }
+
+        public static Func<string, bool> CreateWorldFlagRunner(string memberPath, FlagSwitchDynamic switcher)
+        {
+            if (string.IsNullOrWhiteSpace(memberPath)) throw new ArgumentNullException(nameof(memberPath));
+            if (switcher == null) throw new ArgumentNullException(nameof(switcher));
+
+            string internedPath = string.Intern(memberPath);
+            var getterCache = new Dictionary<Type, Func<object, object>>();
+
+            return id =>
+            {
+                var bridge = WorldBridgeSystem.Instance;
+                if (bridge == null || string.IsNullOrWhiteSpace(id))
+                    return false;
+
+                var obj = bridge.GetByID<UnityEngine.Object>(id);
+                if (obj == null)
+                    return false;
+
+                Type type = obj.GetType();
+                if (!getterCache.TryGetValue(type, out var getter))
+                {
+                    getter = CreateBoxedGetter(type, internedPath);
+                    getterCache[type] = getter;
+                }
+
+                object raw = getter(obj);
+                return FlagSwitchDynamic.TryConvertToBits(raw, out ulong bits) && switcher.RunBits(bits);
             };
         }
 
@@ -245,6 +346,90 @@ namespace FracturedStudios.Utils
         }
     }
 
+    public sealed class FlagSwitchDynamic
+    {
+        private readonly struct Entry
+        {
+            public readonly ulong Mask;
+            public readonly ulong Required;
+            public readonly Action Action;
+
+            public Entry(ulong mask, ulong required, Action action)
+            {
+                Mask = mask;
+                Required = required;
+                Action = action;
+            }
+        }
+
+        private readonly List<Entry> _entries = new List<Entry>();
+
+        public int Count => _entries.Count;
+
+        public void Clear()
+        {
+            _entries.Clear();
+        }
+
+        public void Add<TEnum>(TEnum mask, TEnum required, Action action)
+            where TEnum : struct, Enum
+        {
+            AddBits(ToBits(mask), ToBits(required), action);
+        }
+
+        public void AddBits(ulong mask, ulong required, Action action)
+        {
+            if (action == null) throw new ArgumentNullException(nameof(action));
+            _entries.Add(new Entry(mask, required, action));
+        }
+
+        public bool Run<TEnum>(TEnum current)
+            where TEnum : struct, Enum
+        {
+            return RunBits(ToBits(current));
+        }
+
+        public bool RunBits(ulong current)
+        {
+            bool anyExecuted = false;
+
+            for (int i = 0; i < _entries.Count; i++)
+            {
+                Entry entry = _entries[i];
+                if ((current & entry.Mask) != entry.Required)
+                    continue;
+
+                entry.Action?.Invoke();
+                anyExecuted = true;
+            }
+
+            return anyExecuted;
+        }
+
+        public static bool TryConvertToBits(object value, out ulong bits)
+        {
+            bits = 0UL;
+            if (value == null)
+                return false;
+
+            try
+            {
+                bits = Convert.ToUInt64(value, CultureInfo.InvariantCulture);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static ulong ToBits<TEnum>(TEnum value)
+            where TEnum : struct, Enum
+        {
+            return Convert.ToUInt64(value, CultureInfo.InvariantCulture);
+        }
+    }
+
     [Flags]
     public enum RouteScope : uint
     {
@@ -293,6 +478,36 @@ namespace FracturedStudios.Utils
         public static bool HasAll(RouteScope current, RouteScope flags)
         {
             return MatchesAll(current, flags);
+        }
+
+        public static RouteScope GetScope(object obj, Func<object, int> getter)
+        {
+            if (getter == null) throw new ArgumentNullException(nameof(getter));
+            return (RouteScope)getter(obj);
+        }
+
+        public static RouteScope ExtractScopeFromId(string id, RouteScope fallback = RouteScope.None)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return fallback;
+
+            int separatorIndex = id.LastIndexOfAny(new[] { '|', '@', '#' });
+            if (separatorIndex < 0 || separatorIndex >= id.Length - 1)
+                return fallback;
+
+            return ParseScope(id.Substring(separatorIndex + 1), fallback);
+        }
+
+        public static void InvokeScoped(string key, string id, RouteScope required)
+        {
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(id))
+                return;
+
+            RouteScope scope = ExtractScopeFromId(id, RouteScope.None);
+            if (!HasAll(scope, required))
+                return;
+
+            WorldBridgeSystem.Instance?.InvokeKey(key, id);
         }
 
         public static RouteScope ParseScope(string input, RouteScope fallback = RouteScope.Local)

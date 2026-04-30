@@ -38,8 +38,13 @@ namespace FracturedStudios.UI
         public ScrollRect outputScrollRect;
         [Tooltip("Maximum number of past commands stored in history")]
         public int maxHistory = 50;
+        [Header("Active Flags")]
+        [Tooltip("Packed runtime flags for quick debugging. Use SetActiveFlags/SetActiveFlagBit from other systems to drive this.")]
         public int ACTIVEFLAGS = 0;
+        [Tooltip("Optional TMP text dedicated to the active flag view.")]
         public TMP_Text ActiveFLAGSTextTMP;
+        [Tooltip("Optional labels for ACTIVEFLAGS bit positions. Index 0 maps to bit 0, index 1 to bit 1, etc.")]
+        public string[] activeFlagLabels;
         private bool showActiveFlags = false;
         [Header("Backplane")]
         [Tooltip("Optional array of backplane Images - set active by index using SetBackplaneIndex")]
@@ -79,6 +84,7 @@ namespace FracturedStudios.UI
         private readonly Queue<string> _messages = new Queue<string>();
         private readonly Queue<string> _lightMessages = new Queue<string>();
         private readonly Dictionary<string, Action<string[]>> _commands = new Dictionary<string, Action<string[]>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Func<string>> _activeFlagsDetails = new Dictionary<string, Func<string>>(StringComparer.OrdinalIgnoreCase);
         private IDisposable _registrationToken;
        
 
@@ -506,15 +512,117 @@ namespace FracturedStudios.UI
             return _trackedValues.Remove(name);
         }
 
+        public void RegisterActiveFlagsDetail(string name, Func<string> getter)
+        {
+            if (string.IsNullOrWhiteSpace(name) || getter == null) return;
+            _activeFlagsDetails[name] = getter;
+        }
+
+        public bool UnregisterActiveFlagsDetail(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return false;
+            return _activeFlagsDetails.Remove(name);
+        }
+
+        public void SetActiveFlags(int flags)
+        {
+            ACTIVEFLAGS = flags;
+            UpdateTrackedValuesDisplay();
+        }
+
+        public void ClearActiveFlags()
+        {
+            SetActiveFlags(0);
+        }
+
+        public void SetActiveFlagMask(int mask, bool enabled)
+        {
+            uint current = unchecked((uint)ACTIVEFLAGS);
+            uint bitMask = unchecked((uint)mask);
+            current = enabled ? (current | bitMask) : (current & ~bitMask);
+            SetActiveFlags(unchecked((int)current));
+        }
+
+        public void SetActiveFlagBit(int bitIndex, bool enabled)
+        {
+            if (bitIndex < 0 || bitIndex > 31)
+                return;
+
+            SetActiveFlagMask(unchecked((int)(1u << bitIndex)), enabled);
+        }
+
+        public bool HasActiveFlagBit(int bitIndex)
+        {
+            if (bitIndex < 0 || bitIndex > 31)
+                return false;
+
+            uint current = unchecked((uint)ACTIVEFLAGS);
+            return (current & (1u << bitIndex)) != 0u;
+        }
+
+        private string BuildActiveFlagsText()
+        {
+            uint current = unchecked((uint)ACTIVEFLAGS);
+            var lines = new List<string>
+            {
+                $"ACTIVEFLAGS: 0x{current:X8} ({ACTIVEFLAGS})",
+                Convert.ToString(current, 2).PadLeft(32, '0')
+            };
+
+            bool anyActive = false;
+            for (int i = 0; i < 32; i++)
+            {
+                uint mask = 1u << i;
+                if ((current & mask) == 0u)
+                    continue;
+
+                anyActive = true;
+                string label = (activeFlagLabels != null && i < activeFlagLabels.Length && !string.IsNullOrWhiteSpace(activeFlagLabels[i]))
+                    ? activeFlagLabels[i]
+                    : $"Bit {i}";
+                lines.Add($"[{i}] {label}");
+            }
+
+            if (!anyActive)
+                lines.Add("<no active bits set>");
+
+            if (_activeFlagsDetails.Count > 0)
+            {
+                lines.Add(string.Empty);
+                lines.Add("DETAILS:");
+
+                foreach (var kv in _activeFlagsDetails)
+                {
+                    string detail = null;
+                    try { detail = kv.Value.Invoke(); } catch { detail = "<error>"; }
+                    if (string.IsNullOrWhiteSpace(detail))
+                        continue;
+
+                    lines.Add($"[{kv.Key}]");
+                    lines.Add(detail);
+                }
+            }
+
+            return string.Join("\n", lines);
+        }
+
         private void UpdateTrackedValuesDisplay()
         {
             if (!showActiveFlags) return;
             if ((trackedValuesTextTMP == null) && (ActiveFLAGSTextTMP == null)) return;
+
+            string flagsText = BuildActiveFlagsText();
+
             if (_trackedValues.Count == 0)
             {
-                const string emptyText = "<no tracked values registered>";
-                if (trackedValuesTextTMP != null) trackedValuesTextTMP.text = emptyText;
-                if (ActiveFLAGSTextTMP != null) ActiveFLAGSTextTMP.text = emptyText;
+                const string emptyTrackedValuesText = "<no tracked values registered>";
+                if (trackedValuesTextTMP != null) trackedValuesTextTMP.text = emptyTrackedValuesText;
+                if (ActiveFLAGSTextTMP != null)
+                {
+                    ActiveFLAGSTextTMP.text = trackedValuesTextTMP != null
+                        ? flagsText
+                        : flagsText + "\n\n" + emptyTrackedValuesText;
+                }
                 return;
             }
 
@@ -527,9 +635,14 @@ namespace FracturedStudios.UI
                 string str = val?.ToString() ?? "null";
                 lines.Add($"{kv.Key}: {str} ({typeName})");
             }
-            string text = string.Join("\n", lines);
-            if (trackedValuesTextTMP != null) trackedValuesTextTMP.text = text;
-            if (ActiveFLAGSTextTMP != null) ActiveFLAGSTextTMP.text = text;
+            string trackedValuesText = string.Join("\n", lines);
+            if (trackedValuesTextTMP != null) trackedValuesTextTMP.text = trackedValuesText;
+            if (ActiveFLAGSTextTMP != null)
+            {
+                ActiveFLAGSTextTMP.text = trackedValuesTextTMP != null
+                    ? flagsText
+                    : flagsText + "\n\n" + trackedValuesText;
+            }
         }
 
         private void RegisterDefaultTrackedValues()

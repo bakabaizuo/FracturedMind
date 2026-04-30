@@ -6,6 +6,8 @@ using UnityEngine;
 using System.Linq.Expressions;
 using FracturedStudios.Data;
 using System.Threading;
+using System.Threading.Tasks;
+using FracturedStudios.Utils;
 
 namespace FracturedStudios.Invoker
 {
@@ -22,8 +24,13 @@ namespace FracturedStudios.Invoker
         // Cache for reflection results to improve performance
         private readonly Dictionary<(string id, string member), MemberInfo> _memberCache = new();
         private readonly Dictionary<(string id, string method), MethodInfo> _methodCache = new();
+        // Cached boxed getters/setters to avoid reflection on hot paths.
+        private readonly ConcurrentDictionary<(Type, string), Func<object, object>> _boxedGetterCache = new();
+        private readonly ConcurrentDictionary<(Type, string), Action<object, object>> _boxedSetterCache = new();
 
         private DynamicDictionaryInvoker _invoker;
+        public event Action<string, UnityEngine.Object> OnIdRegistered;
+        public event Action<string> OnIdUnregistered;
         // Cancellation token source that is cancelled when the WorldBridgeSystem is destroyed
         private CancellationTokenSource _shutdownCts;
 
@@ -128,6 +135,7 @@ namespace FracturedStudios.Invoker
 
             id = string.Intern(id);
             _idRegistry[id] = target;
+            try { OnIdRegistered?.Invoke(id, target); } catch { }
             #if UNITY_EDITOR
             Debug.Log($"[{nameof(WorldBridgeSystem)}] Registered ID {id} -> {target.name} ({target.GetType().Name})");
             #endif
@@ -141,6 +149,7 @@ namespace FracturedStudios.Invoker
             }
             if (_idRegistry.TryRemove(id, out _))
             {
+                try { OnIdUnregistered?.Invoke(id); } catch { }
                 #if UNITY_EDITOR
                 Debug.Log($"[{nameof(WorldBridgeSystem)}] Unregistered ID {id}");
                 #endif
@@ -162,6 +171,59 @@ namespace FracturedStudios.Invoker
                 return null;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Await a registered ID without frame polling.
+        /// </summary>
+        public async Task<T> AwaitRegisteredIDAsync<T>(string id, int timeoutMs = -1, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            if (string.IsNullOrWhiteSpace(id)) return null;
+
+            id = string.Intern(id);
+
+            if (_idRegistry.TryGetValue(id, out var existing))
+                return existing as T;
+
+            var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            void HandleRegistered(string registeredId, UnityEngine.Object target)
+            {
+                if (!string.Equals(registeredId, id, StringComparison.Ordinal)) return;
+                tcs.TrySetResult(target as T);
+            }
+
+            OnIdRegistered += HandleRegistered;
+
+            try
+            {
+                if (_idRegistry.TryGetValue(id, out var raceExisting))
+                    return raceExisting as T;
+
+                Task completed;
+                if (timeoutMs >= 0)
+                {
+                    completed = await Task.WhenAny(tcs.Task, Task.Delay(timeoutMs, cancellationToken));
+                    if (!ReferenceEquals(completed, tcs.Task))
+                        return null;
+                }
+                else
+                {
+                    completed = await Task.WhenAny(tcs.Task, Task.Delay(Timeout.Infinite, cancellationToken));
+                    if (!ReferenceEquals(completed, tcs.Task))
+                        return null;
+                }
+
+                return await tcs.Task;
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+            finally
+            {
+                OnIdRegistered -= HandleRegistered;
+            }
         }
         #endregion
 
@@ -199,6 +261,226 @@ namespace FracturedStudios.Invoker
             catch (Exception ex)
             {
                 Debug.LogWarning($"[{nameof(WorldBridgeSystem)}] Exception calling {methodName} on {id}: {ex.Message}");
+            }
+        }
+
+        public int GetIntByID(string id, string member)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member)) return 0;
+            if (!_idRegistry.TryGetValue(id, out var target)) return 0;
+
+            var type = target.GetType();
+            var key = (type, member);
+            var getter = _boxedGetterCache.GetOrAdd(key, k => ExpressionHelpers.CreateBoxedGetter(k.Item1, k.Item2));
+            try
+            {
+                var val = getter(target);
+                return Convert.ToInt32(val);
+            }
+            catch
+            {
+                var obj = GetValueByID(id, member);
+                return obj == null ? 0 : Convert.ToInt32(obj);
+            }
+        }
+
+        public float GetFloatByID(string id, string member)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member)) return 0f;
+            if (!_idRegistry.TryGetValue(id, out var target)) return 0f;
+
+            var type = target.GetType();
+            var key = (type, member);
+            var getter = _boxedGetterCache.GetOrAdd(key, k => ExpressionHelpers.CreateBoxedGetter(k.Item1, k.Item2));
+            try
+            {
+                var val = getter(target);
+                return Convert.ToSingle(val);
+            }
+            catch
+            {
+                var obj = GetValueByID(id, member);
+                return obj == null ? 0f : Convert.ToSingle(obj);
+            }
+        }
+
+        public int GetShiftedIntByID(string id, string member, int shift, int bitCount)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member)) return 0;
+            if (!_idRegistry.TryGetValue(id, out var target)) return 0;
+
+            var type = target.GetType();
+            try
+            {
+                var getter = ExpressionHelpers.GetOrCreateShiftedGetter(type, member, shift, bitCount);
+                return getter(target);
+            }
+            catch
+            {
+                return unchecked((int)GetShiftedBitsByID(id, member, shift, bitCount));
+            }
+        }
+
+        public ulong GetShiftedBitsByID(string id, string member, int shift, int bitCount)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member)) return 0UL;
+            if (!_idRegistry.TryGetValue(id, out var target)) return 0UL;
+
+            var type = target.GetType();
+            try
+            {
+                var getter = ExpressionHelpers.GetOrCreateShiftedBitsGetter(type, member, shift, bitCount);
+                return getter(target);
+            }
+            catch
+            {
+                var obj = GetValueByID(id, member);
+                if (!FlagSwitchDynamic.TryConvertToBits(obj, out ulong bits))
+                    return 0UL;
+                if (shift < 0 || shift >= 64 || bitCount <= 0 || bitCount > 64 || shift + bitCount > 64)
+                    return 0UL;
+
+                ulong maskValue = bitCount == 64 ? ulong.MaxValue : ((1UL << bitCount) - 1UL);
+                return (bits >> shift) & maskValue;
+            }
+        }
+
+        public bool TryGetShiftedIntByID(string id, string member, int shift, int bitCount, out int value)
+        {
+            value = 0;
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member)) return false;
+            if (!_idRegistry.ContainsKey(id)) return false;
+
+            try
+            {
+                value = GetShiftedIntByID(id, member, shift, bitCount);
+                return true;
+            }
+            catch
+            {
+                value = 0;
+                return false;
+            }
+        }
+
+        public bool TryGetShiftedBitsByID(string id, string member, int shift, int bitCount, out ulong value)
+        {
+            value = 0UL;
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member)) return false;
+            if (!_idRegistry.ContainsKey(id)) return false;
+
+            try
+            {
+                value = GetShiftedBitsByID(id, member, shift, bitCount);
+                return true;
+            }
+            catch
+            {
+                value = 0UL;
+                return false;
+            }
+        }
+
+        public bool RunFlagSwitchByID(string id, string member, FlagSwitchDynamic switcher)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member) || switcher == null)
+                return false;
+            if (!_idRegistry.TryGetValue(id, out var target))
+                return false;
+
+            var type = target.GetType();
+            var key = (type, member);
+            var getter = _boxedGetterCache.GetOrAdd(key, k => ExpressionHelpers.CreateBoxedGetter(k.Item1, k.Item2));
+
+            try
+            {
+                var raw = getter(target);
+                return FlagSwitchDynamic.TryConvertToBits(raw, out ulong bits) && switcher.RunBits(bits);
+            }
+            catch
+            {
+                var obj = GetValueByID(id, member);
+                return FlagSwitchDynamic.TryConvertToBits(obj, out ulong bits) && switcher.RunBits(bits);
+            }
+        }
+
+        public bool SetIntByID(string id, string member, int value)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member)) return false;
+            if (!_idRegistry.TryGetValue(id, out var target)) return false;
+
+            var type = target.GetType();
+            var key = (type, member);
+            var setter = _boxedSetterCache.GetOrAdd(key, k => ExpressionHelpers.CreateBoxedSetter(k.Item1, k.Item2));
+            try
+            {
+                setter(target, value);
+                return true;
+            }
+            catch
+            {
+                return SetValueByID(id, member, value);
+            }
+        }
+
+        public bool SetFloatByID(string id, string member, float value)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member)) return false;
+            if (!_idRegistry.TryGetValue(id, out var target)) return false;
+
+            var type = target.GetType();
+            var key = (type, member);
+            var setter = _boxedSetterCache.GetOrAdd(key, k => ExpressionHelpers.CreateBoxedSetter(k.Item1, k.Item2));
+            try
+            {
+                setter(target, value);
+                return true;
+            }
+            catch
+            {
+                return SetValueByID(id, member, value);
+            }
+        }
+
+        public T GetFieldByID<T>(string id, string member)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member)) return default(T);
+            if (!_idRegistry.TryGetValue(id, out var target)) return default(T);
+
+            var type = target.GetType();
+            var key = (type, member);
+            var getter = _boxedGetterCache.GetOrAdd(key, k => ExpressionHelpers.CreateBoxedGetter(k.Item1, k.Item2));
+            try
+            {
+                var val = getter(target);
+                if (val is T typedValue) return typedValue;
+
+                var obj = GetValueByID(id, member);
+                return obj is T reflectionValue ? reflectionValue : default(T);
+            }
+            catch
+            {
+                var obj = GetValueByID(id, member);
+                return obj is T reflectionValue ? reflectionValue : default(T);
+            }
+        }
+
+        public bool SetFieldByID<T>(string id, string member, T value)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(member)) return false;
+            if (!_idRegistry.TryGetValue(id, out var target)) return false;
+
+            var type = target.GetType();
+            var key = (type, member);
+            var setter = _boxedSetterCache.GetOrAdd(key, k => ExpressionHelpers.CreateBoxedSetter(k.Item1, k.Item2));
+            try
+            {
+                setter(target, value);
+                return true;
+            }
+            catch
+            {
+                return SetValueByID(id, member, value);
             }
         }
 

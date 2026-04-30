@@ -9,6 +9,7 @@ namespace FracturedStudios.UI
     {
         private static readonly Dictionary<string, Action<string[]>> RegisteredCommands = new Dictionary<string, Action<string[]>>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<string, Func<object>> RegisteredTrackedValues = new Dictionary<string, Func<object>>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, Func<string>> RegisteredActiveFlagsDetails = new Dictionary<string, Func<string>>(StringComparer.OrdinalIgnoreCase);
 
         public static void AddMessage(string msg)
         {
@@ -53,6 +54,26 @@ namespace FracturedStudios.UI
             catch { }
         }
 
+        public static void RegisterActiveFlagsDetail(string name, Func<string> getter)
+        {
+            if (string.IsNullOrWhiteSpace(name) || getter == null)
+                return;
+
+            RegisteredActiveFlagsDetails[name] = getter;
+
+            try { DebugDevConsoleUI.Instance?.RegisterActiveFlagsDetail(name, getter); }
+            catch { }
+        }
+
+        public static void UnregisterActiveFlagsDetail(string name)
+        {
+            if (!string.IsNullOrWhiteSpace(name))
+                RegisteredActiveFlagsDetails.Remove(name);
+
+            try { DebugDevConsoleUI.Instance?.UnregisterActiveFlagsDetail(name); }
+            catch { }
+        }
+
         public static void ApplyBufferedRegistrations(DebugDevConsoleUI console)
         {
             if (console == null)
@@ -67,6 +88,12 @@ namespace FracturedStudios.UI
             foreach (var entry in RegisteredTrackedValues)
             {
                 try { console.RegisterTrackedValue(entry.Key, entry.Value); }
+                catch { }
+            }
+
+            foreach (var entry in RegisteredActiveFlagsDetails)
+            {
+                try { console.RegisterActiveFlagsDetail(entry.Key, entry.Value); }
                 catch { }
             }
         }
