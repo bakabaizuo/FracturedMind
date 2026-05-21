@@ -32,6 +32,7 @@ _Last audited: March 23, 2026_
 | Vent → library transition | VentEntryTrigger onVentEntered hookup | 🟡 Needs scene place |
 | Library lamp cutscene | Timeline / LibraryLampBehavior wiring | 🟡 Needs Timeline setup |
 | Guard obstruction layers | LibrarianPerceptionDriver layermask | 🟡 Needs tuning |
+| Chapter 1 base terrain mesh blockout | Environment/ChapterOneMaskTerrainBuilder.cs + Environment/Editor/ChapterOneMaskTerrainBuilderEditor.cs | ✅ Exists |
 
 | LampVisionSensor critique in cutscene | ❌ Not wired yet | Note: Defered till trigger ready. Cutscene and Animation Dependent. Not Gameplay dependent. Decide what do to with it after cutscene is set up. or Defer to Cutcene Controller semantics |
 
@@ -62,6 +63,8 @@ _Last audited: March 23, 2026_
 
 ### Environment
 - `Assets/Scripts/Environment/LibraryLampBehavior.cs` — look counting, flicker, explosion hooks.
+- `Assets/Scripts/Environment/ChapterOneMaskTerrainBuilder.cs` — editor-driven PNG mask to flat mesh terrain builder for Chapter 1. Green pixels generate ground; white pixels stay empty and can cull placed children through the custom inspector.
+- `Assets/Scripts/Environment/Editor/ChapterOneMaskTerrainBuilderEditor.cs` — custom inspector actions for Build Mesh, Clear Mesh, and Remove Placements Where White.
 
 ### Interaction
 - `Assets/Scripts/Interaction/IInteractable.cs` — interface.
@@ -257,6 +260,7 @@ Xiona, a nerdy goth girl, is bullied daily at school. Fed up, she decides to fig
 - Namespaces: prefer `namespace FracturedStudios` on new scripts; legacy mismatches can be cleaned later.
 - Serialization: keep fields `[SerializeField]` for tuning in inspector; avoid hard-coding values.
 - Layers/masks: set LampVisionSensor obstructionMask to include walls/shelves, exclude FX helpers; set ladder/interaction layers as needed.
+- Chapter 1 terrain: keep the chapter map PNG readable, attach `ChapterOneMaskTerrainBuilder` to a root mesh object, build the flat mesh in-editor, and use `Remove Placements Where White` after rough emplacement passes.
 
 ---
 
@@ -293,8 +297,9 @@ Xiona, a nerdy goth girl, is bullied daily at school. Fed up, she decides to fig
 ---
 
 ## Next Actions
-1. **Scene — Storage Room**: place `LadderItem` prefab between racks; place `LadderPlacementPoint` under vent with `SnapPoint` child; add `PlayerInteract` to player; set `carryObstacleMask` (exclude Player + Ladder layers); test full pickup → carry → place → enter loop.
-2. **Scene — Vent Trigger**: add `BoxCollider (isTrigger)` at vent mouth; assign `placementZone`; wire `onVentEntered` → fade/load/teleport; verify `[VentEntryTrigger]` debug log fires.
-3. **Library lamp cutscene**: set up Timeline for flicker → explode; disable `LampVisionSensor` on cutscene start event.
-4. **AI guard**: tune `LibrarianPerceptionDriver` layermask for library shelves; block guard from entering red-glow aisle.
-5. **Wire lamp VFX/SFX**: guard avoidance of dark aisle post-explosion; set up red-glow intensity gradient as player approaches.
+1. **Chapter 1 base terrain**: create a root GameObject for the landmass, assign the attached chapter map PNG to `ChapterOneMaskTerrainBuilder`, tune width/depth, then run `Build Mesh From Mask` and `Remove Placements Where White` after each placement pass.
+2. **Scene — Storage Room**: place `LadderItem` prefab between racks; place `LadderPlacementPoint` under vent with `SnapPoint` child; add `PlayerInteract` to player; set `carryObstacleMask` (exclude Player + Ladder layers); test full pickup → carry → place → enter loop.
+3. **Scene — Vent Trigger**: add `BoxCollider (isTrigger)` at vent mouth; assign `placementZone`; wire `onVentEntered` → fade/load/teleport; verify `[VentEntryTrigger]` debug log fires.
+4. **Library lamp cutscene**: set up Timeline for flicker → explode; disable `LampVisionSensor` on cutscene start event.
+5. **AI guard**: tune `LibrarianPerceptionDriver` layermask for library shelves; block guard from entering red-glow aisle.
+6. **Wire lamp VFX/SFX**: guard avoidance of dark aisle post-explosion; set up red-glow intensity gradient as player approaches.
