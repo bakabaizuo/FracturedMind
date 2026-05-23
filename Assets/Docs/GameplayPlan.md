@@ -102,7 +102,7 @@ _Last audited: March 23, 2026_
   - `AbilitiesOwned` `List<string>` — ability ID registry  
   - Cutscene helpers: `HasPlayedCutscene(string) / MarkCutscenePlayed(string)`  
   - Flash ability shortcuts: `SetAbilityFlash(bool) / HasAbilityFlash() / ToggleAbilityFlash()`  
-  - Constant: `AbilityFlashFlag = "Ability_Flash"`
+  - Constant: `AbilityFlashFlag = "Ability_Flash"` 
 - `Assets/Scripts/DataContainers/ChapterState.cs` → `CutsceneIds` (static class) — canonical cutscene ID strings:  
   `Intro_BullyHall`, `Intro_VentEntry`, `Library_LampExplode`, `Library_BookPortal`
 - `Assets/Scripts/DataContainers/ChapterState.cs` → `ChapterId` enum — `Intro / Chapter1-4`
