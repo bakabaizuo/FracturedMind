@@ -11,9 +11,12 @@ EditorUserSettings:
     RecentlyUsedSceneGuid-1:
       value: 5402565f57045c0f5f585875437a06444f1548722e2970607b704b64b4e36168
       flags: 0
+<<<<<<< HEAD
     RecentlyUsedSceneGuid-2:
       value: 0103065e5751595f5b5e0d2347770e4444154c2b7c7a703178284437b6b7366d
       flags: 0
+=======
+>>>>>>> 18a7fbb (Chapter1 Terrain MeshBuilder and Scene Base)
     vcSharedLogLevel:
       value: 0d5e400f0650
       flags: 0
