@@ -249,44 +249,46 @@ namespace FracturedMind.AI
             }
         }
 
-        Vector3? FindBestTarget(float distClamp, float fovCos, out float bestDot, out float bestDist)
+Vector3? FindBestTarget(float distClamp, float fovCos, out float bestDot, out float bestDist)
+{
+    int count;
+    using (OverlapQueryMarker.Auto())
+    {
+        count = Physics.OverlapSphereNonAlloc(eye.position, distClamp, _hits, targetMask, QueryTriggerInteraction.Ignore);
+    }
+    VerboseLogger.SafeLog($"[Librarian] Scan hits={count} distClamp={distClamp:0.0} fov={fovDegrees:0.0}");
+
+    bestDot = -1f;
+    bestDist = distClamp;
+    Vector3? bestTarget = null;
+
+    for (int i = 0; i < count; i++)
+    {
+        var t = _hits[i].transform;
+        Vector3 dir = t.position - eye.position;
+        float dist = dir.magnitude;
+        
+        // 1. Distance filter remains
+        if (dist < minViewDistance || dist > distClamp) continue;
+
+        // 2. TRUE 3D DOT PRODUCT: Compares the direction directly to the eye's blue forward
+        Vector3 dirNormalized = dir / dist;
+        float dot3D = Vector3.Dot(eye.forward, dirNormalized);
+
+        // 3. FOV check handles both vertical and horizontal angles naturally
+        if (dot3D < fovCos) continue;
+
+        if (dot3D > bestDot)
         {
-            int count;
-            using (OverlapQueryMarker.Auto())
-            {
-                // Snapshot candidate targets in a clamped volume using OverlapSphereNonAlloc (no allocations)
-                count = Physics.OverlapSphereNonAlloc(eye.position, distClamp, _hits, targetMask, QueryTriggerInteraction.Ignore);
-            }
-            VerboseLogger.SafeLog($"[Librarian] Scan hits={count} distClamp={distClamp:0.0} fov={fovDegrees:0.0}");
-
-            bestDot = -1f;
-            bestDist = distClamp;
-            Vector3? bestTarget = null;
-
-            for (int i = 0; i < count; i++)
-            {
-                var t = _hits[i].transform;
-                Vector3 dir = t.position - eye.position;
-                float dist = dir.magnitude;
-                if (dist < minViewDistance || dist > distClamp) continue;
-                if (Mathf.Abs(dir.y) > verticalTolerance) continue;
-
-                Vector3 dirXZ = new Vector3(dir.x, 0f, dir.z).normalized;
-                Vector3 fwdXZ = new Vector3(eye.forward.x, 0f, eye.forward.z).normalized;
-                float dot = Vector3.Dot(fwdXZ, dirXZ);
-                if (dot < fovCos) continue;
-
-                if (dot > bestDot)
-                {
-                    bestDot = dot;
-                    bestDist = dist;
-                    bestTarget = t.position;
-                    VerboseLogger.SafeLog($"[Librarian] Candidate hit {t.name} dot={dot:0.00} dist={dist:0.0}");
-                }
-            }
-
-            return bestTarget;
+            bestDot = dot3D;
+            bestDist = dist;
+            bestTarget = t.position;
+            VerboseLogger.SafeLog($"[Librarian] Candidate hit {t.name} 3D-dot={dot3D:0.00} dist={dist:0.0}");
         }
+    }
+
+    return bestTarget;
+}
 
         bool playerHasCrouchFlagFromAnimator(ThirdPersonBasic tp)
         {
