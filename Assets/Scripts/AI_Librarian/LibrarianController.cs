@@ -338,19 +338,21 @@ namespace FracturedMind.AI
             }
 
             float requiredAlertDelta = pursueAlertDelta;
-            if (isFallbackDark)
-            {
-                requiredAlertDelta = pursueAlertDelta - (alertThreshold * 0.25f);
-                VerboseLogger.SafeLog("[LibrarianController] Guard softened by low light fallback");
-            }
+         // Complete pitch-black darkness logic takes absolute priority
+    if (isDark)
+        return new DecisionResult(resolvedMode, false, "guard-dark", darknessDelta, halfDarknessDelta, requiredAlertDelta, investigateAlertDelta);
 
-            if (isDark)
-                return new DecisionResult(resolvedMode, false, "guard-dark", darknessDelta, halfDarknessDelta, requiredAlertDelta, investigateAlertDelta);
+    // Low light fallback adjustment—softens threshold requirements safely without locking down the state
+    if (isFallbackDark)
+    {
+        VerboseLogger.SafeLog("[LibrarianController] Guard tracking within low light fallback range");
+    }
 
-            if (requiredAlertDelta < 0f)
-                return new DecisionResult(resolvedMode, false, "guard-alert-low", darknessDelta, halfDarknessDelta, requiredAlertDelta, investigateAlertDelta);
+    // Check if the current alert exceeds the threshold required to attack/pursue
+    if (requiredAlertDelta < 0f)
+        return new DecisionResult(resolvedMode, false, "guard-alert-low", darknessDelta, halfDarknessDelta, requiredAlertDelta, investigateAlertDelta);
 
-            return new DecisionResult(resolvedMode, true, isFallbackDark ? "guard-fallback-pass" : "guard-pass", darknessDelta, halfDarknessDelta, requiredAlertDelta, investigateAlertDelta);
+    return new DecisionResult(resolvedMode, true, isFallbackDark ? "guard-fallback-pass" : "guard-pass", darknessDelta, halfDarknessDelta, requiredAlertDelta, investigateAlertDelta);
         }
 
         DecisionResult EvaluateInvestigateMode(
