@@ -27,7 +27,9 @@ namespace FracturedMind.AI
         [SerializeField, Range(0f, 1f)] private float aiSampleSmoothing = 0.2f;
         private float _lastSampleTotal;
         public  const string ObjectHolder = "_System" + nameof(AiLightProcessor);
-        
+        // Cache structures for Spherical Harmonics evaluation to avoid runtime allocations
+        private readonly Vector3[] shEvaluationDirections = new Vector3[] { Vector3.up };
+        private readonly Color[] shEvaluationResults = new Color[1];
         public void Register(Light lightSource)
         {
             if (lightSource == null)
@@ -69,6 +71,22 @@ namespace FracturedMind.AI
             registeredLights.Clear();
         }
 
+        /// <summary>
+        /// Samples the baked Spherical Harmonics coefficients from surrounding Light Probes at a given position.
+        /// </summary>
+        private float SampleBakedLightProbes(Vector3 worldPosition)
+        {
+            // Query closest probe arrays and interpolate coefficients safely into an L2 struct
+            LightProbes.GetInterpolatedLightOnProbe(worldPosition, null, out SphericalHarmonicsL2 sh);
+
+            // Project coefficients against our upward evaluation vector (simulating overhead environmental lighting)
+            sh.Evaluate(shEvaluationDirections, shEvaluationResults);
+
+            // Extract the grayscale value from the resulting color profile channel
+            float ambientIntensity = shEvaluationResults[0].grayscale * lightProbeIntensityScalar;
+
+            return ambientIntensity;
+        }
         private void UpdateLightCache()
         {
             for (int i = 0; i < registeredLights.Count; i++)

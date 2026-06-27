@@ -240,10 +240,13 @@ if (index >= 0)
                     float distNorm = Mathf.InverseLerp(distClamp, minViewDistance, bestDist);
                     Func<bool, float> evaluateVisibilityScale = isCrouched => isCrouched ? crouchVisibilityMultiplier : 1f;
                         float crouchPenalty = evaluateVisibilityScale.Invoke(playerCrouched);
+                //This line is brand new.
+                    float visionProximityFactor = Mathf.Clamp01(bestDot) * distNorm * 0.5f;
+                        float effectiveLight = Mathf.Max(lightLevel, visionProximityFactor);
 
                     _vm.SetRegister(0, bestDot * crouchPenalty); // dot attenuated if crouched // add * crouchVisibilityMultiplier
                     _vm.SetRegister(1, distNorm);
-                    _vm.SetRegister(2, lightLevel * crouchPenalty);
+                    _vm.SetRegister(2, effectiveLight * crouchPenalty);
                     _vm.SetRegister(3, motionScalar * crouchPenalty);///* crouchVisibilityMultiplier
                 }
                 else
