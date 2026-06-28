@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering; // Required for SphericalHarmonicsL2
 
 namespace FracturedMind.AI
 {
@@ -25,11 +26,18 @@ namespace FracturedMind.AI
         [SerializeField, Min(0.01f)] private float aiResumeSampleDistance = 280f;
         [SerializeField, Range(0f, 1f)] private float aiMinimumExposureThreshold = 0.02f;
         [SerializeField, Range(0f, 1f)] private float aiSampleSmoothing = 0.2f;
+
+        [Header("Light Probes Fallback Configuration")]
+        [SerializeField] private bool useLightProbesFallback = true;
+        [SerializeField, Range(0.1f, 5f)] private float lightProbeIntensityScalar = 1.0f;
+
         private float _lastSampleTotal;
         public  const string ObjectHolder = "_System" + nameof(AiLightProcessor);
+        
         // Cache structures for Spherical Harmonics evaluation to avoid runtime allocations
         private readonly Vector3[] shEvaluationDirections = new Vector3[] { Vector3.up };
         private readonly Color[] shEvaluationResults = new Color[1];
+
         public void Register(Light lightSource)
         {
             if (lightSource == null)
@@ -77,7 +85,7 @@ namespace FracturedMind.AI
         private float SampleBakedLightProbes(Vector3 worldPosition)
         {
             // Query closest probe arrays and interpolate coefficients safely into an L2 struct
-            LightProbes.GetInterpolatedLightOnProbe(worldPosition, null, out SphericalHarmonicsL2 sh);
+            LightProbes.GetInterpolatedProbe(worldPosition, null, out SphericalHarmonicsL2 sh);
 
             // Project coefficients against our upward evaluation vector (simulating overhead environmental lighting)
             sh.Evaluate(shEvaluationDirections, shEvaluationResults);
@@ -87,6 +95,7 @@ namespace FracturedMind.AI
 
             return ambientIntensity;
         }
+
         private void UpdateLightCache()
         {
             for (int i = 0; i < registeredLights.Count; i++)
@@ -142,7 +151,7 @@ namespace FracturedMind.AI
               
                 if (dist > aiMaxSampleDistance)
                 {
-                    light.Active = false;///this is our limit mark for sampling a light.
+                    light.Active = false; // Limit mark for sampling a light.
                     registeredLights[i] = light;
                     continue;
                 }
@@ -177,6 +186,12 @@ namespace FracturedMind.AI
                 total += visionWeight * falloff * light.Intensity;
 
                 registeredLights[i] = light;
+            }
+
+            // Fallback: If no real-time dynamic light balances are hitting this spot, blend the baked light probes
+            if (total < 0.01f && useLightProbesFallback)
+            {
+                total = SampleBakedLightProbes(samplePosition);
             }
 
             if (float.IsNaN(total) || float.IsInfinity(total))
