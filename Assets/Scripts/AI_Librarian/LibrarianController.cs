@@ -47,12 +47,20 @@ namespace FracturedMind.AI
         [SerializeField] bool autoEscalateToPursueOnTarget = true;
         [SerializeField] float baseSpeed = 3.5f;
         [SerializeField] float pursueSpeedMultiplier = 1.5f;
+        float _cautionTimer;
+        const float CautionDuration = 16f;
         [SerializeField] bool scaleSpeedWithAlert = true; // blends speed by alert
         [SerializeField] bool respectPlayerCrouchInGuard = true;
+        [SerializeField] bool ignorePlayerCrouchForFollow = true;
+        [SerializeField, Range(0f, 1f)] float cautionBeliefThreshold = 0.33f;
+        [SerializeField, Range(0f, 1f)] float lightDarkThreshold = 0.3f;
+        [SerializeField, Range(0f, 1f)] float darknessDarkThreshold = 0.9f;
+        [SerializeField] float investigateSearchDistance = 4f;
+        [SerializeField] float investigateNodeSwitchInterval = 2.2f;
         [SerializeField] LibrarianPerceptionDriver perception;
 
         [Header("Light / Darkness")]
-        [SerializeField, Range(0f, 1f)] float darknessThreshold = 0.75f;
+        [SerializeField, Range(0f, 1f)] float darknessThreshold = 0.96f;
         [SerializeField, Range(0f, 1f)] float darknessFallbackThreshold = 0.35f;
         [SerializeField, Range(0f, 1f)] float darknessAlertMultiplier = 0.5f;
 
@@ -71,11 +79,16 @@ namespace FracturedMind.AI
         bool _lastIsDark;
         bool _lastIsFallbackDark;
         bool _lastPlayerCrouched;
+        bool _hasSeenPlayerBefore;
         float _lastDarknessDelta;
         float _lastHalfDarknessDelta;
         float _lastPursueAlertDelta;
         float _lastInvestigateAlertDelta;
         string _lastDecisionReason = "startup";
+        Vector3 _investigateDestination;
+        bool _hasInvestigateDestination;
+        int _investigateNodeIndex;
+        float _investigateNodeTimer;
 
         string _modeDebugKey;
         string _scaledAlertDebugKey;
@@ -147,17 +160,24 @@ namespace FracturedMind.AI
             float darknessBlend = 1f - darkness;
             float fallbackBlend = 1f - halfDarkness;
             alert *= Mathf.Lerp(darknessAlertMultiplier, 1f, Mathf.Clamp01(Mathf.Max(darknessBlend, fallbackBlend)));
+            bool isDark = IsDarkValue(snap, darkness);
+            bool isFallbackDark = halfDarkness >= darknessFallbackThreshold || snap.LightLevel <= lightDarkThreshold;
             DecisionResult decision = EvaluateDecision(snap, alert, playerCrouched, darkness, halfDarkness);
             mode = decision.Mode;
             _lastScaledAlert = alert;
-            _lastIsDark = decision.DarknessDelta >= 0f;
-            _lastIsFallbackDark = decision.HalfDarknessDelta >= 0f;
+            _lastIsDark = isDark;
+            _lastIsFallbackDark = isFallbackDark;
             _lastPlayerCrouched = playerCrouched;
             _lastDarknessDelta = decision.DarknessDelta;
             _lastHalfDarknessDelta = decision.HalfDarknessDelta;
             _lastPursueAlertDelta = decision.PursueAlertDelta;
             _lastInvestigateAlertDelta = decision.InvestigateAlertDelta;
             _lastDecisionReason = decision.Reason;
+
+            if (snap.TargetPosition.HasValue && snap.Belief >= cautionBeliefThreshold)
+            {
+                _hasSeenPlayerBefore = true;
+            }
 
             if (_agent == null)
             {
@@ -177,12 +197,19 @@ namespace FracturedMind.AI
             _lastShouldPursue = decision.ShouldPursue;
             UpdateActiveFlags(decision.ShouldPursue, _lastIsDark, _lastIsFallbackDark, playerCrouched);
 
-            _repathTimer -= Time.fixedDeltaTime;
-            if (decision.ShouldPursue && _agent != null && snap.TargetPosition.HasValue && _repathTimer <= 0f)
+            if (mode == LibrarianPerceptionDriver.LibrarianMode.Investigate)
             {
-                _agent.SetDestination(snap.TargetPosition.Value);
-                VerboseLogger.SafeLog($"[LibrarianController] Repath to {snap.TargetPosition.Value} alert={alert:0.00} mode={mode}");
-                _repathTimer = repathInterval;
+                HandleInvestigateMove(snap);
+            }
+            else
+            {
+                _repathTimer -= Time.fixedDeltaTime;
+                if (decision.ShouldPursue && _agent != null && snap.TargetPosition.HasValue && _repathTimer <= 0f)
+                {
+                    _agent.SetDestination(snap.TargetPosition.Value);
+                    VerboseLogger.SafeLog($"[LibrarianController] Repath to {snap.TargetPosition.Value} alert={alert:0.00} mode={mode}");
+                    _repathTimer = repathInterval;
+                }
             }
 
             if (driveAnimator && animator != null && !string.IsNullOrEmpty(alertParam))
@@ -293,8 +320,8 @@ namespace FracturedMind.AI
             float halfDarknessDelta = halfDarkness - darknessFallbackThreshold;
             float pursueAlertDelta = alert - alertThreshold;
             float investigateAlertDelta = alert - investigateAlertThreshold;
-            bool isDark = darknessDelta >= 0f;
-            bool isFallbackDark = halfDarknessDelta >= 0f;
+            bool isDark = IsDarkValue(snap, darkness);
+            bool isFallbackDark = halfDarkness >= darknessFallbackThreshold || snap.LightLevel <= lightDarkThreshold;
             LibrarianPerceptionDriver.LibrarianMode resolvedMode = ResolveMode(snap, pursueAlertDelta, investigateAlertDelta, isDark);
 
             switch (resolvedMode)
@@ -304,6 +331,9 @@ namespace FracturedMind.AI
 
                 case LibrarianPerceptionDriver.LibrarianMode.Guard:
                     return EvaluateGuardMode(resolvedMode, playerCrouched, isDark, isFallbackDark, darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+                case LibrarianPerceptionDriver.LibrarianMode.Caution:
+                    return EvaluateCautionMode(resolvedMode, snap, isDark, darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
 
                 case LibrarianPerceptionDriver.LibrarianMode.Investigate:
                     return EvaluateInvestigateMode(resolvedMode, snap, isDark, isFallbackDark, darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
@@ -315,7 +345,28 @@ namespace FracturedMind.AI
                     return new DecisionResult(resolvedMode, false, "unknown-mode", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
             }
         }
+DecisionResult EvaluateCautionMode(
+    LibrarianPerceptionDriver.LibrarianMode resolvedMode,
+    LibrarianPerceptionDriver.PerceptionSnapshot snap,
+    bool isDark,
+    float darknessDelta,
+    float halfDarknessDelta,
+    float pursueAlertDelta,
+    float investigateAlertDelta)
+{
+    if (_agent != null && _agent.hasPath && _cautionTimer == 0f)
+    {
+        _agent.ResetPath();
+    }
 
+    if (snap.TargetPosition.HasValue && snap.Belief >= cautionBeliefThreshold && !isDark)
+        return new DecisionResult(resolvedMode, false, "caution-investigate", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+    if (!snap.TargetPosition.HasValue || snap.Belief < cautionBeliefThreshold || isDark)
+        return new DecisionResult(resolvedMode, false, "caution-guard", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+
+    return new DecisionResult(resolvedMode, false, "caution-stare", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+}
         DecisionResult EvaluateGuardMode(
             LibrarianPerceptionDriver.LibrarianMode resolvedMode,
             bool playerCrouched,
@@ -326,15 +377,15 @@ namespace FracturedMind.AI
             float pursueAlertDelta,
             float investigateAlertDelta)
         {
+            if (playerCrouched && respectPlayerCrouchInGuard && !ignorePlayerCrouchForFollow)
+            {
+                VerboseLogger.SafeLog("[LibrarianController] Guard hold due to player crouch");
+                return new DecisionResult(resolvedMode, false, "guard-crouch-hold", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+            }
+
             if (playerCrouched)
             {
-                if (respectPlayerCrouchInGuard)
-                {
-                    VerboseLogger.SafeLog("[LibrarianController] Guard hold due to player crouch");
-                    return new DecisionResult(resolvedMode, false, "guard-crouch-hold", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
-                }
-
-                VerboseLogger.SafeLog("[LibrarianController] Guard ignoring crouch (respect off)");
+                VerboseLogger.SafeLog("[LibrarianController] Guard ignoring crouch for follow logic");
             }
 
             float requiredAlertDelta = pursueAlertDelta;
@@ -368,17 +419,10 @@ namespace FracturedMind.AI
             if (!snap.TargetPosition.HasValue)
                 return new DecisionResult(resolvedMode, false, "investigate-no-target", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
 
-            if (isDark)
-                return new DecisionResult(resolvedMode, false, "investigate-dark", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
+            if (snap.Belief < 0.33f)
+                return new DecisionResult(resolvedMode, false, "investigate-belief-low", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
 
-            float requiredInvestigateDelta = isFallbackDark
-                ? investigateAlertDelta - Mathf.Max(0f, (alertThreshold * 0.75f) - investigateAlertThreshold)
-                : investigateAlertDelta;
-
-            if (requiredInvestigateDelta < 0f)
-                return new DecisionResult(resolvedMode, false, "investigate-alert-low", darknessDelta, halfDarknessDelta, pursueAlertDelta, requiredInvestigateDelta);
-
-            return new DecisionResult(resolvedMode, true, isFallbackDark ? "investigate-fallback-pass" : "investigate-pass", darknessDelta, halfDarknessDelta, pursueAlertDelta, requiredInvestigateDelta);
+            return new DecisionResult(resolvedMode, true, isFallbackDark ? "investigate-fallback-pass" : "investigate-pass", darknessDelta, halfDarknessDelta, pursueAlertDelta, investigateAlertDelta);
         }
 
         DecisionResult EvaluatePursueMode(
@@ -407,13 +451,58 @@ namespace FracturedMind.AI
             float investigateAlertDelta,
             bool isDark)
         {
+            if (mode == LibrarianPerceptionDriver.LibrarianMode.Caution)
+            {
+                _cautionTimer -= Time.fixedDeltaTime;
+
+                if (pursueAlertDelta >= 0f && snap.TargetPosition.HasValue && !isDark)
+                    return LibrarianPerceptionDriver.LibrarianMode.Pursue;
+
+                if (snap.TargetPosition.HasValue && snap.Belief >= cautionBeliefThreshold && !isDark)
+                {
+                    VerboseLogger.SafeLog($"[LibrarianController] Caution escalated to Investigate from belief {snap.Belief:0.00}");
+                    return LibrarianPerceptionDriver.LibrarianMode.Investigate;
+                }
+
+                if (!snap.TargetPosition.HasValue || snap.Belief < cautionBeliefThreshold || isDark || _cautionTimer <= 0f)
+                {
+                    VerboseLogger.SafeLog("[LibrarianController] Caution fell back to Guard.");
+                    return LibrarianPerceptionDriver.LibrarianMode.Guard;
+                }
+
+                return LibrarianPerceptionDriver.LibrarianMode.Caution;
+            }
+
+            if (snap.TargetPosition.HasValue && (snap.Belief >= cautionBeliefThreshold || _hasSeenPlayerBefore))
+            {
+                VerboseLogger.SafeLog($"[LibrarianController] Investigation triggered by detected target or prior sighting (belief={snap.Belief:0.00}, seenBefore={_hasSeenPlayerBefore}).");
+                return LibrarianPerceptionDriver.LibrarianMode.Investigate;
+            }
+
+            if (mode == LibrarianPerceptionDriver.LibrarianMode.Guard
+                && snap.TargetPosition.HasValue
+                && !isDark
+                && investigateAlertDelta >= 0f)
+            {
+                VerboseLogger.SafeLog("[LibrarianController] Target spotted! Entering Caution state for 90s.");
+                _cautionTimer = CautionDuration;
+                return LibrarianPerceptionDriver.LibrarianMode.Caution;
+            }
+
             if (mode == LibrarianPerceptionDriver.LibrarianMode.Investigate)
             {
-                if (!snap.TargetPosition.HasValue || isDark)
-                    return LibrarianPerceptionDriver.LibrarianMode.Guard;
+                if (!snap.TargetPosition.HasValue)
+                {
+                    if (_hasSeenPlayerBefore)
+                    {
+                        return LibrarianPerceptionDriver.LibrarianMode.Investigate;
+                    }
 
-                if (pursueAlertDelta >= 0f)
-                    return LibrarianPerceptionDriver.LibrarianMode.Pursue;
+                    return LibrarianPerceptionDriver.LibrarianMode.Guard;
+                }
+
+                if (snap.Belief < 0.33f && !_hasSeenPlayerBefore)
+                    return LibrarianPerceptionDriver.LibrarianMode.Guard;
 
                 return LibrarianPerceptionDriver.LibrarianMode.Investigate;
             }
@@ -428,20 +517,77 @@ namespace FracturedMind.AI
                 return LibrarianPerceptionDriver.LibrarianMode.Pursue;
             }
 
-            if (mode == LibrarianPerceptionDriver.LibrarianMode.Guard
-                && snap.TargetPosition.HasValue
-                && !isDark
-                && investigateAlertDelta >= 0f)
-            {
-                return LibrarianPerceptionDriver.LibrarianMode.Investigate;
-            }
-
             return mode;
         }
 
         public void SetMode(LibrarianPerceptionDriver.LibrarianMode newMode)
         {
             mode = newMode;
+        }
+
+        void HandleInvestigateMove(LibrarianPerceptionDriver.PerceptionSnapshot snap)
+        {
+            if (_agent == null) return;
+
+            if (!snap.TargetPosition.HasValue)
+            {
+                if (!_hasInvestigateDestination || _agent.pathPending || !_agent.hasPath || Vector3.Distance(transform.position, _investigateDestination) <= _agent.stoppingDistance)
+                {
+                    Vector3 fallbackNode = transform.position + (transform.forward * investigateSearchDistance) + (Vector3.right * investigateSearchDistance * 0.5f);
+                    if (NavMesh.SamplePosition(fallbackNode, out NavMeshHit fallbackHit, 2f, NavMesh.AllAreas))
+                    {
+                        fallbackNode = fallbackHit.position;
+                    }
+
+                    _investigateDestination = fallbackNode;
+                    _hasInvestigateDestination = true;
+                    _investigateNodeTimer = investigateNodeSwitchInterval;
+                    _agent.SetDestination(_investigateDestination);
+                    VerboseLogger.SafeLog("[LibrarianController] Investigate fallback move to search node");
+                }
+
+                return;
+            }
+
+            _investigateNodeTimer -= Time.fixedDeltaTime;
+            bool shouldRefreshDestination = !_hasInvestigateDestination || _investigateNodeTimer <= 0f || !_agent.hasPath || Vector3.Distance(transform.position, _investigateDestination) <= _agent.stoppingDistance;
+            if (!shouldRefreshDestination)
+                return;
+
+            Vector3 anchor = snap.TargetPosition.Value;
+            Vector3 approach = anchor - transform.position;
+            if (approach.sqrMagnitude < 0.001f)
+            {
+                approach = transform.forward;
+            }
+            else
+            {
+                approach.Normalize();
+            }
+
+            Vector3 side = Vector3.Cross(approach, Vector3.up).normalized;
+            Vector3 nodeA = anchor + approach * investigateSearchDistance * 0.7f + side * investigateSearchDistance * 0.45f;
+            Vector3 nodeB = anchor - approach * investigateSearchDistance * 0.7f - side * investigateSearchDistance * 0.45f;
+            Vector3 nextNode = _investigateNodeIndex == 0 ? nodeA : nodeB;
+            _investigateNodeIndex = 1 - _investigateNodeIndex;
+
+            if (NavMesh.SamplePosition(nextNode, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+            {
+                nextNode = hit.position;
+            }
+
+            _investigateDestination = nextNode;
+            _hasInvestigateDestination = true;
+            _investigateNodeTimer = investigateNodeSwitchInterval;
+            _agent.SetDestination(_investigateDestination);
+            VerboseLogger.SafeLog($"[LibrarianController] Investigate node -> {nextNode}");
+        }
+
+        bool IsDarkValue(LibrarianPerceptionDriver.PerceptionSnapshot snap, float darkness)
+        {
+            bool lightDark = snap.LightLevel <= lightDarkThreshold;
+            bool darknessDark = darkness >= darknessDarkThreshold;
+            return lightDark || darknessDark;
         }
 
         void HandlePursue(LibrarianPerceptionDriver.PerceptionSnapshot snap, float alert)

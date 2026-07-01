@@ -2824,6 +2824,7 @@ MonoBehaviour:
   slopeLimit: 25.1
   enableMouseLook: 1
   mouseSensitivity: 120
+  mouseTunePercent: 0.96
   pitchClampMin: -60
   pitchClampMax: 75
   cameraPivotOverride: {fileID: 6495902941254156131}
@@ -2831,6 +2832,7 @@ MonoBehaviour:
   detachPivotFromPlayer: 1
   alignBodyToCameraOnStart: 1
   controlCamera: 1
+  pivotFollowLerpSpeed: 20
   crouchSpeedMultiplier: 0.5
   animController: {fileID: 8500919119869538005}
   inputDriver: {fileID: 4145026201109591232}

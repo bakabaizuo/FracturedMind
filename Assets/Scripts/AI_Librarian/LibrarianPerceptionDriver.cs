@@ -18,6 +18,7 @@ namespace FracturedMind.AI
         {
             Passive,
             Guard,
+            Caution,
             Investigate,
             Pursue
         }
@@ -49,9 +50,9 @@ namespace FracturedMind.AI
 
         [Header("Query")]
         [SerializeField] LayerMask targetMask;
-        [SerializeField] float maxViewDistance = 45f;
-        [SerializeField] float minViewDistance = 0.4f;
-        [SerializeField] float fovDegrees = 130f;
+        [SerializeField] float maxViewDistance = 50f;
+        [SerializeField] float minViewDistance = 4.4f;
+        [SerializeField] float fovDegrees = 180f;
         [SerializeField] float verticalTolerance = 4.0f;
         [SerializeField] int maxHits = 32;
 
