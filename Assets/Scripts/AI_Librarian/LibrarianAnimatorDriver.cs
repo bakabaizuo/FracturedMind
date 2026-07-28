@@ -77,7 +77,7 @@ using FracturedStudios.UI;
                     _animator.SetFloat(_moveZHash, smoothedZ);
                     _animator.SetFloat(_deltaSphereStrafingHash, smoothedDelta);
 
-                    _lastWorldPosition = LibrarianController.RetriveLastPosition();//new 7/28/26
+                    _lastWorldPosition = _controller.RetriveLastPosition();//new 7/28/26
                     _hasLastPosition = true;
                 }
 
