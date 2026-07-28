@@ -147,7 +147,12 @@ namespace FracturedMind.AI
         {
             UnregisterDebugTrackedValues();
         }
+        public Vector3 RetriveLastPosition()//new 7/28/26
+        {
+        var distance = Vector3.Distance(transform.position, _investigateDestination);
+            return distance ?? _investigateDestination; 
 
+        } 
         public bool IsPlayerCrouching => perception != null && perception.IsPlayerCrouched();
 
         public void OnPerceptionUpdate(LibrarianPerceptionDriver.PerceptionSnapshot snap)
