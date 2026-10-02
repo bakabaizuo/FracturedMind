@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FracturedStudios.Components;
+using UnityEngine.Serialization;
 
 namespace FracturedMind.AI
 {
@@ -25,13 +26,13 @@ namespace FracturedMind.AI
 
         public struct PerceptionSnapshot
         {
-            public readonly float AlertFlag;
-            public readonly float Belief;
-            public readonly Vector3? TargetPosition;
-            public readonly bool PlayerIsCrouching;
-            public readonly float LightLevel;
-            public readonly float Darkness;
-            public readonly float HalfDarkness;
+            public  float AlertFlag;
+            public float Belief;
+            public  Vector3? TargetPosition;
+            public bool PlayerIsCrouching;
+            public  float LightLevel;
+            public  float Darkness;
+            public float HalfDarkness;
 
             public PerceptionSnapshot(float alertFlag, float belief, Vector3? targetPosition, bool playerIsCrouching, float lightLevel, float darkness, float halfDarkness)
             {
@@ -45,7 +46,8 @@ namespace FracturedMind.AI
             }
         }
         [Header("Scene refs")]
-        [SerializeField] Transform eye;
+        [SerializeField] public Transform eye;
+        [SerializeField] GameObject eyeGameObject;
         [SerializeField] ThirdPersonBasic player;
 
         [Header("Query")]
@@ -65,10 +67,10 @@ namespace FracturedMind.AI
         [SerializeField] int registerCount = 8;
         [SerializeField] int memorySize = 1;
 
-        [Header("Actuation")] 
-        [SerializeField] LibrarianMode mode = LibrarianMode.Guard;
-        [SerializeField] bool pushToController = true;
-        [SerializeField] LibrarianController controller;
+        [Header("Actuation")]
+        [FormerlySerializedAs("pushToController")]
+        [SerializeField] bool pushToAgentBrain = true;
+        [SerializeField] Lib_AgentBrain agentBrain;
 
         [Header("Light")]
         [SerializeField] AiLightProcessor aiLightProcessor;
@@ -82,7 +84,7 @@ namespace FracturedMind.AI
         float _lastLightLevel = 1f;
         float _lastDarkness;
         float _lastHalfDarkness;
-        bool _lastTargetDetected;
+       public bool _lastTargetDetected;
 
         string _lightLevelDebugKey;
         string _darknessDebugKey;
@@ -95,6 +97,7 @@ namespace FracturedMind.AI
         Vector3 _lastPlayerPos;
         float _cachedCrouchSpeedMultiplier = 0.5f;
         Vector3? _bestTarget;
+        Vector3 _eyeOffsetFromLibrarian;
 
         NpuVm _vm;
         NpuVm.Instruction[] _program;
@@ -113,7 +116,7 @@ namespace FracturedMind.AI
         {
           
             if (player == null) player = ThirdPersonBasic.Instance;
-            if (controller == null) controller = GetComponent<LibrarianController>();
+            if (agentBrain == null) agentBrain = GetComponent<Lib_AgentBrain>();
             if (aiLightProcessor == null) aiLightProcessor = ResolveAiLightProcessor();
              string objectName = gameObject.name;
   int index = objectName.IndexOf("Librarian_");
@@ -124,19 +127,29 @@ if (index >= 0)
         
         if (realRigEye != null)
         {
-            eye = realRigEye;
-            VerboseLogger.SafeLog($"[Librarian] Successfully bound eye to deep rig transform: {eye.name}");
+            // Fully detach from the skinned rig so it no longer drags the model when it's rotated for scanning.
+            realRigEye.SetParent(null);
+
+            eyeGameObject = GameObject.Find("eyes");
+            if (eyeGameObject != null)
+            {
+                eye = eyeGameObject.transform;
+                eye.SetParent(null); // stay unparented from the Librarian so its rotation/scale can't leak in during scans
+                _eyeOffsetFromLibrarian = eye.position - transform.position;
+                VerboseLogger.SafeLog($"[Librarian] Successfully bound eye to deep rig transform: {eye.name}");
+            }
+            else
+            {
+                Debug.LogWarning("[Librarian] Failed to bind eye to deep rig transform, defaulting to this transform.");
+            }
         }
         else
         {
 
-            if (eye == null) eye = transform;
+         Debug.LogWarning("[Librarian] Failed to bind eye to deep rig transform, defaulting to this transform.");
         }
     }
-    else if (eye == null)
-    {
-        eye = transform;
-    }
+  
             string debugKeyPrefix = $"AI.{gameObject.name}.{GetInstanceID()}.Perception";
             _lightLevelDebugKey = debugKeyPrefix + ".LightLevel";
             _darknessDebugKey = debugKeyPrefix + ".Darkness";
@@ -202,6 +215,8 @@ if (index >= 0)
             using (PerceptionTickMarker.Auto())
             {
                 if (_vm == null || player == null || eye == null) return;
+
+                eye.position = transform.position + _eyeOffsetFromLibrarian; // follow the Librarian by position only, since eye is unparented
 
                 bool playerCrouched = IsPlayerCrouched();
                 Func<bool, float> sightRangeEvaluator = (crouched) => crouched ? crouchDistanceMultiplier : 1f;
@@ -269,14 +284,10 @@ if (index >= 0)
                     _lastAlertFlag = alertFlag;
                 }
 
-                if (pushToController && controller != null)
+                if (pushToAgentBrain && agentBrain != null)
                 {
-                    if (controller._agent == null)
-                    {
-                        VerboseLogger.SafeLog("[Librarian] Controller has no NavMeshAgent; pursuit will not move.");
-                    }
-                    VerboseLogger.SafeLog($"[Librarian] Pushing snapshot: alert={alertFlag:0.00} belief={currentBelief:0.00} targetSet={_bestTarget.HasValue} light={lightLevel:0.00} dark={darkness:0.00}");
-                    controller.OnPerceptionUpdate(new PerceptionSnapshot(alertFlag, currentBelief, _bestTarget, playerCrouched, lightLevel, darkness, halfDarkness));
+                    VerboseLogger.SafeLog($"[Librarian] Pushing snapshot to AgentBrain: alert={alertFlag:0.00} belief={currentBelief:0.00} targetSet={_bestTarget.HasValue} light={lightLevel:0.00} dark={darkness:0.00}");
+                    agentBrain.OnPerceptionUpdate(new PerceptionSnapshot(alertFlag, currentBelief, _bestTarget, playerCrouched, lightLevel, darkness, halfDarkness));
                 }
             }
         }

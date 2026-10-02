@@ -2846,8 +2846,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   debugGroundCheck: 0
-  sprintMultiplier: 2
-  crouchFallback: 0
+  sprintMultiplier: 1.2
+  crouchFallback: 1
 --- !u!114 &8500919119869538005
 MonoBehaviour:
   m_ObjectHideFlags: 0

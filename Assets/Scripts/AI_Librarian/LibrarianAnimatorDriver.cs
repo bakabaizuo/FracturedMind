@@ -1,8 +1,5 @@
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine;
-using UnityEngine.AI;
-using FracturedStudios.UI;
 
         namespace FracturedMind.AI
         {
@@ -20,32 +17,48 @@ using FracturedStudios.UI;
                 [SerializeField] private string moveXParam = "MoveX";
                 [SerializeField] private string moveZParam = "MoveZ";
                 [SerializeField] private string deltaSphereStrafingParam = "DeltaSphereStrafing";
-
+                 [SerializeField] private string animSearchPlayer = "SearchPlayer";
+                 [SerializeField] private string canSearchParam = "canSearch";
                 [Header("Tuning")]
                 [SerializeField, Range(0f, 1f)] private float parameterSmoothing = 0.18f;
                 [SerializeField, Min(0.001f)] private float deadZone = 0.02f;
 
                 Animator _animator;
-                public LibrarianController _controller;
                 public Vector3 _lastWorldPosition;
                 public Vector3 _lastForwardPosition;
                 public bool _hasLastPosition;
                 public bool _hasLastFWPosition;
                 int _moveXHash;
                 int _moveZHash;
+                int _currentAnimationHash;
                 public int LostPlayerLocAnimHash;//new 7/28/26
                 public int ISAnimDoneCounter;//new 7/28/26
                 public bool _isAnim_LPLA_Done;//new 7/28/26
                 public int _deltaSphereStrafingHash;
+                int _canSearchHash;
+                bool _hasCanSearchParam;
                 bool _paramsResolved;
-
+                bool _canSearch;
+                public bool canSearch
+                {
+                    get => _canSearch;
+                    set
+                    {
+                        _canSearch = value;
+                        if (!value)
+                            _currentAnimationHash = 0;
+                        if (_animator != null && _hasCanSearchParam)
+                            _animator.SetBool(_canSearchHash, value);
+                    }
+                }
+public bool CanSearchIsTrue => canSearch is true;
                 void Awake()
                 {
                     _animator = GetComponent<Animator>();
                     if (agent == null)
                         agent = GetComponentInParent<NavMeshAgent>();
-                    _controller ??= GetComponent<LibrarianController>();
-                    _controller ??= GetComponentInParent<LibrarianController>();
+                    if (_animator.layerCount > 0)
+                        _animator.SetLayerWeight(0, 1f);
                     _lastWorldPosition = transform.position;
                     _hasLastPosition = false;
                     
@@ -61,7 +74,6 @@ using FracturedStudios.UI;
                     if (_animator == null)
                         return;
 
-                
                     Vector3 worldVelocity = GetWorldVelocity();
                     Vector3 localVelocity = transform.InverseTransformDirection(worldVelocity);
 
@@ -76,8 +88,8 @@ using FracturedStudios.UI;
                     _animator.SetFloat(_moveXHash, smoothedX);
                     _animator.SetFloat(_moveZHash, smoothedZ);
                     _animator.SetFloat(_deltaSphereStrafingHash, smoothedDelta);
-
-                    _lastWorldPosition = _controller.RetriveLastPosition();//new 7/28/26
+if(canSearch){ LibLostPlayerAnimation(); }
+                    _lastWorldPosition = transform.position;
                     _hasLastPosition = true;
                 }
 
@@ -100,7 +112,52 @@ using FracturedStudios.UI;
                     float dt = Mathf.Max(Time.deltaTime, 0.0001f);
                     return (transform.position - _lastWorldPosition) / dt;
                 }
+     public void LibLostPlayerAnimation()
+        {
 
+            ChangeLibAnimation(animSearchPlayer, 0.1f);
+
+
+        }
+         private void ChangeLibAnimation(string animation, float crossfade = 0.1f)
+    {
+     
+            if (_animator == null)
+                return;
+
+            var stateToPlay = ResolveAnimationStateName(animation);
+            if (string.IsNullOrEmpty(stateToPlay))
+                return;
+
+            int stateHash = Animator.StringToHash(stateToPlay);
+            if (_currentAnimationHash == stateHash)
+                return;
+
+            _animator.CrossFade(stateToPlay, crossfade);
+            _currentAnimationHash = stateHash;
+        }
+    
+
+
+
+           private string ResolveAnimationStateName(string requested)
+            {
+                if (string.IsNullOrWhiteSpace(requested) || _animator == null)
+                    return null;
+
+                bool HasState(string name)
+                {
+                    if (string.IsNullOrWhiteSpace(name))
+                        return false;
+                    return _animator.HasState(0, Animator.StringToHash(name));
+                }
+
+                if (HasState(requested))
+                    return requested;
+                    else return null;
+            }
+            
+    
                 void ResolveParametersOnce()
                 {
                     if (_paramsResolved)
@@ -109,6 +166,15 @@ using FracturedStudios.UI;
                     _moveXHash = Animator.StringToHash(moveXParam);
                     _moveZHash = Animator.StringToHash(moveZParam);
                     _deltaSphereStrafingHash = Animator.StringToHash(deltaSphereStrafingParam);
+                    _canSearchHash = Animator.StringToHash(canSearchParam);
+                    foreach (AnimatorControllerParameter parameter in _animator.parameters)
+                    {
+                        if (parameter.nameHash == _canSearchHash && parameter.type == AnimatorControllerParameterType.Bool)
+                        {
+                            _hasCanSearchParam = true;
+                            break;
+                        }
+                    }
                     _paramsResolved = true;
                 }
             }

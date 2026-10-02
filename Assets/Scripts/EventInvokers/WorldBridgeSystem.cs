@@ -396,7 +396,7 @@ namespace FracturedStudios.Invoker
             {
                 var raw = getter(target);
                 return FlagSwitchDynamic.TryConvertToBits(raw, out ulong bits) && switcher.RunBits(bits);
-            }
+            } 
             catch
             {
                 var obj = GetValueByID(id, member);
@@ -584,6 +584,9 @@ namespace FracturedStudios.Invoker
         }
         #endregion
 
+
+
+
         #region Invoker Convenience
         public IDisposable RegisterInvoker(string key, Action<object[]> method, DynamicDictionaryInvoker.Layer layer = DynamicDictionaryInvoker.Layer.Func, string id = null, object metadata = null)
         {
@@ -654,7 +657,75 @@ namespace FracturedStudios.Invoker
             if (_invoker == null) return;
             _invoker.InvokeOnce(key, args);
         }
+  ///Action Section of the Class
+    ///
+    /// 
+    /// 
+    /// Do not remove Segments
+    /// 
+       // Action: does something, returns nothing.
+    public void InvokeAction(Action action)
+    {
+        action?.Invoke();
+    }
 
+    // Action with one parameter.
+    public void InvokeAction<T>(Action<T> action, T parameter)
+    {
+        action?.Invoke(parameter);
+    }
+
+    // Action with two parameters.
+    public void InvokeAction<T1, T2>(Action<T1, T2> action, T1 parameter1, T2 parameter2)
+    {
+        action?.Invoke(parameter1, parameter2);
+    }
+
+
+    // Bool condition.
+    public bool InvokeBool(Func<bool> condition)
+    {
+        return condition != null && condition();
+    }
+
+    // Bool condition with one parameter.
+    public bool InvokeBool<T>(Func<T, bool> condition, T parameter)
+    {
+        return condition != null && condition(parameter);
+    }
+
+    // Bool condition with two parameters.
+    public bool InvokeBool<T1, T2>(
+        Func<T1, T2, bool> condition,
+        T1 parameter1,
+        T2 parameter2)
+    {
+        return condition != null && condition(parameter1, parameter2);
+    }
+
+
+    // Object/value-producing function.
+    public T InvokeObject<T>(Func<T> function)
+    {
+        return function != null ? function() : default;
+    }
+
+    // Object/value-producing function with one parameter.
+    public TOutput InvokeObject<TInput, TOutput>(
+        Func<TInput, TOutput> function,
+        TInput parameter)
+    {
+        return function != null ? function(parameter) : default;
+    }
+
+    // Object/value-producing function with two parameters.
+    public TOutput InvokeObject<T1, T2, TOutput>(
+        Func<T1, T2, TOutput> function,
+        T1 parameter1,
+        T2 parameter2)
+    {
+        return function != null ? function(parameter1, parameter2) : default;
+    }
         /// <summary>
         /// Remove all registered invocation entries that match the given entry id across all keys.
         /// Returns the number of removed entries.

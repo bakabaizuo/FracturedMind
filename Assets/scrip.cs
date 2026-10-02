@@ -7,7 +7,7 @@ public class scrip : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        HierarchyLogger.LogFullHierarchy(this.transform, "Assets/HierarchyDevuiLog.txt");
+        HierarchyLogger.LogFullHierarchy(this.transform, "Assets/Librarain.txt");
     }
 
 

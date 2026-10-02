@@ -1,0 +1,1164 @@
+- Librarian (Parent: None)
+  [Component] Transform
+  [Component] Animator
+  [Component] scrip
+  - Big bangs.001 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Chest (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Coat (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Cylinder.005 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Cylinder.037 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Empty (Parent: Librarian)
+    [Component] Transform
+  - Hand sculpt.004 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Head (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - LARGE bangs.003 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - LARGE bangs.004 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - LARGE bangs.005 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Legs (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - LibrarianScalp_lowpoly (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - NurbsPath.002 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - NurbsPath.003 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Plane.003 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - rig.001 (Parent: Librarian)
+    [Component] Transform
+    - MCH-foot_ik.parent.L (Parent: rig.001)
+      [Component] Transform
+      - foot_ik.L (Parent: MCH-foot_ik.parent.L)
+        [Component] Transform
+        - foot_spin_ik.L (Parent: foot_ik.L)
+          [Component] Transform
+          - foot_heel_ik.L (Parent: foot_spin_ik.L)
+            [Component] Transform
+            - foot_heel_ik.L_end (Parent: foot_heel_ik.L)
+              [Component] Transform
+          - MCH-heel.02_rock2.L (Parent: foot_spin_ik.L)
+            [Component] Transform
+            - MCH-heel.02_rock1.L (Parent: MCH-heel.02_rock2.L)
+              [Component] Transform
+              - MCH-heel.02_roll2.L (Parent: MCH-heel.02_rock1.L)
+                [Component] Transform
+                - MCH-heel.02_roll1.L (Parent: MCH-heel.02_roll2.L)
+                  [Component] Transform
+                  - MCH-foot_roll.L (Parent: MCH-heel.02_roll1.L)
+                    [Component] Transform
+                    - MCH-thigh_ik_target.L (Parent: MCH-foot_roll.L)
+                      [Component] Transform
+                      - MCH-toe_ik_parent.L (Parent: MCH-thigh_ik_target.L)
+                        [Component] Transform
+                        - toe_ik.L (Parent: MCH-toe_ik_parent.L)
+                          [Component] Transform
+                          - toe_ik.L_end (Parent: toe_ik.L)
+                            [Component] Transform
+    - MCH-foot_ik.parent.R (Parent: rig.001)
+      [Component] Transform
+      - foot_ik.R (Parent: MCH-foot_ik.parent.R)
+        [Component] Transform
+        - foot_spin_ik.R (Parent: foot_ik.R)
+          [Component] Transform
+          - foot_heel_ik.R (Parent: foot_spin_ik.R)
+            [Component] Transform
+            - foot_heel_ik.R_end (Parent: foot_heel_ik.R)
+              [Component] Transform
+          - MCH-heel.02_rock2.R (Parent: foot_spin_ik.R)
+            [Component] Transform
+            - MCH-heel.02_rock1.R (Parent: MCH-heel.02_rock2.R)
+              [Component] Transform
+              - MCH-heel.02_roll2.R (Parent: MCH-heel.02_rock1.R)
+                [Component] Transform
+                - MCH-heel.02_roll1.R (Parent: MCH-heel.02_roll2.R)
+                  [Component] Transform
+                  - MCH-foot_roll.R (Parent: MCH-heel.02_roll1.R)
+                    [Component] Transform
+                    - MCH-thigh_ik_target.R (Parent: MCH-foot_roll.R)
+                      [Component] Transform
+                      - MCH-toe_ik_parent.R (Parent: MCH-thigh_ik_target.R)
+                        [Component] Transform
+                        - toe_ik.R (Parent: MCH-toe_ik_parent.R)
+                          [Component] Transform
+                          - toe_ik.R_end (Parent: toe_ik.R)
+                            [Component] Transform
+    - MCH-hand_ik.parent.L (Parent: rig.001)
+      [Component] Transform
+      - hand_ik.L (Parent: MCH-hand_ik.parent.L)
+        [Component] Transform
+        - MCH-upper_arm_ik_target.L (Parent: hand_ik.L)
+          [Component] Transform
+          - MCH-upper_arm_ik_target.L_end (Parent: MCH-upper_arm_ik_target.L)
+            [Component] Transform
+    - MCH-hand_ik.parent.R (Parent: rig.001)
+      [Component] Transform
+      - hand_ik.R (Parent: MCH-hand_ik.parent.R)
+        [Component] Transform
+        - MCH-upper_arm_ik_target.R (Parent: hand_ik.R)
+          [Component] Transform
+          - MCH-upper_arm_ik_target.R_end (Parent: MCH-upper_arm_ik_target.R)
+            [Component] Transform
+    - MCH-thigh_ik_target.parent.L (Parent: rig.001)
+      [Component] Transform
+      - thigh_ik_target.L (Parent: MCH-thigh_ik_target.parent.L)
+        [Component] Transform
+        - thigh_ik_target.L_end (Parent: thigh_ik_target.L)
+          [Component] Transform
+    - MCH-thigh_ik_target.parent.R (Parent: rig.001)
+      [Component] Transform
+      - thigh_ik_target.R (Parent: MCH-thigh_ik_target.parent.R)
+        [Component] Transform
+        - thigh_ik_target.R_end (Parent: thigh_ik_target.R)
+          [Component] Transform
+    - MCH-torso.parent (Parent: rig.001)
+      [Component] Transform
+      - torso (Parent: MCH-torso.parent)
+        [Component] Transform
+        - chest (Parent: torso)
+          [Component] Transform
+          - chest_end (Parent: chest)
+            [Component] Transform
+        - hips (Parent: torso)
+          [Component] Transform
+          - hips_end (Parent: hips)
+            [Component] Transform
+        - MCH-spine.001 (Parent: torso)
+          [Component] Transform
+          - spine_fk.001 (Parent: MCH-spine.001)
+            [Component] Transform
+            - MCH-spine (Parent: spine_fk.001)
+              [Component] Transform
+              - spine_fk (Parent: MCH-spine)
+                [Component] Transform
+                - MCH-WGT-hips (Parent: spine_fk)
+                  [Component] Transform
+                  - MCH-WGT-hips_end (Parent: MCH-WGT-hips)
+                    [Component] Transform
+                - tweak_spine (Parent: spine_fk)
+                  [Component] Transform
+                  - ORG-spine (Parent: tweak_spine)
+                    [Component] Transform
+                    - DEF-thigh.L (Parent: ORG-spine)
+                      [Component] Transform
+                      - DEF-thigh.L.001 (Parent: DEF-thigh.L)
+                        [Component] Transform
+                        - DEF-shin.L (Parent: DEF-thigh.L.001)
+                          [Component] Transform
+                          - DEF-shin.L.001 (Parent: DEF-shin.L)
+                            [Component] Transform
+                            - DEF-foot.L (Parent: DEF-shin.L.001)
+                              [Component] Transform
+                              - DEF-toe.L (Parent: DEF-foot.L)
+                                [Component] Transform
+                                - DEF-toe.L_end (Parent: DEF-toe.L)
+                                  [Component] Transform
+                    - DEF-thigh.R (Parent: ORG-spine)
+                      [Component] Transform
+                      - DEF-thigh.R.001 (Parent: DEF-thigh.R)
+                        [Component] Transform
+                        - DEF-shin.R (Parent: DEF-thigh.R.001)
+                          [Component] Transform
+                          - DEF-shin.R.001 (Parent: DEF-shin.R)
+                            [Component] Transform
+                            - DEF-foot.R (Parent: DEF-shin.R.001)
+                              [Component] Transform
+                              - DEF-toe.R (Parent: DEF-foot.R)
+                                [Component] Transform
+                                - DEF-toe.R_end (Parent: DEF-toe.R)
+                                  [Component] Transform
+                    - MCH-thigh_parent.L (Parent: ORG-spine)
+                      [Component] Transform
+                      - MCH-thigh_ik_swing.L (Parent: MCH-thigh_parent.L)
+                        [Component] Transform
+                        - thigh_ik.L (Parent: MCH-thigh_ik_swing.L)
+                          [Component] Transform
+                          - MCH-shin_ik.L (Parent: thigh_ik.L)
+                            [Component] Transform
+                            - MCH-shin_ik.L_end (Parent: MCH-shin_ik.L)
+                              [Component] Transform
+                      - thigh_fk.L (Parent: MCH-thigh_parent.L)
+                        [Component] Transform
+                        - shin_fk.L (Parent: thigh_fk.L)
+                          [Component] Transform
+                          - MCH-foot_fk.L (Parent: shin_fk.L)
+                            [Component] Transform
+                            - foot_fk.L (Parent: MCH-foot_fk.L)
+                              [Component] Transform
+                              - MCH-toe_fk.L (Parent: foot_fk.L)
+                                [Component] Transform
+                                - toe_fk.L (Parent: MCH-toe_fk.L)
+                                  [Component] Transform
+                                  - toe_fk.L_end (Parent: toe_fk.L)
+                                    [Component] Transform
+                    - MCH-thigh_parent.R (Parent: ORG-spine)
+                      [Component] Transform
+                      - MCH-thigh_ik_swing.R (Parent: MCH-thigh_parent.R)
+                        [Component] Transform
+                        - thigh_ik.R (Parent: MCH-thigh_ik_swing.R)
+                          [Component] Transform
+                          - MCH-shin_ik.R (Parent: thigh_ik.R)
+                            [Component] Transform
+                            - MCH-shin_ik.R_end (Parent: MCH-shin_ik.R)
+                              [Component] Transform
+                      - thigh_fk.R (Parent: MCH-thigh_parent.R)
+                        [Component] Transform
+                        - shin_fk.R (Parent: thigh_fk.R)
+                          [Component] Transform
+                          - MCH-foot_fk.R (Parent: shin_fk.R)
+                            [Component] Transform
+                            - foot_fk.R (Parent: MCH-foot_fk.R)
+                              [Component] Transform
+                              - MCH-toe_fk.R (Parent: foot_fk.R)
+                                [Component] Transform
+                                - toe_fk.R (Parent: MCH-toe_fk.R)
+                                  [Component] Transform
+                                  - toe_fk.R_end (Parent: toe_fk.R)
+                                    [Component] Transform
+                    - MCH-thigh_tweak.L (Parent: ORG-spine)
+                      [Component] Transform
+                      - thigh_tweak.L (Parent: MCH-thigh_tweak.L)
+                        [Component] Transform
+                        - thigh_tweak.L_end (Parent: thigh_tweak.L)
+                          [Component] Transform
+                    - MCH-thigh_tweak.R (Parent: ORG-spine)
+                      [Component] Transform
+                      - thigh_tweak.R (Parent: MCH-thigh_tweak.R)
+                        [Component] Transform
+                        - thigh_tweak.R_end (Parent: thigh_tweak.R)
+                          [Component] Transform
+                    - ORG-thigh.L (Parent: ORG-spine)
+                      [Component] Transform
+                      - MCH-thigh_parent_widget.L (Parent: ORG-thigh.L)
+                        [Component] Transform
+                        - MCH-thigh_parent_widget.L_end (Parent: MCH-thigh_parent_widget.L)
+                          [Component] Transform
+                      - MCH-thigh_tweak.L.001 (Parent: ORG-thigh.L)
+                        [Component] Transform
+                        - thigh_tweak.L.001 (Parent: MCH-thigh_tweak.L.001)
+                          [Component] Transform
+                          - thigh_tweak.L.001_end (Parent: thigh_tweak.L.001)
+                            [Component] Transform
+                      - ORG-shin.L (Parent: ORG-thigh.L)
+                        [Component] Transform
+                        - MCH-shin_tweak.L (Parent: ORG-shin.L)
+                          [Component] Transform
+                          - shin_tweak.L (Parent: MCH-shin_tweak.L)
+                            [Component] Transform
+                            - shin_tweak.L_end (Parent: shin_tweak.L)
+                              [Component] Transform
+                        - MCH-shin_tweak.L.001 (Parent: ORG-shin.L)
+                          [Component] Transform
+                          - shin_tweak.L.001 (Parent: MCH-shin_tweak.L.001)
+                            [Component] Transform
+                            - shin_tweak.L.001_end (Parent: shin_tweak.L.001)
+                              [Component] Transform
+                        - ORG-foot.L (Parent: ORG-shin.L)
+                          [Component] Transform
+                          - MCH-foot_tweak.L (Parent: ORG-foot.L)
+                            [Component] Transform
+                            - foot_tweak.L (Parent: MCH-foot_tweak.L)
+                              [Component] Transform
+                              - foot_tweak.L_end (Parent: foot_tweak.L)
+                                [Component] Transform
+                          - ORG-heel.02.L (Parent: ORG-foot.L)
+                            [Component] Transform
+                            - ORG-heel.02.L_end (Parent: ORG-heel.02.L)
+                              [Component] Transform
+                          - ORG-toe.L (Parent: ORG-foot.L)
+                            [Component] Transform
+                            - ORG-toe.L_end (Parent: ORG-toe.L)
+                              [Component] Transform
+                    - ORG-thigh.R (Parent: ORG-spine)
+                      [Component] Transform
+                      - MCH-thigh_parent_widget.R (Parent: ORG-thigh.R)
+                        [Component] Transform
+                        - MCH-thigh_parent_widget.R_end (Parent: MCH-thigh_parent_widget.R)
+                          [Component] Transform
+                      - MCH-thigh_tweak.R.001 (Parent: ORG-thigh.R)
+                        [Component] Transform
+                        - thigh_tweak.R.001 (Parent: MCH-thigh_tweak.R.001)
+                          [Component] Transform
+                          - thigh_tweak.R.001_end (Parent: thigh_tweak.R.001)
+                            [Component] Transform
+                      - ORG-shin.R (Parent: ORG-thigh.R)
+                        [Component] Transform
+                        - MCH-shin_tweak.R (Parent: ORG-shin.R)
+                          [Component] Transform
+                          - shin_tweak.R (Parent: MCH-shin_tweak.R)
+                            [Component] Transform
+                            - shin_tweak.R_end (Parent: shin_tweak.R)
+                              [Component] Transform
+                        - MCH-shin_tweak.R.001 (Parent: ORG-shin.R)
+                          [Component] Transform
+                          - shin_tweak.R.001 (Parent: MCH-shin_tweak.R.001)
+                            [Component] Transform
+                            - shin_tweak.R.001_end (Parent: shin_tweak.R.001)
+                              [Component] Transform
+                        - ORG-foot.R (Parent: ORG-shin.R)
+                          [Component] Transform
+                          - MCH-foot_tweak.R (Parent: ORG-foot.R)
+                            [Component] Transform
+                            - foot_tweak.R (Parent: MCH-foot_tweak.R)
+                              [Component] Transform
+                              - foot_tweak.R_end (Parent: foot_tweak.R)
+                                [Component] Transform
+                          - ORG-heel.02.R (Parent: ORG-foot.R)
+                            [Component] Transform
+                            - ORG-heel.02.R_end (Parent: ORG-heel.02.R)
+                              [Component] Transform
+                          - ORG-toe.R (Parent: ORG-foot.R)
+                            [Component] Transform
+                            - ORG-toe.R_end (Parent: ORG-toe.R)
+                              [Component] Transform
+                    - thigh_parent.L (Parent: ORG-spine)
+                      [Component] Transform
+                      - thigh_parent.L_end (Parent: thigh_parent.L)
+                        [Component] Transform
+                    - thigh_parent.R (Parent: ORG-spine)
+                      [Component] Transform
+                      - thigh_parent.R_end (Parent: thigh_parent.R)
+                        [Component] Transform
+                - tweak_spine.001 (Parent: spine_fk)
+                  [Component] Transform
+                  - ORG-spine.001 (Parent: tweak_spine.001)
+                    [Component] Transform
+                    - ORG-spine.001_end (Parent: ORG-spine.001)
+                      [Component] Transform
+        - MCH-spine.002 (Parent: torso)
+          [Component] Transform
+          - spine_fk.002 (Parent: MCH-spine.002)
+            [Component] Transform
+            - MCH-pivot (Parent: spine_fk.002)
+              [Component] Transform
+              - tweak_spine.002 (Parent: MCH-pivot)
+                [Component] Transform
+                - ORG-spine.002 (Parent: tweak_spine.002)
+                  [Component] Transform
+                  - ORG-spine.002_end (Parent: ORG-spine.002)
+                    [Component] Transform
+            - MCH-spine.003 (Parent: spine_fk.002)
+              [Component] Transform
+              - spine_fk.003 (Parent: MCH-spine.003)
+                [Component] Transform
+                - MCH-ROT-neck (Parent: spine_fk.003)
+                  [Component] Transform
+                  - neck (Parent: MCH-ROT-neck)
+                    [Component] Transform
+                    - MCH-ROT-head (Parent: neck)
+                      [Component] Transform
+                      - head (Parent: MCH-ROT-head)
+                        [Component] Transform
+                        - head_end (Parent: head)
+                          [Component] Transform
+                    - MCH-STR-neck (Parent: neck)
+                      [Component] Transform
+                      - MCH-spine.005 (Parent: MCH-STR-neck)
+                        [Component] Transform
+                        - tweak_spine.005 (Parent: MCH-spine.005)
+                          [Component] Transform
+                          - tweak_spine.005_end (Parent: tweak_spine.005)
+                            [Component] Transform
+                    - tweak_spine.004 (Parent: neck)
+                      [Component] Transform
+                      - tweak_spine.004_end (Parent: tweak_spine.004)
+                        [Component] Transform
+                - MCH-WGT-chest (Parent: spine_fk.003)
+                  [Component] Transform
+                  - MCH-WGT-chest_end (Parent: MCH-WGT-chest)
+                    [Component] Transform
+                - ORG-spine.004 (Parent: spine_fk.003)
+                  [Component] Transform
+                  - ORG-spine.005 (Parent: ORG-spine.004)
+                    [Component] Transform
+                    - ORG-spine.006 (Parent: ORG-spine.005)
+                      [Component] Transform
+                      - ORG-spine.006_end (Parent: ORG-spine.006)
+                        [Component] Transform
+                - tweak_spine.003 (Parent: spine_fk.003)
+                  [Component] Transform
+                  - ORG-spine.003 (Parent: tweak_spine.003)
+                    [Component] Transform
+                    - ORG-shoulder.L (Parent: ORG-spine.003)
+                      [Component] Transform
+                      - DEF-shoulder.L (Parent: ORG-shoulder.L)
+                        [Component] Transform
+                        - DEF-shoulder.L_end (Parent: DEF-shoulder.L)
+                          [Component] Transform
+                      - DEF-upper_arm.L (Parent: ORG-shoulder.L)
+                        [Component] Transform
+                        - DEF-upper_arm.L.001 (Parent: DEF-upper_arm.L)
+                          [Component] Transform
+                          - DEF-forearm.L (Parent: DEF-upper_arm.L.001)
+                            [Component] Transform
+                            - DEF-forearm.L.001 (Parent: DEF-forearm.L)
+                              [Component] Transform
+                              - DEF-hand.L (Parent: DEF-forearm.L.001)
+                                [Component] Transform
+                                - ORG-palm.01.L (Parent: DEF-hand.L)
+                                  [Component] Transform
+                                  - DEF-f_index.01.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - DEF-f_index.02.L (Parent: DEF-f_index.01.L)
+                                      [Component] Transform
+                                      - DEF-f_index.03.L (Parent: DEF-f_index.02.L)
+                                        [Component] Transform
+                                        - DEF-f_index.03.L_end (Parent: DEF-f_index.03.L)
+                                          [Component] Transform
+                                  - DEF-palm.01.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - DEF-palm.01.L_end (Parent: DEF-palm.01.L)
+                                      [Component] Transform
+                                  - DEF-thumb.01.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - DEF-thumb.02.L (Parent: DEF-thumb.01.L)
+                                      [Component] Transform
+                                      - DEF-thumb.03.L (Parent: DEF-thumb.02.L)
+                                        [Component] Transform
+                                        - DEF-thumb.03.L_end (Parent: DEF-thumb.03.L)
+                                          [Component] Transform
+                                  - f_index.01_master.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - f_index.01_master.L_end (Parent: f_index.01_master.L)
+                                      [Component] Transform
+                                  - MCH-f_index.01.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - MCH-f_index.01.L_end (Parent: MCH-f_index.01.L)
+                                      [Component] Transform
+                                  - MCH-f_index.01_drv.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - f_index.01.L (Parent: MCH-f_index.01_drv.L)
+                                      [Component] Transform
+                                      - MCH-f_index.02_drv.L (Parent: f_index.01.L)
+                                        [Component] Transform
+                                        - f_index.02.L (Parent: MCH-f_index.02_drv.L)
+                                          [Component] Transform
+                                          - MCH-f_index.02.L (Parent: f_index.02.L)
+                                            [Component] Transform
+                                            - MCH-f_index.02.L_end (Parent: MCH-f_index.02.L)
+                                              [Component] Transform
+                                          - MCH-f_index.03_drv.L (Parent: f_index.02.L)
+                                            [Component] Transform
+                                            - f_index.03.L (Parent: MCH-f_index.03_drv.L)
+                                              [Component] Transform
+                                              - f_index.01.L.001 (Parent: f_index.03.L)
+                                                [Component] Transform
+                                                - f_index.01.L.001_end (Parent: f_index.01.L.001)
+                                                  [Component] Transform
+                                              - MCH-f_index.03.L (Parent: f_index.03.L)
+                                                [Component] Transform
+                                                - MCH-f_index.03.L_end (Parent: MCH-f_index.03.L)
+                                                  [Component] Transform
+                                  - MCH-thumb.01.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - MCH-thumb.01.L_end (Parent: MCH-thumb.01.L)
+                                      [Component] Transform
+                                  - MCH-thumb.01_drv.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - thumb.01.L (Parent: MCH-thumb.01_drv.L)
+                                      [Component] Transform
+                                      - MCH-thumb.02_drv.L (Parent: thumb.01.L)
+                                        [Component] Transform
+                                        - thumb.02.L (Parent: MCH-thumb.02_drv.L)
+                                          [Component] Transform
+                                          - MCH-thumb.02.L (Parent: thumb.02.L)
+                                            [Component] Transform
+                                            - MCH-thumb.02.L_end (Parent: MCH-thumb.02.L)
+                                              [Component] Transform
+                                          - MCH-thumb.03_drv.L (Parent: thumb.02.L)
+                                            [Component] Transform
+                                            - thumb.03.L (Parent: MCH-thumb.03_drv.L)
+                                              [Component] Transform
+                                              - MCH-thumb.03.L (Parent: thumb.03.L)
+                                                [Component] Transform
+                                                - MCH-thumb.03.L_end (Parent: MCH-thumb.03.L)
+                                                  [Component] Transform
+                                              - thumb.01.L.001 (Parent: thumb.03.L)
+                                                [Component] Transform
+                                                - thumb.01.L.001_end (Parent: thumb.01.L.001)
+                                                  [Component] Transform
+                                  - ORG-f_index.01.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - ORG-f_index.02.L (Parent: ORG-f_index.01.L)
+                                      [Component] Transform
+                                      - ORG-f_index.03.L (Parent: ORG-f_index.02.L)
+                                        [Component] Transform
+                                        - ORG-f_index.03.L_end (Parent: ORG-f_index.03.L)
+                                          [Component] Transform
+                                  - ORG-thumb.01.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - ORG-thumb.02.L (Parent: ORG-thumb.01.L)
+                                      [Component] Transform
+                                      - ORG-thumb.03.L (Parent: ORG-thumb.02.L)
+                                        [Component] Transform
+                                        - ORG-thumb.03.L_end (Parent: ORG-thumb.03.L)
+                                          [Component] Transform
+                                  - thumb.01_master.L (Parent: ORG-palm.01.L)
+                                    [Component] Transform
+                                    - thumb.01_master.L_end (Parent: thumb.01_master.L)
+                                      [Component] Transform
+                                - ORG-palm.02.L (Parent: DEF-hand.L)
+                                  [Component] Transform
+                                  - DEF-f_middle.01.L (Parent: ORG-palm.02.L)
+                                    [Component] Transform
+                                    - DEF-f_middle.02.L (Parent: DEF-f_middle.01.L)
+                                      [Component] Transform
+                                      - DEF-f_middle.03.L (Parent: DEF-f_middle.02.L)
+                                        [Component] Transform
+                                        - DEF-f_middle.03.L_end (Parent: DEF-f_middle.03.L)
+                                          [Component] Transform
+                                  - DEF-palm.02.L (Parent: ORG-palm.02.L)
+                                    [Component] Transform
+                                    - DEF-palm.02.L_end (Parent: DEF-palm.02.L)
+                                      [Component] Transform
+                                  - f_middle.01_master.L (Parent: ORG-palm.02.L)
+                                    [Component] Transform
+                                    - f_middle.01_master.L_end (Parent: f_middle.01_master.L)
+                                      [Component] Transform
+                                  - MCH-f_middle.01.L (Parent: ORG-palm.02.L)
+                                    [Component] Transform
+                                    - MCH-f_middle.01.L_end (Parent: MCH-f_middle.01.L)
+                                      [Component] Transform
+                                  - MCH-f_middle.01_drv.L (Parent: ORG-palm.02.L)
+                                    [Component] Transform
+                                    - f_middle.01.L (Parent: MCH-f_middle.01_drv.L)
+                                      [Component] Transform
+                                      - MCH-f_middle.02_drv.L (Parent: f_middle.01.L)
+                                        [Component] Transform
+                                        - f_middle.02.L (Parent: MCH-f_middle.02_drv.L)
+                                          [Component] Transform
+                                          - MCH-f_middle.02.L (Parent: f_middle.02.L)
+                                            [Component] Transform
+                                            - MCH-f_middle.02.L_end (Parent: MCH-f_middle.02.L)
+                                              [Component] Transform
+                                          - MCH-f_middle.03_drv.L (Parent: f_middle.02.L)
+                                            [Component] Transform
+                                            - f_middle.03.L (Parent: MCH-f_middle.03_drv.L)
+                                              [Component] Transform
+                                              - f_middle.01.L.001 (Parent: f_middle.03.L)
+                                                [Component] Transform
+                                                - f_middle.01.L.001_end (Parent: f_middle.01.L.001)
+                                                  [Component] Transform
+                                              - MCH-f_middle.03.L (Parent: f_middle.03.L)
+                                                [Component] Transform
+                                                - MCH-f_middle.03.L_end (Parent: MCH-f_middle.03.L)
+                                                  [Component] Transform
+                                  - ORG-f_middle.01.L (Parent: ORG-palm.02.L)
+                                    [Component] Transform
+                                    - ORG-f_middle.02.L (Parent: ORG-f_middle.01.L)
+                                      [Component] Transform
+                                      - ORG-f_middle.03.L (Parent: ORG-f_middle.02.L)
+                                        [Component] Transform
+                                        - ORG-f_middle.03.L_end (Parent: ORG-f_middle.03.L)
+                                          [Component] Transform
+                                - ORG-palm.03.L (Parent: DEF-hand.L)
+                                  [Component] Transform
+                                  - DEF-f_ring.01.L (Parent: ORG-palm.03.L)
+                                    [Component] Transform
+                                    - DEF-f_ring.02.L (Parent: DEF-f_ring.01.L)
+                                      [Component] Transform
+                                      - DEF-f_ring.03.L (Parent: DEF-f_ring.02.L)
+                                        [Component] Transform
+                                        - DEF-f_ring.03.L_end (Parent: DEF-f_ring.03.L)
+                                          [Component] Transform
+                                  - DEF-palm.03.L (Parent: ORG-palm.03.L)
+                                    [Component] Transform
+                                    - DEF-palm.03.L_end (Parent: DEF-palm.03.L)
+                                      [Component] Transform
+                                  - f_ring.01_master.L (Parent: ORG-palm.03.L)
+                                    [Component] Transform
+                                    - f_ring.01_master.L_end (Parent: f_ring.01_master.L)
+                                      [Component] Transform
+                                  - MCH-f_ring.01.L (Parent: ORG-palm.03.L)
+                                    [Component] Transform
+                                    - MCH-f_ring.01.L_end (Parent: MCH-f_ring.01.L)
+                                      [Component] Transform
+                                  - MCH-f_ring.01_drv.L (Parent: ORG-palm.03.L)
+                                    [Component] Transform
+                                    - f_ring.01.L (Parent: MCH-f_ring.01_drv.L)
+                                      [Component] Transform
+                                      - MCH-f_ring.02_drv.L (Parent: f_ring.01.L)
+                                        [Component] Transform
+                                        - f_ring.02.L (Parent: MCH-f_ring.02_drv.L)
+                                          [Component] Transform
+                                          - MCH-f_ring.02.L (Parent: f_ring.02.L)
+                                            [Component] Transform
+                                            - MCH-f_ring.02.L_end (Parent: MCH-f_ring.02.L)
+                                              [Component] Transform
+                                          - MCH-f_ring.03_drv.L (Parent: f_ring.02.L)
+                                            [Component] Transform
+                                            - f_ring.03.L (Parent: MCH-f_ring.03_drv.L)
+                                              [Component] Transform
+                                              - f_ring.01.L.001 (Parent: f_ring.03.L)
+                                                [Component] Transform
+                                                - f_ring.01.L.001_end (Parent: f_ring.01.L.001)
+                                                  [Component] Transform
+                                              - MCH-f_ring.03.L (Parent: f_ring.03.L)
+                                                [Component] Transform
+                                                - MCH-f_ring.03.L_end (Parent: MCH-f_ring.03.L)
+                                                  [Component] Transform
+                                  - ORG-f_ring.01.L (Parent: ORG-palm.03.L)
+                                    [Component] Transform
+                                    - ORG-f_ring.02.L (Parent: ORG-f_ring.01.L)
+                                      [Component] Transform
+                                      - ORG-f_ring.03.L (Parent: ORG-f_ring.02.L)
+                                        [Component] Transform
+                                        - ORG-f_ring.03.L_end (Parent: ORG-f_ring.03.L)
+                                          [Component] Transform
+                                - ORG-palm.04.L (Parent: DEF-hand.L)
+                                  [Component] Transform
+                                  - DEF-f_pinky.01.L (Parent: ORG-palm.04.L)
+                                    [Component] Transform
+                                    - DEF-f_pinky.02.L (Parent: DEF-f_pinky.01.L)
+                                      [Component] Transform
+                                      - DEF-f_pinky.03.L (Parent: DEF-f_pinky.02.L)
+                                        [Component] Transform
+                                        - DEF-f_pinky.03.L_end (Parent: DEF-f_pinky.03.L)
+                                          [Component] Transform
+                                  - DEF-palm.04.L (Parent: ORG-palm.04.L)
+                                    [Component] Transform
+                                    - DEF-palm.04.L_end (Parent: DEF-palm.04.L)
+                                      [Component] Transform
+                                  - f_pinky.01_master.L (Parent: ORG-palm.04.L)
+                                    [Component] Transform
+                                    - f_pinky.01_master.L_end (Parent: f_pinky.01_master.L)
+                                      [Component] Transform
+                                  - MCH-f_pinky.01.L (Parent: ORG-palm.04.L)
+                                    [Component] Transform
+                                    - MCH-f_pinky.01.L_end (Parent: MCH-f_pinky.01.L)
+                                      [Component] Transform
+                                  - MCH-f_pinky.01_drv.L (Parent: ORG-palm.04.L)
+                                    [Component] Transform
+                                    - f_pinky.01.L (Parent: MCH-f_pinky.01_drv.L)
+                                      [Component] Transform
+                                      - MCH-f_pinky.02_drv.L (Parent: f_pinky.01.L)
+                                        [Component] Transform
+                                        - f_pinky.02.L (Parent: MCH-f_pinky.02_drv.L)
+                                          [Component] Transform
+                                          - MCH-f_pinky.02.L (Parent: f_pinky.02.L)
+                                            [Component] Transform
+                                            - MCH-f_pinky.02.L_end (Parent: MCH-f_pinky.02.L)
+                                              [Component] Transform
+                                          - MCH-f_pinky.03_drv.L (Parent: f_pinky.02.L)
+                                            [Component] Transform
+                                            - f_pinky.03.L (Parent: MCH-f_pinky.03_drv.L)
+                                              [Component] Transform
+                                              - f_pinky.01.L.001 (Parent: f_pinky.03.L)
+                                                [Component] Transform
+                                                - f_pinky.01.L.001_end (Parent: f_pinky.01.L.001)
+                                                  [Component] Transform
+                                              - MCH-f_pinky.03.L (Parent: f_pinky.03.L)
+                                                [Component] Transform
+                                                - MCH-f_pinky.03.L_end (Parent: MCH-f_pinky.03.L)
+                                                  [Component] Transform
+                                  - ORG-f_pinky.01.L (Parent: ORG-palm.04.L)
+                                    [Component] Transform
+                                    - ORG-f_pinky.02.L (Parent: ORG-f_pinky.01.L)
+                                      [Component] Transform
+                                      - ORG-f_pinky.03.L (Parent: ORG-f_pinky.02.L)
+                                        [Component] Transform
+                                        - ORG-f_pinky.03.L_end (Parent: ORG-f_pinky.03.L)
+                                          [Component] Transform
+                                - palm.L (Parent: DEF-hand.L)
+                                  [Component] Transform
+                                  - palm.L_end (Parent: palm.L)
+                                    [Component] Transform
+                      - MCH-upper_arm_parent.L (Parent: ORG-shoulder.L)
+                        [Component] Transform
+                        - MCH-upper_arm_ik_swing.L (Parent: MCH-upper_arm_parent.L)
+                          [Component] Transform
+                          - upper_arm_ik.L (Parent: MCH-upper_arm_ik_swing.L)
+                            [Component] Transform
+                            - MCH-forearm_ik.L (Parent: upper_arm_ik.L)
+                              [Component] Transform
+                              - MCH-forearm_ik.L_end (Parent: MCH-forearm_ik.L)
+                                [Component] Transform
+                        - upper_arm_fk.L (Parent: MCH-upper_arm_parent.L)
+                          [Component] Transform
+                          - forearm_fk.L (Parent: upper_arm_fk.L)
+                            [Component] Transform
+                            - MCH-hand_fk.L (Parent: forearm_fk.L)
+                              [Component] Transform
+                              - hand_fk.L (Parent: MCH-hand_fk.L)
+                                [Component] Transform
+                                - hand_fk.L_end (Parent: hand_fk.L)
+                                  [Component] Transform
+                      - MCH-upper_arm_tweak.L (Parent: ORG-shoulder.L)
+                        [Component] Transform
+                        - upper_arm_tweak.L (Parent: MCH-upper_arm_tweak.L)
+                          [Component] Transform
+                          - upper_arm_tweak.L_end (Parent: upper_arm_tweak.L)
+                            [Component] Transform
+                      - ORG-upper_arm.L (Parent: ORG-shoulder.L)
+                        [Component] Transform
+                        - MCH-upper_arm_parent_widget.L (Parent: ORG-upper_arm.L)
+                          [Component] Transform
+                          - MCH-upper_arm_parent_widget.L_end (Parent: MCH-upper_arm_parent_widget.L)
+                            [Component] Transform
+                        - MCH-upper_arm_tweak.L.001 (Parent: ORG-upper_arm.L)
+                          [Component] Transform
+                          - upper_arm_tweak.L.001 (Parent: MCH-upper_arm_tweak.L.001)
+                            [Component] Transform
+                            - upper_arm_tweak.L.001_end (Parent: upper_arm_tweak.L.001)
+                              [Component] Transform
+                        - ORG-forearm.L (Parent: ORG-upper_arm.L)
+                          [Component] Transform
+                          - MCH-forearm_tweak.L (Parent: ORG-forearm.L)
+                            [Component] Transform
+                            - forearm_tweak.L (Parent: MCH-forearm_tweak.L)
+                              [Component] Transform
+                              - forearm_tweak.L_end (Parent: forearm_tweak.L)
+                                [Component] Transform
+                          - MCH-forearm_tweak.L.001 (Parent: ORG-forearm.L)
+                            [Component] Transform
+                            - forearm_tweak.L.001 (Parent: MCH-forearm_tweak.L.001)
+                              [Component] Transform
+                              - forearm_tweak.L.001_end (Parent: forearm_tweak.L.001)
+                                [Component] Transform
+                          - ORG-hand.L (Parent: ORG-forearm.L)
+                            [Component] Transform
+                            - MCH-hand_tweak.L (Parent: ORG-hand.L)
+                              [Component] Transform
+                              - hand_tweak.L (Parent: MCH-hand_tweak.L)
+                                [Component] Transform
+                                - hand_tweak.L_end (Parent: hand_tweak.L)
+                                  [Component] Transform
+                      - upper_arm_parent.L (Parent: ORG-shoulder.L)
+                        [Component] Transform
+                        - upper_arm_parent.L_end (Parent: upper_arm_parent.L)
+                          [Component] Transform
+                    - ORG-shoulder.R (Parent: ORG-spine.003)
+                      [Component] Transform
+                      - DEF-shoulder.R (Parent: ORG-shoulder.R)
+                        [Component] Transform
+                        - DEF-shoulder.R_end (Parent: DEF-shoulder.R)
+                          [Component] Transform
+                      - DEF-upper_arm.R (Parent: ORG-shoulder.R)
+                        [Component] Transform
+                        - DEF-upper_arm.R.001 (Parent: DEF-upper_arm.R)
+                          [Component] Transform
+                          - DEF-forearm.R (Parent: DEF-upper_arm.R.001)
+                            [Component] Transform
+                            - DEF-forearm.R.001 (Parent: DEF-forearm.R)
+                              [Component] Transform
+                              - DEF-hand.R (Parent: DEF-forearm.R.001)
+                                [Component] Transform
+                                - ORG-palm.01.R (Parent: DEF-hand.R)
+                                  [Component] Transform
+                                  - DEF-f_index.01.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - DEF-f_index.02.R (Parent: DEF-f_index.01.R)
+                                      [Component] Transform
+                                      - DEF-f_index.03.R (Parent: DEF-f_index.02.R)
+                                        [Component] Transform
+                                        - DEF-f_index.03.R_end (Parent: DEF-f_index.03.R)
+                                          [Component] Transform
+                                  - DEF-palm.01.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - DEF-palm.01.R_end (Parent: DEF-palm.01.R)
+                                      [Component] Transform
+                                  - DEF-thumb.01.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - DEF-thumb.02.R (Parent: DEF-thumb.01.R)
+                                      [Component] Transform
+                                      - DEF-thumb.03.R (Parent: DEF-thumb.02.R)
+                                        [Component] Transform
+                                        - DEF-thumb.03.R_end (Parent: DEF-thumb.03.R)
+                                          [Component] Transform
+                                  - f_index.01_master.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - f_index.01_master.R_end (Parent: f_index.01_master.R)
+                                      [Component] Transform
+                                  - MCH-f_index.01.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - MCH-f_index.01.R_end (Parent: MCH-f_index.01.R)
+                                      [Component] Transform
+                                  - MCH-f_index.01_drv.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - f_index.01.R (Parent: MCH-f_index.01_drv.R)
+                                      [Component] Transform
+                                      - MCH-f_index.02_drv.R (Parent: f_index.01.R)
+                                        [Component] Transform
+                                        - f_index.02.R (Parent: MCH-f_index.02_drv.R)
+                                          [Component] Transform
+                                          - MCH-f_index.02.R (Parent: f_index.02.R)
+                                            [Component] Transform
+                                            - MCH-f_index.02.R_end (Parent: MCH-f_index.02.R)
+                                              [Component] Transform
+                                          - MCH-f_index.03_drv.R (Parent: f_index.02.R)
+                                            [Component] Transform
+                                            - f_index.03.R (Parent: MCH-f_index.03_drv.R)
+                                              [Component] Transform
+                                              - f_index.01.R.001 (Parent: f_index.03.R)
+                                                [Component] Transform
+                                                - f_index.01.R.001_end (Parent: f_index.01.R.001)
+                                                  [Component] Transform
+                                              - MCH-f_index.03.R (Parent: f_index.03.R)
+                                                [Component] Transform
+                                                - MCH-f_index.03.R_end (Parent: MCH-f_index.03.R)
+                                                  [Component] Transform
+                                  - MCH-thumb.01.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - MCH-thumb.01.R_end (Parent: MCH-thumb.01.R)
+                                      [Component] Transform
+                                  - MCH-thumb.01_drv.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - thumb.01.R (Parent: MCH-thumb.01_drv.R)
+                                      [Component] Transform
+                                      - MCH-thumb.02_drv.R (Parent: thumb.01.R)
+                                        [Component] Transform
+                                        - thumb.02.R (Parent: MCH-thumb.02_drv.R)
+                                          [Component] Transform
+                                          - MCH-thumb.02.R (Parent: thumb.02.R)
+                                            [Component] Transform
+                                            - MCH-thumb.02.R_end (Parent: MCH-thumb.02.R)
+                                              [Component] Transform
+                                          - MCH-thumb.03_drv.R (Parent: thumb.02.R)
+                                            [Component] Transform
+                                            - thumb.03.R (Parent: MCH-thumb.03_drv.R)
+                                              [Component] Transform
+                                              - MCH-thumb.03.R (Parent: thumb.03.R)
+                                                [Component] Transform
+                                                - MCH-thumb.03.R_end (Parent: MCH-thumb.03.R)
+                                                  [Component] Transform
+                                              - thumb.01.R.001 (Parent: thumb.03.R)
+                                                [Component] Transform
+                                                - thumb.01.R.001_end (Parent: thumb.01.R.001)
+                                                  [Component] Transform
+                                  - ORG-f_index.01.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - ORG-f_index.02.R (Parent: ORG-f_index.01.R)
+                                      [Component] Transform
+                                      - ORG-f_index.03.R (Parent: ORG-f_index.02.R)
+                                        [Component] Transform
+                                        - ORG-f_index.03.R_end (Parent: ORG-f_index.03.R)
+                                          [Component] Transform
+                                  - ORG-thumb.01.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - ORG-thumb.02.R (Parent: ORG-thumb.01.R)
+                                      [Component] Transform
+                                      - ORG-thumb.03.R (Parent: ORG-thumb.02.R)
+                                        [Component] Transform
+                                        - ORG-thumb.03.R_end (Parent: ORG-thumb.03.R)
+                                          [Component] Transform
+                                  - thumb.01_master.R (Parent: ORG-palm.01.R)
+                                    [Component] Transform
+                                    - thumb.01_master.R_end (Parent: thumb.01_master.R)
+                                      [Component] Transform
+                                - ORG-palm.02.R (Parent: DEF-hand.R)
+                                  [Component] Transform
+                                  - DEF-f_middle.01.R (Parent: ORG-palm.02.R)
+                                    [Component] Transform
+                                    - DEF-f_middle.02.R (Parent: DEF-f_middle.01.R)
+                                      [Component] Transform
+                                      - DEF-f_middle.03.R (Parent: DEF-f_middle.02.R)
+                                        [Component] Transform
+                                        - DEF-f_middle.03.R_end (Parent: DEF-f_middle.03.R)
+                                          [Component] Transform
+                                  - DEF-palm.02.R (Parent: ORG-palm.02.R)
+                                    [Component] Transform
+                                    - DEF-palm.02.R_end (Parent: DEF-palm.02.R)
+                                      [Component] Transform
+                                  - f_middle.01_master.R (Parent: ORG-palm.02.R)
+                                    [Component] Transform
+                                    - f_middle.01_master.R_end (Parent: f_middle.01_master.R)
+                                      [Component] Transform
+                                  - MCH-f_middle.01.R (Parent: ORG-palm.02.R)
+                                    [Component] Transform
+                                    - MCH-f_middle.01.R_end (Parent: MCH-f_middle.01.R)
+                                      [Component] Transform
+                                  - MCH-f_middle.01_drv.R (Parent: ORG-palm.02.R)
+                                    [Component] Transform
+                                    - f_middle.01.R (Parent: MCH-f_middle.01_drv.R)
+                                      [Component] Transform
+                                      - MCH-f_middle.02_drv.R (Parent: f_middle.01.R)
+                                        [Component] Transform
+                                        - f_middle.02.R (Parent: MCH-f_middle.02_drv.R)
+                                          [Component] Transform
+                                          - MCH-f_middle.02.R (Parent: f_middle.02.R)
+                                            [Component] Transform
+                                            - MCH-f_middle.02.R_end (Parent: MCH-f_middle.02.R)
+                                              [Component] Transform
+                                          - MCH-f_middle.03_drv.R (Parent: f_middle.02.R)
+                                            [Component] Transform
+                                            - f_middle.03.R (Parent: MCH-f_middle.03_drv.R)
+                                              [Component] Transform
+                                              - f_middle.01.R.001 (Parent: f_middle.03.R)
+                                                [Component] Transform
+                                                - f_middle.01.R.001_end (Parent: f_middle.01.R.001)
+                                                  [Component] Transform
+                                              - MCH-f_middle.03.R (Parent: f_middle.03.R)
+                                                [Component] Transform
+                                                - MCH-f_middle.03.R_end (Parent: MCH-f_middle.03.R)
+                                                  [Component] Transform
+                                  - ORG-f_middle.01.R (Parent: ORG-palm.02.R)
+                                    [Component] Transform
+                                    - ORG-f_middle.02.R (Parent: ORG-f_middle.01.R)
+                                      [Component] Transform
+                                      - ORG-f_middle.03.R (Parent: ORG-f_middle.02.R)
+                                        [Component] Transform
+                                        - ORG-f_middle.03.R_end (Parent: ORG-f_middle.03.R)
+                                          [Component] Transform
+                                - ORG-palm.03.R (Parent: DEF-hand.R)
+                                  [Component] Transform
+                                  - DEF-f_ring.01.R (Parent: ORG-palm.03.R)
+                                    [Component] Transform
+                                    - DEF-f_ring.02.R (Parent: DEF-f_ring.01.R)
+                                      [Component] Transform
+                                      - DEF-f_ring.03.R (Parent: DEF-f_ring.02.R)
+                                        [Component] Transform
+                                        - DEF-f_ring.03.R_end (Parent: DEF-f_ring.03.R)
+                                          [Component] Transform
+                                  - DEF-palm.03.R (Parent: ORG-palm.03.R)
+                                    [Component] Transform
+                                    - DEF-palm.03.R_end (Parent: DEF-palm.03.R)
+                                      [Component] Transform
+                                  - f_ring.01_master.R (Parent: ORG-palm.03.R)
+                                    [Component] Transform
+                                    - f_ring.01_master.R_end (Parent: f_ring.01_master.R)
+                                      [Component] Transform
+                                  - MCH-f_ring.01.R (Parent: ORG-palm.03.R)
+                                    [Component] Transform
+                                    - MCH-f_ring.01.R_end (Parent: MCH-f_ring.01.R)
+                                      [Component] Transform
+                                  - MCH-f_ring.01_drv.R (Parent: ORG-palm.03.R)
+                                    [Component] Transform
+                                    - f_ring.01.R (Parent: MCH-f_ring.01_drv.R)
+                                      [Component] Transform
+                                      - MCH-f_ring.02_drv.R (Parent: f_ring.01.R)
+                                        [Component] Transform
+                                        - f_ring.02.R (Parent: MCH-f_ring.02_drv.R)
+                                          [Component] Transform
+                                          - MCH-f_ring.02.R (Parent: f_ring.02.R)
+                                            [Component] Transform
+                                            - MCH-f_ring.02.R_end (Parent: MCH-f_ring.02.R)
+                                              [Component] Transform
+                                          - MCH-f_ring.03_drv.R (Parent: f_ring.02.R)
+                                            [Component] Transform
+                                            - f_ring.03.R (Parent: MCH-f_ring.03_drv.R)
+                                              [Component] Transform
+                                              - f_ring.01.R.001 (Parent: f_ring.03.R)
+                                                [Component] Transform
+                                                - f_ring.01.R.001_end (Parent: f_ring.01.R.001)
+                                                  [Component] Transform
+                                              - MCH-f_ring.03.R (Parent: f_ring.03.R)
+                                                [Component] Transform
+                                                - MCH-f_ring.03.R_end (Parent: MCH-f_ring.03.R)
+                                                  [Component] Transform
+                                  - ORG-f_ring.01.R (Parent: ORG-palm.03.R)
+                                    [Component] Transform
+                                    - ORG-f_ring.02.R (Parent: ORG-f_ring.01.R)
+                                      [Component] Transform
+                                      - ORG-f_ring.03.R (Parent: ORG-f_ring.02.R)
+                                        [Component] Transform
+                                        - ORG-f_ring.03.R_end (Parent: ORG-f_ring.03.R)
+                                          [Component] Transform
+                                - ORG-palm.04.R (Parent: DEF-hand.R)
+                                  [Component] Transform
+                                  - DEF-f_pinky.01.R (Parent: ORG-palm.04.R)
+                                    [Component] Transform
+                                    - DEF-f_pinky.02.R (Parent: DEF-f_pinky.01.R)
+                                      [Component] Transform
+                                      - DEF-f_pinky.03.R (Parent: DEF-f_pinky.02.R)
+                                        [Component] Transform
+                                        - DEF-f_pinky.03.R_end (Parent: DEF-f_pinky.03.R)
+                                          [Component] Transform
+                                  - DEF-palm.04.R (Parent: ORG-palm.04.R)
+                                    [Component] Transform
+                                    - DEF-palm.04.R_end (Parent: DEF-palm.04.R)
+                                      [Component] Transform
+                                  - f_pinky.01_master.R (Parent: ORG-palm.04.R)
+                                    [Component] Transform
+                                    - f_pinky.01_master.R_end (Parent: f_pinky.01_master.R)
+                                      [Component] Transform
+                                  - MCH-f_pinky.01.R (Parent: ORG-palm.04.R)
+                                    [Component] Transform
+                                    - MCH-f_pinky.01.R_end (Parent: MCH-f_pinky.01.R)
+                                      [Component] Transform
+                                  - MCH-f_pinky.01_drv.R (Parent: ORG-palm.04.R)
+                                    [Component] Transform
+                                    - f_pinky.01.R (Parent: MCH-f_pinky.01_drv.R)
+                                      [Component] Transform
+                                      - MCH-f_pinky.02_drv.R (Parent: f_pinky.01.R)
+                                        [Component] Transform
+                                        - f_pinky.02.R (Parent: MCH-f_pinky.02_drv.R)
+                                          [Component] Transform
+                                          - MCH-f_pinky.02.R (Parent: f_pinky.02.R)
+                                            [Component] Transform
+                                            - MCH-f_pinky.02.R_end (Parent: MCH-f_pinky.02.R)
+                                              [Component] Transform
+                                          - MCH-f_pinky.03_drv.R (Parent: f_pinky.02.R)
+                                            [Component] Transform
+                                            - f_pinky.03.R (Parent: MCH-f_pinky.03_drv.R)
+                                              [Component] Transform
+                                              - f_pinky.01.R.001 (Parent: f_pinky.03.R)
+                                                [Component] Transform
+                                                - f_pinky.01.R.001_end (Parent: f_pinky.01.R.001)
+                                                  [Component] Transform
+                                              - MCH-f_pinky.03.R (Parent: f_pinky.03.R)
+                                                [Component] Transform
+                                                - MCH-f_pinky.03.R_end (Parent: MCH-f_pinky.03.R)
+                                                  [Component] Transform
+                                  - ORG-f_pinky.01.R (Parent: ORG-palm.04.R)
+                                    [Component] Transform
+                                    - ORG-f_pinky.02.R (Parent: ORG-f_pinky.01.R)
+                                      [Component] Transform
+                                      - ORG-f_pinky.03.R (Parent: ORG-f_pinky.02.R)
+                                        [Component] Transform
+                                        - ORG-f_pinky.03.R_end (Parent: ORG-f_pinky.03.R)
+                                          [Component] Transform
+                                - palm.R (Parent: DEF-hand.R)
+                                  [Component] Transform
+                                  - palm.R_end (Parent: palm.R)
+                                    [Component] Transform
+                      - MCH-upper_arm_parent.R (Parent: ORG-shoulder.R)
+                        [Component] Transform
+                        - MCH-upper_arm_ik_swing.R (Parent: MCH-upper_arm_parent.R)
+                          [Component] Transform
+                          - upper_arm_ik.R (Parent: MCH-upper_arm_ik_swing.R)
+                            [Component] Transform
+                            - MCH-forearm_ik.R (Parent: upper_arm_ik.R)
+                              [Component] Transform
+                              - MCH-forearm_ik.R_end (Parent: MCH-forearm_ik.R)
+                                [Component] Transform
+                        - upper_arm_fk.R (Parent: MCH-upper_arm_parent.R)
+                          [Component] Transform
+                          - forearm_fk.R (Parent: upper_arm_fk.R)
+                            [Component] Transform
+                            - MCH-hand_fk.R (Parent: forearm_fk.R)
+                              [Component] Transform
+                              - hand_fk.R (Parent: MCH-hand_fk.R)
+                                [Component] Transform
+                                - hand_fk.R_end (Parent: hand_fk.R)
+                                  [Component] Transform
+                      - MCH-upper_arm_tweak.R (Parent: ORG-shoulder.R)
+                        [Component] Transform
+                        - upper_arm_tweak.R (Parent: MCH-upper_arm_tweak.R)
+                          [Component] Transform
+                          - upper_arm_tweak.R_end (Parent: upper_arm_tweak.R)
+                            [Component] Transform
+                      - ORG-upper_arm.R (Parent: ORG-shoulder.R)
+                        [Component] Transform
+                        - MCH-upper_arm_parent_widget.R (Parent: ORG-upper_arm.R)
+                          [Component] Transform
+                          - MCH-upper_arm_parent_widget.R_end (Parent: MCH-upper_arm_parent_widget.R)
+                            [Component] Transform
+                        - MCH-upper_arm_tweak.R.001 (Parent: ORG-upper_arm.R)
+                          [Component] Transform
+                          - upper_arm_tweak.R.001 (Parent: MCH-upper_arm_tweak.R.001)
+                            [Component] Transform
+                            - upper_arm_tweak.R.001_end (Parent: upper_arm_tweak.R.001)
+                              [Component] Transform
+                        - ORG-forearm.R (Parent: ORG-upper_arm.R)
+                          [Component] Transform
+                          - MCH-forearm_tweak.R (Parent: ORG-forearm.R)
+                            [Component] Transform
+                            - forearm_tweak.R (Parent: MCH-forearm_tweak.R)
+                              [Component] Transform
+                              - forearm_tweak.R_end (Parent: forearm_tweak.R)
+                                [Component] Transform
+                          - MCH-forearm_tweak.R.001 (Parent: ORG-forearm.R)
+                            [Component] Transform
+                            - forearm_tweak.R.001 (Parent: MCH-forearm_tweak.R.001)
+                              [Component] Transform
+                              - forearm_tweak.R.001_end (Parent: forearm_tweak.R.001)
+                                [Component] Transform
+                          - ORG-hand.R (Parent: ORG-forearm.R)
+                            [Component] Transform
+                            - MCH-hand_tweak.R (Parent: ORG-hand.R)
+                              [Component] Transform
+                              - hand_tweak.R (Parent: MCH-hand_tweak.R)
+                                [Component] Transform
+                                - hand_tweak.R_end (Parent: hand_tweak.R)
+                                  [Component] Transform
+                      - upper_arm_parent.R (Parent: ORG-shoulder.R)
+                        [Component] Transform
+                        - upper_arm_parent.R_end (Parent: upper_arm_parent.R)
+                          [Component] Transform
+                    - shoulder.L (Parent: ORG-spine.003)
+                      [Component] Transform
+                      - shoulder.L_end (Parent: shoulder.L)
+                        [Component] Transform
+                    - shoulder.R (Parent: ORG-spine.003)
+                      [Component] Transform
+                      - shoulder.R_end (Parent: shoulder.R)
+                        [Component] Transform
+    - MCH-upper_arm_ik_target.parent.L (Parent: rig.001)
+      [Component] Transform
+      - upper_arm_ik_target.L (Parent: MCH-upper_arm_ik_target.parent.L)
+        [Component] Transform
+        - upper_arm_ik_target.L_end (Parent: upper_arm_ik_target.L)
+          [Component] Transform
+    - MCH-upper_arm_ik_target.parent.R (Parent: rig.001)
+      [Component] Transform
+      - upper_arm_ik_target.R (Parent: MCH-upper_arm_ik_target.parent.R)
+        [Component] Transform
+        - upper_arm_ik_target.R_end (Parent: upper_arm_ik_target.R)
+          [Component] Transform
+    - root (Parent: rig.001)
+      [Component] Transform
+      - DEF-spine (Parent: root)
+        [Component] Transform
+        - DEF-spine.001 (Parent: DEF-spine)
+          [Component] Transform
+          - DEF-spine.002 (Parent: DEF-spine.001)
+            [Component] Transform
+            - DEF-spine.003 (Parent: DEF-spine.002)
+              [Component] Transform
+              - DEF-spine.004 (Parent: DEF-spine.003)
+                [Component] Transform
+                - DEF-spine.005 (Parent: DEF-spine.004)
+                  [Component] Transform
+                  - DEF-spine.006 (Parent: DEF-spine.005)
+                    [Component] Transform
+                    - DEF-spine.006_end (Parent: DEF-spine.006)
+                      [Component] Transform
+      - VIS_thigh_ik_pole.L (Parent: root)
+        [Component] Transform
+        - VIS_thigh_ik_pole.L_end (Parent: VIS_thigh_ik_pole.L)
+          [Component] Transform
+      - VIS_thigh_ik_pole.R (Parent: root)
+        [Component] Transform
+        - VIS_thigh_ik_pole.R_end (Parent: VIS_thigh_ik_pole.R)
+          [Component] Transform
+      - VIS_upper_arm_ik_pole.L (Parent: root)
+        [Component] Transform
+        - VIS_upper_arm_ik_pole.L_end (Parent: VIS_upper_arm_ik_pole.L)
+          [Component] Transform
+      - VIS_upper_arm_ik_pole.R (Parent: root)
+        [Component] Transform
+        - VIS_upper_arm_ik_pole.R_end (Parent: VIS_upper_arm_ik_pole.R)
+          [Component] Transform
+  - Sphere.004 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Torus (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
+  - Torus.001 (Parent: Librarian)
+    [Component] Transform
+    [Component] SkinnedMeshRenderer
